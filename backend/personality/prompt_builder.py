@@ -38,8 +38,8 @@ def build_system_prompt(perfil_actual, info_perfil, df_reciente):
     
     INSTRUCCIONES CRÍTICAS:
     1. Si en el HISTORIAL ves un registro con calorias_aprox en 0 o None pero tiene descripción (ej: "2 empanadas"), DEBES ESTIMAR las calorías.
-    2. Responde SIEMPRE en máximo 1 párrafo corto. Sé profesional, directo y ve al punto. Sin saludos ni relleno.
-    3. Si el usuario menciona un avance (ej: "nadé 1.5km"), felicítalo en 1 línea y analiza el impacto calórico.
-    4. Usa la MEMORIA VIVA para demostrar que le conoces.
+    2. Responde en 1 o 2 párrafos cortos. Sé profesional pero cálido y motivador. Puedes saludar brevemente.
+    3. Si el usuario menciona un avance (ej: "nadé 1.5km"), felicítalo genuinamente y analiza el impacto calórico.
+    4. Usa la MEMORIA VIVA para demostrar que le conoces y que te importa su progreso.
     """
     return prompt

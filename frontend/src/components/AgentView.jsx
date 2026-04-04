@@ -175,13 +175,20 @@ export default function AgentView({ perfil, onLoadRutina }) {
                   <Dumbbell size={15} color="#38bdf8" />
                   <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#38bdf8' }}>Rutina Generada · {msg.rutina_generada.length} ejercicios</span>
                 </div>
-                <div style={{ padding: '0.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <div style={{ padding: '0.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                   {msg.rutina_generada.map((ej, j) => (
-                    <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
-                      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(56,189,248,0.15)', color: '#38bdf8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>{j + 1}</span>
-                      <div>
-                        <div style={{ fontSize: '0.83rem', fontWeight: 600 }}>{ej.nombre_es}</div>
-                        <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{ej.target}</div>
+                    <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.4rem 0', borderBottom: j === msg.rutina_generada.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
+                      <span style={{ width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(56,189,248,0.15)', color: '#38bdf8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}>{j + 1}</span>
+
+                      {ej.gif_url && (
+                        <div style={{ width: '40px', height: '40px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: 'white' }}>
+                          <img src={ej.gif_url} alt={ej.nombre_es} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      )}
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>{ej.nombre_es}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{ej.target}</div>
                       </div>
                     </div>
                   ))}

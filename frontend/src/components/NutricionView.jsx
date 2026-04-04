@@ -538,7 +538,10 @@ export default function NutricionView({ perfil }) {
         )}
 
         {receta && (
-          <div style={{ marginTop: '0.75rem', background: 'var(--bg-outer)', padding: '1rem', borderRadius: '12px', fontSize: '0.88rem', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+          <div style={{ marginTop: '0.75rem', background: 'var(--bg-outer)', padding: '1.25rem', borderRadius: '16px', fontSize: '0.9rem', lineHeight: '1.6', whiteSpace: 'pre-wrap', border: '1px solid rgba(245,158,11,0.2)', color: 'var(--text-primary)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: '#f59e0b', fontWeight: 'bold' }}>
+              <ChefHat size={18} /> Sugerencias del Chef Vórtice
+            </div>
             {receta}
           </div>
         )}

@@ -103,7 +103,7 @@ No agregues nada más."""
     try:
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
-        cursor.execute("SELECT id_ejercicio, nombre_es, body_part, target FROM catalogo_ejercicios")
+        cursor.execute("SELECT id_ejercicio, nombre_es, body_part, target, gif_url FROM catalogo_ejercicios")
         catalogo = cursor.fetchall()
         conn.close()
     except:
@@ -136,6 +136,7 @@ No agregues nada más."""
                 "nombre_es": best_match[1],
                 "body_part": best_match[2],
                 "target": best_match[3],
+                "gif_url": best_match[4],
                 "sets": [{"reps": "", "kg": "", "done": False} for _ in range(3)]
             })
         else:
@@ -211,18 +212,24 @@ def analizar_imagen_ollama(imagen_bytes):
 
 def generar_receta_alacena(perfil, ingredientes):
     """Genera una receta corta usando los ingredientes de la alacena del usuario."""
-    prompt = f"""Sos un coach de nutrición conciso.
-Ingredientes disponibles: {ingredientes}
+    prompt = f"""Sos un coach de nutrición empático y creativo.
+Ingredientes que el usuario tiene en casa: {ingredientes}
 
-Generá UNA receta simple y rápida. Formato ESTRICTO:
+Tu objetivo es sugerir combinaciones lógicas y "humanas" de estos ingredientes.
+No intentes meter todos los ingredientes en un solo plato si no combinan bien.
+Puedes sugerir agregar 1 o 2 ingredientes básicos que NO estén en la lista si son esenciales para completar un plato (ej: huevos, aceite, sal, un lácteo básico).
+
+Formato de respuesta:
+Presenta 1 o 2 opciones de platos/snacks claros.
+Para cada opción usa este formato:
+
 **[Nombre del plato]**
 ⏱️ [X] min | 🍽️ [X] porción
+*Ingredientes principales:* (lista breve)
+*Preparación:* (máximo 3 pasos muy cortos)
+🔥 [cals]kcal aprox
 
-Ingredientes: (lista breve)
-Preparación: (máximo 4 pasos cortos numerados)
-🔥 [cals]kcal | 🥩 [P]g | 🍞 [C]g | 🧈 [G]g
-
-Sin texto adicional, sin variaciones, sin consejos extras."""
+Sé breve, directo y alentador. No incluyas introducciones largas."""
     return consultar_ollama([{"role": "user", "content": prompt}])
 
 
