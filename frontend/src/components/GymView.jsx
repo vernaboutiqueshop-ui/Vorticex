@@ -142,14 +142,16 @@ export default function GymView({ perfil }) {
     setRutina(nw);
   };
 
-  const mapMuscle = (bp) => {
-      bp = bp.toLowerCase();
-      if(bp.includes('chest') || bp.includes('pecho')) return 'Pecho';
-      if(bp.includes('back') || bp.includes('espalda')) return 'Espalda';
-      if(bp.includes('leg') || bp.includes('pierna') || bp.includes('thigh') || bp.includes('calv')) return 'Piernas';
-      if(bp.includes('arm') || bp.includes('brazo') || bp.includes('bicep') || bp.includes('tricep')) return 'Brazos';
-      if(bp.includes('shoulder') || bp.includes('hombro')) return 'Hombros';
-      if(bp.includes('waist') || bp.includes('core') || bp.includes('ab')) return 'Core';
+  const mapMuscle = (tgt) => {
+      tgt = tgt ? tgt.toLowerCase() : '';
+      
+      if(tgt.includes('chest')) return 'Pecho';
+      if(tgt.includes('back') || tgt.includes('dorsales') || tgt.includes('traps')) return 'Espalda';
+      if(tgt.includes('quadriceps') || tgt.includes('isquiotibiales') || tgt.includes('pantorrilla') || tgt.includes('gl') || tgt.includes('ductor') || tgt.includes('calves')) return 'Piernas';
+      if(tgt.includes('cep') || tgt.includes('forearm')) return 'Brazos';
+      if(tgt.includes('shoulder')) return 'Hombros';
+      if(tgt.includes('abdominal') || tgt.includes('core')) return 'Core';
+      
       return 'Otros';
   };
 
@@ -157,8 +159,8 @@ export default function GymView({ perfil }) {
 
   const filteredEjercicios = ejercicios.filter(e => {
     const sSearch = searchTerm.toLowerCase();
-    const matchesSearch = e.nombre_es.toLowerCase().includes(sSearch) || e.body_part.toLowerCase().includes(sSearch);
-    const matchesMuscle = selectedMuscle === 'All' || mapMuscle(e.body_part) === selectedMuscle;
+    const matchesSearch = e.nombre_es.toLowerCase().includes(sSearch) || e.body_part.toLowerCase().includes(sSearch) || (e.target && e.target.toLowerCase().includes(sSearch));
+    const matchesMuscle = selectedMuscle === 'All' || mapMuscle(e.target) === selectedMuscle;
     return matchesSearch && matchesMuscle;
   }).slice(0, 50); // Muestra max 50 en la lista para no colgar la UI
 
