@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from core.config import DB_FILE, PERFILES_FILE
 from core.database import (
-    inicializar_archivos, obtener_historial_chat, guardar_mensaje, 
+    inicializar_archivos, obtener_historial_chat, guardar_mensaje, borrar_historial_chat,
     consultar_datos, guardar_log_set, guardar_evento, 
     obtener_alacena, guardar_en_alacena, eliminar_de_alacena,
     obtener_entrenamientos_resumen, obtener_eventos_timeline, obtener_macros_hoy,
@@ -220,6 +220,13 @@ def get_chat_history(perfil: str):
     hist = obtener_historial_chat(perfil, limite=30)
     return {"historial": hist}
 
+@app.delete("/api/chat/historial")
+def delete_chat_history(perfil: str):
+    borrar_historial_chat(perfil)
+    guardar_evento(perfil, "Limpieza", "Se eliminó el historial de chat", "Neutro", 0)
+    return {"status": "success"}
+
+
 
 # ============================================================
 # GYM / ENTRENAMIENTOS
@@ -244,10 +251,10 @@ def get_ejercicios():
     try:
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
-        cursor.execute("SELECT id_ejercicio, nombre_es, body_part, target, gif_url FROM catalogo_ejercicios")
+        cursor.execute("SELECT id_ejercicio, nombre_es, nombre_en, body_part, target, gif_url FROM catalogo_ejercicios")
         rows = cursor.fetchall()
         conn.close()
-        return {"status": "success", "ejercicios": [{"id_ejercicio": r[0], "nombre_es": r[1], "body_part": r[2], "target": r[3], "gif_url": r[4]} for r in rows]}
+        return {"status": "success", "ejercicios": [{"id_ejercicio": r[0], "nombre_es": r[1], "nombre_en": r[2] or "", "body_part": r[3], "target": r[4], "gif_url": r[5]} for r in rows]}
     except Exception as e:
         return {"status": "error", "ejercicios": [], "error": str(e)}
 
@@ -363,6 +370,22 @@ def delete_alacena(item_id: int):
     eliminar_de_alacena(item_id)
     return {"status": "success"}
 
+class AlacenaEditRequest(BaseModel):
+    ingrediente: str
+
+@app.put("/api/alacena/{item_id}")
+def edit_alacena(item_id: int, req: AlacenaEditRequest):
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+        c.execute('UPDATE alacena SET ingrediente=? WHERE id=?', (req.ingrediente, item_id))
+        conn.commit()
+        conn.close()
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
 class RecetaRequest(BaseModel):
     perfil: str
 
@@ -374,6 +397,34 @@ def generar_receta(req: RecetaRequest):
     ingredientes = ", ".join([f"{i['ingrediente']} ({i['cantidad']})" if i['cantidad'] else i['ingrediente'] for i in items])
     receta = generar_receta_alacena(req.perfil, ingredientes)
     return {"status": "success", "receta": receta}
+
+
+# ============================================================
+# RUTINAS IA (fix endpoint 404)
+# ============================================================
+
+class RutinaIARequest(BaseModel):
+    perfil: str
+    prompt: str
+
+@app.post("/api/rutinas/generar")
+def generar_rutina_endpoint(req: RutinaIARequest):
+    try:
+        perfiles = {}
+        if os.path.exists(PERFILES_FILE):
+            with open(PERFILES_FILE, 'r', encoding='utf-8') as f:
+                perfiles = json.load(f)
+        perfil_info = perfiles.get(req.perfil, {})
+        rutina_generada, explicacion = generar_rutina_inteligente(
+            req.prompt,
+            perfil_info.get("descripcion", "")
+        )
+        return {"status": "success", "rutina": rutina_generada, "explicacion": explicacion}
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return {"status": "error", "error": str(e)}
+
+
 
 
 # ============================================================

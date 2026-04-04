@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Camera, Search, Plus, X, ChefHat, Loader2, Flame, Clock, Play, Square } from 'lucide-react';
+import { Camera, Search, Plus, X, ChefHat, Loader2, Flame, Clock, Play, Square, Settings, Pencil, Check } from 'lucide-react';
 
 const API = 'http://localhost:8000';
 
@@ -17,16 +17,22 @@ export default function NutricionView({ perfil }) {
   const [analyzingPhoto, setAnalyzingPhoto] = useState(false);
   const [photoResult, setPhotoResult] = useState(null);
   
-  // Alacena
+  // Alacena + edición
   const [alacena, setAlacena] = useState([]);
   const [newIngrediente, setNewIngrediente] = useState('');
   const [receta, setReceta] = useState('');
   const [loadingReceta, setLoadingReceta] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
 
   // Ayuno
   const [ayuno, setAyuno] = useState({ en_ayuno: false, inicio: null, meta_horas: 16 });
   const [horasAyunoStr, setHorasAyunoStr] = useState('00:00:00');
   const [progresoAyuno, setProgresoAyuno] = useState(0);
+  const [showAyunoSettings, setShowAyunoSettings] = useState(false);
+  const [metaHorasLocal, setMetaHorasLocal] = useState(16);
+  // Racha de 7 días (mock + futura integración)
+  const [rachaAyuno, setRachaAyuno] = useState([]);
 
   const fetchMacros = () => {
     fetch(`${API}/api/nutricion/macros-hoy?perfil=${perfil}`)
@@ -45,15 +51,51 @@ export default function NutricionView({ perfil }) {
   const fetchAyuno = () => {
     fetch(`${API}/api/nutricion/ayuno?perfil=${perfil}`)
       .then(r => r.json())
-      .then(d => { if(d.ayuno) setAyuno(d.ayuno); })
+      .then(d => {
+        if (d.ayuno) {
+          setAyuno(d.ayuno);
+          setMetaHorasLocal(d.ayuno.meta_horas || 16);
+        }
+      })
       .catch(console.error);
   };
 
-  // Cargar macros del día y alacena
+  const fetchRachaAyuno = () => {
+    // Genera racha de 7 días desde eventos
+    fetch(`${API}/api/graficos/timeline?perfil=${perfil}&limit=50`)
+      .then(r => r.json())
+      .then(d => {
+        const hoy = new Date();
+        const dias = Array.from({ length: 7 }, (_, i) => {
+          const d2 = new Date(hoy);
+          d2.setDate(hoy.getDate() - (6 - i));
+          return { fecha: d2.toISOString().split('T')[0], completado: false };
+        });
+        // Marcar días con ayuno completado
+        if (d.eventos) {
+          d.eventos.filter(ev => ev.tipo === 'AyunoCompletado').forEach(ev => {
+            const fecha = (ev.timestamp || '').split('T')[0].split(' ')[0];
+            const idx = dias.findIndex(d3 => d3.fecha === fecha);
+            if (idx !== -1) dias[idx].completado = true;
+          });
+        }
+        setRachaAyuno(dias);
+      })
+      .catch(() => {
+        const hoy = new Date();
+        setRachaAyuno(Array.from({ length: 7 }, (_, i) => {
+          const d2 = new Date(hoy);
+          d2.setDate(hoy.getDate() - (6 - i));
+          return { fecha: d2.toISOString().split('T')[0], completado: false };
+        }));
+      });
+  };
+
   useEffect(() => {
     fetchMacros();
     fetchAlacena();
     fetchAyuno();
+    fetchRachaAyuno();
   }, [perfil]);
 
   useEffect(() => {
@@ -82,14 +124,34 @@ export default function NutricionView({ perfil }) {
     return () => clearInterval(interval);
   }, [ayuno]);
 
-  const toggleAyuno = () => {
+  const toggleAyuno = async () => {
     const nuevoEstado = !ayuno.en_ayuno;
     const inicio = nuevoEstado ? new Date().toISOString() : null;
-    fetch(`${API}/api/nutricion/ayuno`, {
+    
+    // Si se termina el ayuno y se completó el objetivo, registrar como evento
+    if (!nuevoEstado && ayuno.en_ayuno && progresoAyuno >= 100) {
+      await fetch(`${API}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perfil, en_ayuno: nuevoEstado, inicio_iso: inicio, meta_horas: ayuno.meta_horas })
-    }).then(() => fetchAyuno()).catch(console.error);
+        body: JSON.stringify({ perfil, mensaje: `¡Completé mis ${ayuno.meta_horas} horas de ayuno intermitente!` })
+      }).catch(() => {});
+    }
+
+    await fetch(`${API}/api/nutricion/ayuno`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ perfil, en_ayuno: nuevoEstado, inicio_iso: inicio, meta_horas: metaHorasLocal })
+    });
+    fetchAyuno();
+    fetchRachaAyuno();
+  };
+
+  const guardarMetaAyuno = () => {
+    fetch(`${API}/api/nutricion/ayuno`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ perfil, en_ayuno: ayuno.en_ayuno, inicio_iso: ayuno.inicio, meta_horas: metaHorasLocal })
+    }).then(() => { fetchAyuno(); setShowAyunoSettings(false); });
   };
 
   const buscarAlimento = async () => {
@@ -105,7 +167,7 @@ export default function NutricionView({ perfil }) {
       const data = await res.json();
       if (data.resultado) {
         setSearchResult(data.resultado);
-        fetchMacros(); // Refrescar brújula
+        fetchMacros();
       }
     } catch (e) { console.error(e); }
     setSearching(false);
@@ -116,20 +178,15 @@ export default function NutricionView({ perfil }) {
     if (!file) return;
     setAnalyzingPhoto(true);
     setPhotoResult(null);
-    
     const formData = new FormData();
     formData.append('file', file);
-    
     try {
       const res = await fetch(`${API}/api/nutricion/analizar-foto?perfil=${perfil}`, {
         method: 'POST',
         body: formData
       });
       const data = await res.json();
-      if (data.resultado) {
-        setPhotoResult(data.resultado);
-        fetchMacros();
-      }
+      if (data.resultado) { setPhotoResult(data.resultado); fetchMacros(); }
     } catch (e) { console.error(e); }
     setAnalyzingPhoto(false);
   };
@@ -150,6 +207,16 @@ export default function NutricionView({ perfil }) {
     fetchAlacena();
   };
 
+  const guardarEdicion = async (id) => {
+    await fetch(`${API}/api/alacena/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ingrediente: editText })
+    });
+    setEditingId(null);
+    fetchAlacena();
+  };
+
   const pedirReceta = async () => {
     setLoadingReceta(true);
     setReceta('');
@@ -165,7 +232,6 @@ export default function NutricionView({ perfil }) {
     setLoadingReceta(false);
   };
 
-  // Chart data
   const macrosData = [
     { name: 'Proteína', value: macrosHoy.proteinas || 0, color: '#3b82f6' },
     { name: 'Carbohidratos', value: macrosHoy.carbos || 0, color: '#10b981' },
@@ -173,10 +239,12 @@ export default function NutricionView({ perfil }) {
   ];
   const totalMacros = macrosData.reduce((a, b) => a + b.value, 0);
 
+  const DIAS_LABEL = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '2rem' }}>
       
-      {/* 1. Brújula Metabólica (Datos REALES) */}
+      {/* 1. Brújula Metabólica */}
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{color:'var(--accent-nutri)', fontSize: '1.1rem'}}>⚖️ Brújula del Día</h2>
@@ -216,15 +284,54 @@ export default function NutricionView({ perfil }) {
       </div>
 
       {/* 2. Ayuno Intermitente */}
-      <div className="card" style={{ background: ayuno.en_ayuno ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' : 'var(--bg-card)', border: ayuno.en_ayuno ? '1px solid #10b981' : 'none' }}>
+      <div className="card" style={{ background: ayuno.en_ayuno ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' : 'var(--bg-card)', border: ayuno.en_ayuno ? '1px solid #10b981' : '1px solid var(--border-color)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-           <h2 style={{fontSize: '1.1rem', display:'flex', alignItems:'center', gap:'0.5rem', color: ayuno.en_ayuno ? '#10b981' : 'var(--text-primary)'}}>
-             <Clock size={18} /> Ayuno Intermitente
-           </h2>
-           <button onClick={toggleAyuno} className="btn" style={{width:'auto', padding:'0.4rem 0.8rem', background: ayuno.en_ayuno ? '#ef4444' : '#10b981', color:'white', fontWeight:'bold', border:'none', marginBottom: 0, display:'flex', alignItems:'center', gap:'0.5rem'}}>
-             {ayuno.en_ayuno ? <><Square size={14} fill="currentColor" /> Terminar</> : <><Play size={14} fill="currentColor" /> Iniciar Ayuno</>}
-           </button>
+          <h2 style={{fontSize: '1.1rem', display:'flex', alignItems:'center', gap:'0.5rem', color: ayuno.en_ayuno ? '#10b981' : 'var(--text-primary)'}}>
+            <Clock size={18} /> Ayuno Intermitente
+          </h2>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {/* Botón settings de horas */}
+            <button
+              onClick={() => setShowAyunoSettings(s => !s)}
+              title="Configurar horas de ayuno"
+              style={{ background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', borderRadius: '8px', padding: '0.35rem 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+            >
+              <Settings size={15} />
+            </button>
+            <button onClick={toggleAyuno} className="btn" style={{width:'auto', padding:'0.4rem 0.8rem', background: ayuno.en_ayuno ? '#ef4444' : '#10b981', color:'white', fontWeight:'bold', border:'none', marginBottom: 0, display:'flex', alignItems:'center', gap:'0.5rem'}}>
+              {ayuno.en_ayuno ? <><Square size={14} fill="currentColor" /> Terminar</> : <><Play size={14} fill="currentColor" /> Iniciar</>}
+            </button>
+          </div>
         </div>
+
+        {/* Panel configuración de horas */}
+        {showAyunoSettings && (
+          <div style={{ marginTop: '1rem', background: 'var(--bg-outer)', borderRadius: '12px', padding: '1rem' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
+              ⚙️ Meta de ayuno para hoy
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+              {[12, 14, 16, 18, 20, 24].map(h => (
+                <button
+                  key={h}
+                  onClick={() => setMetaHorasLocal(h)}
+                  style={{
+                    padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.85rem', cursor: 'pointer',
+                    border: '1px solid', fontWeight: metaHorasLocal === h ? '700' : '400',
+                    borderColor: metaHorasLocal === h ? '#10b981' : 'var(--border-color)',
+                    background: metaHorasLocal === h ? 'rgba(16,185,129,0.15)' : 'transparent',
+                    color: metaHorasLocal === h ? '#10b981' : 'var(--text-secondary)'
+                  }}
+                >
+                  {h}h
+                </button>
+              ))}
+            </div>
+            <button onClick={guardarMetaAyuno} className="btn" style={{ background: '#10b981', color: 'white', marginBottom: 0, width: '100%', padding: '0.6rem' }}>
+              Guardar meta
+            </button>
+          </div>
+        )}
 
         {ayuno.en_ayuno && (
           <div style={{marginTop: '1.5rem', textAlign: 'center'}}>
@@ -238,13 +345,38 @@ export default function NutricionView({ perfil }) {
                <div style={{height: '100%', width: `${progresoAyuno}%`, background: '#10b981', transition: 'width 1s linear', borderRadius: '5px'}}></div>
             </div>
             {progresoAyuno >= 100 && (
-               <p style={{color: '#10b981', fontWeight: 'bold', marginTop: '0.5rem', fontSize: '0.85rem'}}>¡Objetivo cumplido!</p>
+               <p style={{color: '#10b981', fontWeight: 'bold', marginTop: '0.5rem', fontSize: '0.85rem'}}>¡Objetivo cumplido! 🎉</p>
             )}
+          </div>
+        )}
+
+        {/* Racha de 7 días */}
+        {rachaAyuno.length > 0 && (
+          <div style={{ marginTop: '1.25rem' }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>Racha semanal</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              {rachaAyuno.map((dia, i) => {
+                const d = new Date(dia.fecha + 'T12:00:00');
+                return (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+                    <div style={{
+                      width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: dia.completado ? 'rgba(16,185,129,0.2)' : 'var(--bg-outer)',
+                      border: `2px solid ${dia.completado ? '#10b981' : 'var(--border-color)'}`,
+                      fontSize: '0.9rem'
+                    }}>
+                      {dia.completado ? '✓' : ''}
+                    </div>
+                    <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>{DIAS_LABEL[d.getDay()]}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
 
-      {/* 3. Búsqueda de Alimento */}
+      {/* 3. Registrar Alimento */}
       <div className="card">
         <h2 style={{display:'flex', alignItems:'center', gap:'0.5rem', fontSize:'1.1rem'}}>
           <Search size={18} color="var(--accent-nutri)" /> Registrar Alimento
@@ -274,7 +406,7 @@ export default function NutricionView({ perfil }) {
         {photoResult && <NutriResult data={photoResult} label="Foto analizada" />}
       </div>
 
-      {/* 3. Alacena Inteligente */}
+      {/* 4. Alacena Inteligente con Edición */}
       <div className="card" style={{borderLeft: '3px solid #f59e0b'}}>
         <h2 style={{ fontSize: '1.1rem' }}>🧺 Mi Alacena</h2>
         
@@ -294,17 +426,44 @@ export default function NutricionView({ perfil }) {
         </div>
 
         {alacena.length > 0 ? (
-          <div style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {alacena.map(item => (
-              <div key={item.id} className="alacena-chip" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '0.6rem 0.8rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 600 }}>{item.ingrediente}</span>
-                  <button onClick={() => eliminarAlacena(item.id)} style={{ background: 'transparent', border: 'none', color: 'var(--danger-color)', cursor: 'pointer', padding: '0', marginLeft: '0.5rem' }}>
-                    <X size={14} />
-                  </button>
-                </div>
-                {item.calorias > 0 && (
-                  <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>~{item.calorias} kcal</span>
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-outer)', borderRadius: '10px', padding: '0.5rem 0.75rem' }}>
+                {editingId === item.id ? (
+                  <>
+                    <input
+                      value={editText}
+                      onChange={e => setEditText(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && guardarEdicion(item.id)}
+                      className="chat-input"
+                      style={{ flex: 1, padding: '0.25rem 0.5rem', fontSize: '0.85rem' }}
+                      autoFocus
+                    />
+                    <button onClick={() => guardarEdicion(item.id)} style={{ background: 'transparent', border: 'none', color: '#10b981', cursor: 'pointer', padding: '0.2rem' }}>
+                      <Check size={16} />
+                    </button>
+                    <button onClick={() => setEditingId(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.2rem' }}>
+                      <X size={16} />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.ingrediente}</span>
+                      {item.calorias > 0 && (
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginLeft: '0.5rem' }}>~{item.calorias} kcal</span>
+                      )}
+                    </div>
+                    <button 
+                      onClick={() => { setEditingId(item.id); setEditText(item.ingrediente); }}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.2rem' }}
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button onClick={() => eliminarAlacena(item.id)} style={{ background: 'transparent', border: 'none', color: 'var(--danger-color)', cursor: 'pointer', padding: '0.2rem' }}>
+                      <X size={14} />
+                    </button>
+                  </>
                 )}
               </div>
             ))}

@@ -7,6 +7,7 @@ export default function GymView({ perfil }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [selectedMuscle, setSelectedMuscle] = useState('All');
+  const [gifModal, setGifModal] = useState(null); // { nombre, gif_url, target }
   
   // AI Generator
   const [promptRutina, setPromptRutina] = useState('');
@@ -74,35 +75,11 @@ export default function GymView({ perfil }) {
       const res = await fetch('http://localhost:8000/api/rutinas/generar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objetivo: promptRutina, dias: 1 })
+        body: JSON.stringify({ perfil, prompt: promptRutina })
       });
       const data = await res.json();
-      if (data.status === 'success' && data.rutina.ejercicios) {
-        // Map AI response to Catalog
-        const newRutina = [];
-        data.rutina.ejercicios.forEach(nombreIA => {
-          // Find best match in catalog
-          const match = ejercicios.find(e => 
-            e.nombre_es.toLowerCase().includes(nombreIA.toLowerCase()) || 
-            nombreIA.toLowerCase().includes(e.nombre_es.toLowerCase())
-          );
-          if (match) {
-            newRutina.push({
-              ...match,
-              sets: [{ reps: '', kg: '', done: false }, { reps: '', kg: '', done: false }, { reps: '', kg: '', done: false }] 
-            });
-          } else {
-            // Fallback si no está exacto
-            newRutina.push({
-              id_ejercicio: 'custom_' + Math.random(),
-              nombre_es: nombreIA,
-              body_part: 'Generado',
-              target: 'Varios',
-              sets: [{ reps: '', kg: '', done: false }, { reps: '', kg: '', done: false }, { reps: '', kg: '', done: false }]
-            });
-          }
-        });
-        setRutina(newRutina);
+      if (data.status === 'success' && data.rutina && data.rutina.length > 0) {
+        setRutina(data.rutina.map(e => ({ ...e, sets: e.sets || [{reps:'',kg:'',done:false},{reps:'',kg:'',done:false},{reps:'',kg:'',done:false}] })));
       }
     } catch(e) { console.error(e); }
     setLoadingAi(false);
@@ -159,10 +136,14 @@ export default function GymView({ perfil }) {
 
   const filteredEjercicios = ejercicios.filter(e => {
     const sSearch = searchTerm.toLowerCase();
-    const matchesSearch = e.nombre_es.toLowerCase().includes(sSearch) || e.body_part.toLowerCase().includes(sSearch) || (e.target && e.target.toLowerCase().includes(sSearch));
+    const matchesSearch = 
+      e.nombre_es.toLowerCase().includes(sSearch) || 
+      (e.nombre_en && e.nombre_en.toLowerCase().includes(sSearch)) ||
+      (e.body_part && e.body_part.toLowerCase().includes(sSearch)) || 
+      (e.target && e.target.toLowerCase().includes(sSearch));
     const matchesMuscle = selectedMuscle === 'All' || mapMuscle(e.target) === selectedMuscle;
     return matchesSearch && matchesMuscle;
-  }).slice(0, 50); // Muestra max 50 en la lista para no colgar la UI
+  }).slice(0, 50);
 
   // Calcs for Summary
   const totalSets = rutina.reduce((acc, curr) => acc + curr.sets.length, 0);
@@ -387,23 +368,35 @@ export default function GymView({ perfil }) {
               {filteredEjercicios.map(ej => (
                 <div key={ej.id_ejercicio} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0.75rem 0', borderBottom:'1px solid var(--border-color)'}}>
                   <div style={{display:'flex', gap:'1rem', alignItems:'center', flex: 1}}>
-                    {ej.gif_url ? (
-                       <img src={ej.gif_url} alt={ej.nombre_es} style={{width:'60px', height:'60px', objectFit:'cover', borderRadius:'8px', background:'white'}} loading="lazy" />
-                    ) : (
-                       <div style={{width:'60px', height:'60px', borderRadius:'8px', background:'var(--bg-outer)', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                          <Dumbbell size={24} color="var(--text-secondary)" />
-                       </div>
-                    )}
+                    {/* Miniatura clickeable que abre visor de GIF */}
+                    <div
+                      onClick={() => ej.gif_url && setGifModal({ nombre: ej.nombre_es, gif_url: ej.gif_url, target: ej.target, body_part: ej.body_part })}
+                      style={{ cursor: ej.gif_url ? 'pointer' : 'default', position: 'relative', flexShrink: 0 }}
+                      title={ej.gif_url ? 'Ver animación' : ''}
+                    >
+                      {ej.gif_url ? (
+                         <img src={ej.gif_url} alt={ej.nombre_es} style={{width:'60px', height:'60px', objectFit:'cover', borderRadius:'8px', background:'white'}} loading="lazy" />
+                      ) : (
+                         <div style={{width:'60px', height:'60px', borderRadius:'8px', background:'var(--bg-outer)', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                            <Dumbbell size={24} color="var(--text-secondary)" />
+                         </div>
+                      )}
+                      {ej.gif_url && (
+                        <div style={{ position:'absolute', inset:0, borderRadius:'8px', background:'rgba(0,0,0,0.3)', display:'flex', alignItems:'center', justifyContent:'center', opacity:0, transition:'opacity 0.2s' }}
+                          onMouseEnter={e => e.currentTarget.style.opacity='1'}
+                          onMouseLeave={e => e.currentTarget.style.opacity='0'}
+                        >
+                          <Play size={18} color="white" fill="white" />
+                        </div>
+                      )}
+                    </div>
                     <div style={{ flex: 1 }}>
                       <div style={{fontWeight:'600', fontSize:'0.9rem', color:'var(--text-primary)'}}>{ej.nombre_es}</div>
                       <div style={{fontSize:'0.75rem', color:'var(--text-secondary)'}}>{ej.body_part} - {ej.target}</div>
                     </div>
                   </div>
                   <button 
-                    onClick={() => {
-                        addEjercicioManual(ej);
-                        // Optional: You can choose to automatically close the modal, or leave it open to add multiple. Hitting 'Hevy' style we keep it open and maybe show a success icon briefly.
-                    }}
+                    onClick={() => { addEjercicioManual(ej); }}
                     style={{background:'transparent', border:'none', color:'var(--accent-gym)', cursor:'pointer', padding:'0.5rem'}}
                   >
                      <Plus size={24} />
@@ -413,6 +406,30 @@ export default function GymView({ perfil }) {
               {filteredEjercicios.length === 50 && (
                  <p style={{fontSize:'0.7rem', color:'var(--text-secondary)', textAlign:'center', marginTop:'1rem', paddingBottom:'2rem'}}>Demasiados resultados. Se muestran los primeros 50.</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VISOR MODAL GIF (Hevy style) */}
+      {gifModal && (
+        <div
+          onClick={() => setGifModal(null)}
+          style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:10000, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'1rem' }}
+        >
+          <div onClick={e => e.stopPropagation()} style={{ background:'var(--bg-card)', borderRadius:'16px', overflow:'hidden', width:'100%', maxWidth:'400px', boxShadow:'0 20px 60px rgba(0,0,0,0.6)' }}>
+            <div style={{ position:'relative' }}>
+              <img src={gifModal.gif_url} alt={gifModal.nombre} style={{ width:'100%', display:'block', borderRadius:'16px 16px 0 0' }} />
+              <button
+                onClick={() => setGifModal(null)}
+                style={{ position:'absolute', top:'0.75rem', right:'0.75rem', background:'rgba(0,0,0,0.6)', border:'none', color:'white', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div style={{ padding:'1rem' }}>
+              <div style={{ fontWeight:'700', fontSize:'1.1rem', color:'var(--text-primary)' }}>{gifModal.nombre}</div>
+              <div style={{ fontSize:'0.8rem', color:'var(--text-secondary)', marginTop:'0.25rem' }}>{gifModal.body_part} · {gifModal.target}</div>
             </div>
           </div>
         </div>

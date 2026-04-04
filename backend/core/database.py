@@ -176,6 +176,14 @@ def guardar_mensaje(perfil, rol, contenido):
     conn.commit()
     conn.close()
 
+
+def borrar_historial_chat(perfil):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM historial_mensajes WHERE perfil = ?', (perfil,))
+    conn.commit()
+    conn.close()
+
 def obtener_historial_chat(perfil, limite=20):
     conn = sqlite3.connect(DB_FILE)
     df = pd.read_sql_query(

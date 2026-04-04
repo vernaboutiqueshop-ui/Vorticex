@@ -1,11 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
-import { Send, Dumbbell, Flame, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Send, Dumbbell, Flame, Loader2, Trash2, ChevronsDown } from 'lucide-react';
 
 export default function AgentView({ perfil, onLoadRutina }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
   const messagesEndRef = useRef(null);
+  const scrollContainerRef = useRef(null);
 
   // Fetch initial history
   useEffect(() => {
@@ -23,9 +25,29 @@ export default function AgentView({ perfil, onLoadRutina }) {
       .catch(err => console.error("Error fetching chat:", err));
   }, [perfil]);
 
-  useEffect(() => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading, scrollToBottom]);
+
+  const handleScroll = (e) => {
+    const el = e.target;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    setShowScrollBtn(distanceFromBottom > 200);
+  };
+
+  const handleClearChat = async () => {
+    if (!window.confirm('¿Borrar toda la conversación? Esta acción no se puede deshacer.')) return;
+    try {
+      await fetch(`http://localhost:8000/api/chat/historial?perfil=${perfil}`, { method: 'DELETE' });
+      setMessages([]);
+    } catch (e) {
+      console.error('Error borrando historial:', e);
+    }
+  };
 
   const handleSend = async (e) => {
     e.preventDefault();
@@ -67,9 +89,24 @@ export default function AgentView({ perfil, onLoadRutina }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+
+      {/* Header con botón de borrar */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: '0.5rem', marginBottom: '0.25rem', borderBottom: '1px solid var(--border-color)' }}>
+        <button
+          onClick={handleClearChat}
+          title="Nueva conversación"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#ef4444', borderRadius: '20px', padding: '0.35rem 0.8rem', cursor: 'pointer', fontSize: '0.78rem' }}
+        >
+          <Trash2 size={13} /> Nueva conversación
+        </button>
+      </div>
+
       {/* Messages area */}
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        style={{ flex: 1, overflowY: 'auto', paddingBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {messages.length === 0 && (
           <div className="chat-empty">
             <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>⚡</div>
@@ -179,6 +216,23 @@ export default function AgentView({ perfil, onLoadRutina }) {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Botón flotante scroll-to-bottom */}
+      {showScrollBtn && (
+        <button
+          onClick={scrollToBottom}
+          style={{
+            position: 'absolute', bottom: '80px', right: '1rem',
+            background: 'var(--accent-chat, #38bdf8)', color: '#000',
+            border: 'none', borderRadius: '50%', width: '40px', height: '40px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+            zIndex: 100, animation: 'fadeIn 0.2s ease'
+          }}
+        >
+          <ChevronsDown size={20} />
+        </button>
+      )}
 
       {/* Input area */}
       <form onSubmit={handleSend} className="chat-input-bar">
