@@ -5,6 +5,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveCont
 export default function GymView({ perfil }) {
   const [ejercicios, setEjercicios] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showCatalogModal, setShowCatalogModal] = useState(false);
+  const [selectedMuscle, setSelectedMuscle] = useState('All');
   
   // AI Generator
   const [promptRutina, setPromptRutina] = useState('');
@@ -140,10 +142,25 @@ export default function GymView({ perfil }) {
     setRutina(nw);
   };
 
-  const filteredEjercicios = ejercicios.filter(e => 
-    e.nombre_es.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.body_part.toLowerCase().includes(searchTerm.toLowerCase())
-  ).slice(0, 50); // Muestra max 50 en la lista para no colgar la UI
+  const mapMuscle = (bp) => {
+      bp = bp.toLowerCase();
+      if(bp.includes('chest') || bp.includes('pecho')) return 'Pecho';
+      if(bp.includes('back') || bp.includes('espalda')) return 'Espalda';
+      if(bp.includes('leg') || bp.includes('pierna') || bp.includes('thigh') || bp.includes('calv')) return 'Piernas';
+      if(bp.includes('arm') || bp.includes('brazo') || bp.includes('bicep') || bp.includes('tricep')) return 'Brazos';
+      if(bp.includes('shoulder') || bp.includes('hombro')) return 'Hombros';
+      if(bp.includes('waist') || bp.includes('core') || bp.includes('ab')) return 'Core';
+      return 'Otros';
+  };
+
+  const muscleGroups = ['All', 'Pecho', 'Espalda', 'Piernas', 'Brazos', 'Hombros', 'Core'];
+
+  const filteredEjercicios = ejercicios.filter(e => {
+    const sSearch = searchTerm.toLowerCase();
+    const matchesSearch = e.nombre_es.toLowerCase().includes(sSearch) || e.body_part.toLowerCase().includes(sSearch);
+    const matchesMuscle = selectedMuscle === 'All' || mapMuscle(e.body_part) === selectedMuscle;
+    return matchesSearch && matchesMuscle;
+  }).slice(0, 50); // Muestra max 50 en la lista para no colgar la UI
 
   // Calcs for Summary
   const totalSets = rutina.reduce((acc, curr) => acc + curr.sets.length, 0);
@@ -269,6 +286,13 @@ export default function GymView({ perfil }) {
           </div>
         )}
 
+        <button 
+          onClick={() => setShowCatalogModal(true)} 
+          style={{ width: '100%', padding: '0.8rem', background: 'rgba(56, 189, 248, 0.1)', color: 'var(--accent-gym)', border: '1px dashed var(--accent-gym)', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', marginTop: '1rem' }}
+        >
+          + Añadir Ejercicio
+        </button>
+
         <button className="btn btn-primary" onClick={finalizarSesion} style={{marginTop: '1.5rem', background: sessionActive ? '#ef4444' : 'var(--accent-gym)', color: sessionActive ? 'white' : '#000'}}>
           {sessionActive ? 'Finalizar Entrenamiento' : 'Iniciar Sesión'}
         </button>
@@ -310,51 +334,87 @@ export default function GymView({ perfil }) {
         </div>
       </div>
 
-      {/* 4. CATALOGO TOTAL */}
-      <div className="card">
-        <h2 style={{display:'flex', alignItems:'center', gap:'0.5rem', fontSize:'1.1rem'}}><Search size={18} /> Catálogo</h2>
-        
-        <div style={{position: 'relative', marginTop: '1rem', display: 'flex', alignItems: 'center'}}>
-          <Search size={18} color="var(--text-secondary)" style={{position: 'absolute', left: '1rem'}} />
-          <input 
-               type="text" 
-               value={searchTerm}
-               onChange={e => setSearchTerm(e.target.value)}
-               className="chat-input" 
-               placeholder="Buscar ejercicio..."
-               style={{width: '100%', paddingLeft: '2.8rem'}}
-          />
-        </div>
+      {/* 4. CATALOGO MODAL (HEVY STYLE) */}
+      {showCatalogModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--bg-app)', zIndex: 9999, display: 'flex', flexDirection: 'column', animation: 'slideUp 0.3s ease-out' }}>
+          
+          <div style={{ padding: '1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>Añadir Ejercicio</h2>
+            <button onClick={() => setShowCatalogModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+              <X size={24} />
+            </button>
+          </div>
 
-        <div style={{maxHeight:'400px', overflowY:'auto', marginTop:'1rem', paddingRight:'0.5rem'}}>
-          {filteredEjercicios.map(ej => (
-            <div key={ej.id_ejercicio} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0.75rem 0', borderBottom:'1px solid var(--border-color)'}}>
-              <div style={{display:'flex', gap:'1rem', alignItems:'center'}}>
-                {ej.gif_url ? (
-                   <img src={ej.gif_url} alt={ej.nombre_es} style={{width:'60px', height:'60px', objectFit:'cover', borderRadius:'8px', background:'white'}} loading="lazy" />
-                ) : (
-                   <div style={{width:'60px', height:'60px', borderRadius:'8px', background:'var(--bg-outer)', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                      <Dumbbell size={24} color="var(--text-secondary)" />
-                   </div>
-                )}
-                <div>
-                  <div style={{fontWeight:'600', fontSize:'0.9rem'}}>{ej.nombre_es}</div>
-                  <div style={{fontSize:'0.75rem', color:'var(--text-secondary)'}}>{ej.body_part} - {ej.target}</div>
-                </div>
-              </div>
-              <button 
-                onClick={() => addEjercicioManual(ej)}
-                style={{background:'transparent', border:'none', color:'var(--accent-gym)', cursor:'pointer', padding:'0.5rem'}}
-              >
-                 <Plus size={20} />
-              </button>
+          <div style={{ padding: '1rem', flex: 1, overflowY: 'auto' }}>
+            <div style={{position: 'relative', display: 'flex', alignItems: 'center', marginBottom: '1rem'}}>
+              <Search size={18} color="var(--text-secondary)" style={{position: 'absolute', left: '1rem'}} />
+              <input 
+                   type="text" 
+                   value={searchTerm}
+                   onChange={e => setSearchTerm(e.target.value)}
+                   className="chat-input" 
+                   placeholder="Buscar ejercicio..."
+                   style={{width: '100%', paddingLeft: '2.8rem'}}
+              />
             </div>
-          ))}
-          {filteredEjercicios.length === 50 && (
-             <p style={{fontSize:'0.7rem', color:'var(--text-secondary)', textAlign:'center', marginTop:'0.5rem'}}>Sigue escribiendo para buscar tus ejercicios...</p>
-          )}
+
+            {/* Muscle Filter Scroll */}
+            <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', marginBottom: '1rem' }}>
+              {muscleGroups.map(mg => (
+                <button
+                  key={mg}
+                  onClick={() => setSelectedMuscle(mg)}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '20px',
+                    border: '1px solid',
+                    borderColor: selectedMuscle === mg ? 'var(--accent-gym)' : 'var(--border-color)',
+                    background: selectedMuscle === mg ? 'rgba(56, 189, 248, 0.1)' : 'transparent',
+                    color: selectedMuscle === mg ? 'var(--accent-gym)' : 'var(--text-secondary)',
+                    whiteSpace: 'nowrap',
+                    cursor: 'pointer',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  {mg === 'All' ? 'Todos' : mg}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {filteredEjercicios.map(ej => (
+                <div key={ej.id_ejercicio} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'0.75rem 0', borderBottom:'1px solid var(--border-color)'}}>
+                  <div style={{display:'flex', gap:'1rem', alignItems:'center', flex: 1}}>
+                    {ej.gif_url ? (
+                       <img src={ej.gif_url} alt={ej.nombre_es} style={{width:'60px', height:'60px', objectFit:'cover', borderRadius:'8px', background:'white'}} loading="lazy" />
+                    ) : (
+                       <div style={{width:'60px', height:'60px', borderRadius:'8px', background:'var(--bg-outer)', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                          <Dumbbell size={24} color="var(--text-secondary)" />
+                       </div>
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <div style={{fontWeight:'600', fontSize:'0.9rem', color:'var(--text-primary)'}}>{ej.nombre_es}</div>
+                      <div style={{fontSize:'0.75rem', color:'var(--text-secondary)'}}>{ej.body_part} - {ej.target}</div>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                        addEjercicioManual(ej);
+                        // Optional: You can choose to automatically close the modal, or leave it open to add multiple. Hitting 'Hevy' style we keep it open and maybe show a success icon briefly.
+                    }}
+                    style={{background:'transparent', border:'none', color:'var(--accent-gym)', cursor:'pointer', padding:'0.5rem'}}
+                  >
+                     <Plus size={24} />
+                  </button>
+                </div>
+              ))}
+              {filteredEjercicios.length === 50 && (
+                 <p style={{fontSize:'0.7rem', color:'var(--text-secondary)', textAlign:'center', marginTop:'1rem', paddingBottom:'2rem'}}>Demasiados resultados. Se muestran los primeros 50.</p>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );
