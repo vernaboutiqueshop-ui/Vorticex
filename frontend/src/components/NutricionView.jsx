@@ -25,6 +25,9 @@ export default function NutricionView({ perfil }) {
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
 
+  // Log de comidas del día
+  const [comidasHoy, setComidasHoy] = useState([]);
+
   // Ayuno
   const [ayuno, setAyuno] = useState({ en_ayuno: false, inicio: null, meta_horas: 16 });
   const [horasAyunoStr, setHorasAyunoStr] = useState('00:00:00');
@@ -45,6 +48,13 @@ export default function NutricionView({ perfil }) {
     fetch(`${API}/api/alacena?perfil=${perfil}`)
       .then(r => r.json())
       .then(d => { if (d.items) setAlacena(d.items); })
+      .catch(console.error);
+  };
+
+  const fetchComidas = () => {
+    fetch(`${API}/api/nutricion/comidas-hoy?perfil=${perfil}`)
+      .then(r => r.json())
+      .then(d => { if (d.comidas) setComidasHoy(d.comidas); })
       .catch(console.error);
   };
 
@@ -96,6 +106,7 @@ export default function NutricionView({ perfil }) {
     fetchAlacena();
     fetchAyuno();
     fetchRachaAyuno();
+    fetchComidas();
   }, [perfil]);
 
   useEffect(() => {
@@ -168,10 +179,18 @@ export default function NutricionView({ perfil }) {
       if (data.resultado) {
         setSearchResult(data.resultado);
         fetchMacros();
+        fetchComidas(); // refrescar el log del día
       }
     } catch (e) { console.error(e); }
     setSearching(false);
   };
+
+  const eliminarComida = async (id) => {
+    await fetch(`${API}/api/nutricion/evento/${id}`, { method: 'DELETE' });
+    fetchComidas();
+    fetchMacros();
+  };
+
 
   const analizarFoto = async (e) => {
     const file = e.target.files[0];
@@ -376,7 +395,47 @@ export default function NutricionView({ perfil }) {
         )}
       </div>
 
-      {/* 3. Registrar Alimento */}
+      {/* 3. LO QUE COMÍ HOY */}
+      {comidasHoy.length > 0 && (
+        <div className="card">
+          <h2 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            🥗 Lo que comí hoy
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            {comidasHoy.map((c) => (
+              <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-outer)', borderRadius: '10px', padding: '0.6rem 0.75rem' }}>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', flexShrink: 0, minWidth: '38px' }}>
+                  {c.timestamp ? c.timestamp.split(' ')[1]?.slice(0, 5) || '' : ''}
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.descripcion}</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '0.1rem' }}>
+                    🔥 {Math.round(c.calorias)} kcal · P: {Math.round(c.proteinas)}g · C: {Math.round(c.carbos)}g · G: {Math.round(c.grasas)}g
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.25rem', flexShrink: 0 }}>
+                  <button
+                    onClick={() => { setSearchText(c.descripcion); }}
+                    title="Volver a registrar con edición"
+                    style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.2rem' }}
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    onClick={() => eliminarComida(c.id)}
+                    title="Eliminar registro"
+                    style={{ background: 'transparent', border: 'none', color: 'var(--danger-color)', cursor: 'pointer', padding: '0.2rem' }}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 4. Registrar Alimento */}
       <div className="card">
         <h2 style={{display:'flex', alignItems:'center', gap:'0.5rem', fontSize:'1.1rem'}}>
           <Search size={18} color="var(--accent-nutri)" /> Registrar Alimento
@@ -489,14 +548,17 @@ export default function NutricionView({ perfil }) {
 }
 
 const NutriResult = ({ data, label }) => (
-  <div className="inline-card nutri-card" style={{ marginTop: '0.75rem' }}>
-    <div className="inline-card-header"><Flame size={16} /><span>{label}: {data.alimento}</span></div>
-    {data.descripcion && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '0.5rem 0' }}>{data.descripcion}</p>}
-    <div className="macro-grid">
-      <div className="macro-item" style={{ '--mc': '#ef4444' }}><span className="macro-val">{data.calorias}</span><span className="macro-label">kcal</span></div>
-      <div className="macro-item" style={{ '--mc': '#3b82f6' }}><span className="macro-val">{data.proteinas}g</span><span className="macro-label">Prot</span></div>
-      <div className="macro-item" style={{ '--mc': '#10b981' }}><span className="macro-val">{data.carbos}g</span><span className="macro-label">Carbs</span></div>
-      <div className="macro-item" style={{ '--mc': '#f59e0b' }}><span className="macro-val">{data.grasas}g</span><span className="macro-label">Grasas</span></div>
+  <div style={{ marginTop: '0.75rem', background: 'var(--bg-outer)', borderRadius: '12px', padding: '0.75rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+      <Flame size={15} color="#ef4444" />
+      <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{label}: {data.alimento}</span>
+    </div>
+    {data.descripcion && <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{data.descripcion}</p>}
+    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+      <span style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', borderRadius: '8px', padding: '0.2rem 0.6rem', fontSize: '0.8rem', fontWeight: 700 }}>{data.calorias} kcal</span>
+      <span style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', borderRadius: '8px', padding: '0.2rem 0.6rem', fontSize: '0.8rem', fontWeight: 600 }}>{data.proteinas}g prot</span>
+      <span style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', borderRadius: '8px', padding: '0.2rem 0.6rem', fontSize: '0.8rem', fontWeight: 600 }}>{data.carbos}g carbs</span>
+      <span style={{ background: 'rgba(245,158,11,0.12)', color: '#f59e0b', borderRadius: '8px', padding: '0.2rem 0.6rem', fontSize: '0.8rem', fontWeight: 600 }}>{data.grasas}g grasas</span>
     </div>
   </div>
 );

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Send, Dumbbell, Flame, Loader2, Trash2, ChevronsDown } from 'lucide-react';
+import { Send, Dumbbell, Flame, Loader2, Trash2, ChevronsDown, Sparkles, BrainCircuit } from 'lucide-react';
+
+const API = 'http://localhost:8000';
 
 export default function AgentView({ perfil, onLoadRutina }) {
   const [messages, setMessages] = useState([]);
@@ -9,96 +11,89 @@ export default function AgentView({ perfil, onLoadRutina }) {
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
 
-  // Fetch initial history
   useEffect(() => {
-    fetch(`http://localhost:8000/api/chat/historial?perfil=${perfil}`)
+    fetch(`${API}/api/chat/historial?perfil=${perfil}`)
       .then(res => res.json())
       .then(data => {
         if (data.historial) {
-          setMessages(data.historial.map(h => ({
-            rol: h.rol,
-            contenido: h.contenido,
-            tipo: 'chat_normal'
-          })));
+          setMessages(data.historial.map(h => ({ rol: h.rol, contenido: h.contenido, tipo: 'chat_normal' })));
         }
       })
-      .catch(err => console.error("Error fetching chat:", err));
+      .catch(err => console.error('Error fetching chat:', err));
   }, [perfil]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading, scrollToBottom]);
+  useEffect(() => { scrollToBottom(); }, [messages, loading, scrollToBottom]);
 
   const handleScroll = (e) => {
     const el = e.target;
-    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-    setShowScrollBtn(distanceFromBottom > 200);
+    setShowScrollBtn(el.scrollHeight - el.scrollTop - el.clientHeight > 200);
   };
 
   const handleClearChat = async () => {
     if (!window.confirm('¿Borrar toda la conversación? Esta acción no se puede deshacer.')) return;
     try {
-      await fetch(`http://localhost:8000/api/chat/historial?perfil=${perfil}`, { method: 'DELETE' });
+      await fetch(`${API}/api/chat/historial?perfil=${perfil}`, { method: 'DELETE' });
       setMessages([]);
-    } catch (e) {
-      console.error('Error borrando historial:', e);
-    }
+    } catch (e) { console.error('Error borrando historial:', e); }
   };
 
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-
     const userText = input;
     setInput('');
     setMessages(prev => [...prev, { rol: 'user', contenido: userText, tipo: 'chat_normal' }]);
     setLoading(true);
-
     try {
-      const response = await fetch('http://localhost:8000/api/chat', {
+      const response = await fetch(`${API}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ perfil, mensaje: userText })
       });
       const data = await response.json();
-      
       if (data.status === 'success') {
-        const newMsg = {
-          rol: 'assistant',
-          contenido: data.respuesta,
+        setMessages(prev => [...prev, {
+          rol: 'assistant', contenido: data.respuesta,
           tipo: data.tipo_intencion || 'chat_normal',
           rutina_generada: data.rutina_generada || null,
           nutricion_detectada: data.nutricion_detectada || null
-        };
-        setMessages(prev => [...prev, newMsg]);
+        }]);
       } else {
         setMessages(prev => [...prev, { rol: 'assistant', contenido: '❌ Error: ' + data.error, tipo: 'error' }]);
       }
-    } catch (error) {
+    } catch {
       setMessages(prev => [...prev, { rol: 'assistant', contenido: '❌ Sin conexión con el backend.', tipo: 'error' }]);
     }
     setLoading(false);
   };
 
-  const handleLoadRutina = (rutina) => {
-    if (onLoadRutina) onLoadRutina(rutina);
-  };
+  const SUGGESTIONS = [
+    { icon: '🏋️', text: 'Armame una rutina de pecho y espalda' },
+    { icon: '🍽️', text: 'Hoy comí 2 empanadas' },
+    { icon: '📊', text: '¿Cómo voy con mi progreso?' },
+  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
 
-      {/* Header con botón de borrar */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: '0.5rem', marginBottom: '0.25rem', borderBottom: '1px solid var(--border-color)' }}>
+      {/* Top bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '0.75rem', marginBottom: '0.25rem', borderBottom: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <BrainCircuit size={16} color="var(--accent-chat, #38bdf8)" />
+          <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+            {messages.length > 0 ? `${messages.length} mensajes` : 'Conversación nueva'}
+          </span>
+        </div>
         <button
           onClick={handleClearChat}
           title="Nueva conversación"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#ef4444', borderRadius: '20px', padding: '0.35rem 0.8rem', cursor: 'pointer', fontSize: '0.78rem' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: '20px', padding: '0.3rem 0.7rem', cursor: 'pointer', fontSize: '0.75rem' }}
         >
-          <Trash2 size={13} /> Nueva conversación
+          <Trash2 size={12} /> Nueva conversación
         </button>
       </div>
 
@@ -106,150 +101,157 @@ export default function AgentView({ perfil, onLoadRutina }) {
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        style={{ flex: 1, overflowY: 'auto', paddingBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.6rem', paddingBottom: '0.5rem' }}
+      >
+        {/* Estado vacío */}
         {messages.length === 0 && (
-          <div className="chat-empty">
-            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>⚡</div>
-            <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Vórtice Coach</h3>
-            <p>Preguntame lo que necesites: rutinas, nutrición, consejos, seguimiento.</p>
-            <div className="chat-suggestions">
-              {["Armame una rutina de pecho", "Hoy comí 2 empanadas", "¿Cómo voy con mi progreso?"].map((s, i) => (
-                <button key={i} className="suggestion-chip" onClick={() => setInput(s)}>{s}</button>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '2rem 1rem', gap: '1.25rem' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(56,189,248,0.2), rgba(99,102,241,0.2))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>
+              ⚡
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.35rem' }}>Vórtice Coach</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.5, maxWidth: '260px' }}>
+                Tu coach personal de nutrición y entrenamiento. Preguntame lo que necesités.
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', maxWidth: '300px' }}>
+              {SUGGESTIONS.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => setInput(s.text)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.7rem 1rem',
+                    background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '12px',
+                    cursor: 'pointer', textAlign: 'left', color: 'var(--text-primary)', fontSize: '0.85rem',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-chat, #38bdf8)'}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}
+                >
+                  <span style={{ fontSize: '1.1rem' }}>{s.icon}</span>
+                  <span>{s.text}</span>
+                </button>
               ))}
             </div>
           </div>
         )}
-        
+
+        {/* Mensajes */}
         {messages.map((msg, i) => (
-          <div key={i} style={{ alignSelf: msg.rol === 'user' ? 'flex-end' : 'flex-start', maxWidth: '90%' }}>
-            {/* Bubble del mensaje */}
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.rol === 'user' ? 'flex-end' : 'flex-start', gap: '0.4rem' }}>
+            {/* Avatar pequeño para assistant */}
+            {msg.rol === 'assistant' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', paddingLeft: '0.25rem' }}>
+                <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'linear-gradient(135deg, #38bdf8, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Sparkles size={10} color="white" />
+                </div>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 500 }}>Coach</span>
+              </div>
+            )}
+
+            {/* Burbuja */}
             <div style={{
-              background: msg.rol === 'user' 
-                ? 'linear-gradient(135deg, #38bdf8, #0ea5e9)' 
+              maxWidth: msg.rol === 'user' ? '80%' : '90%',
+              background: msg.rol === 'user'
+                ? 'linear-gradient(135deg, #0ea5e9, #38bdf8)'
                 : 'var(--bg-card)',
               color: msg.rol === 'user' ? '#000' : 'var(--text-primary)',
-              padding: '0.75rem 1rem',
-              borderRadius: '16px',
-              borderBottomRightRadius: msg.rol === 'user' ? '4px' : '16px',
-              borderBottomLeftRadius: msg.rol === 'assistant' ? '4px' : '16px',
-              lineHeight: '1.5',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-              fontSize: '0.92rem',
-              whiteSpace: 'pre-wrap'
+              padding: '0.65rem 0.9rem',
+              borderRadius: msg.rol === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+              lineHeight: '1.55',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              fontSize: '0.88rem',
+              whiteSpace: 'pre-wrap',
+              fontWeight: msg.rol === 'user' ? 600 : 400,
             }}>
               {msg.contenido}
             </div>
 
-            {/* Card de Rutina Generada */}
+            {/* Card Rutina Generada */}
             {msg.rutina_generada && msg.rutina_generada.length > 0 && (
-              <div className="inline-card rutina-card animate-slide-up">
-                <div className="inline-card-header">
-                  <div className="icon-circle" style={{ background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8' }}>
-                    <Dumbbell size={16} />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Rutina Sugerida</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{msg.rutina_generada.length} ejercicios optimizados</span>
-                  </div>
+              <div style={{ width: '90%', background: 'var(--bg-card)', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(56,189,248,0.2)' }}>
+                <div style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', background: 'rgba(56,189,248,0.05)' }}>
+                  <Dumbbell size={15} color="#38bdf8" />
+                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#38bdf8' }}>Rutina Generada · {msg.rutina_generada.length} ejercicios</span>
                 </div>
-                <div className="inline-card-body">
+                <div style={{ padding: '0.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                   {msg.rutina_generada.map((ej, j) => (
-                    <div key={j} className="inline-ejercicio">
-                      <span className="inline-ejercicio-num">{j + 1}</span>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{ej.nombre_es}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{ej.target} • 3 sets</div>
+                    <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem 0' }}>
+                      <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(56,189,248,0.15)', color: '#38bdf8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 }}>{j + 1}</span>
+                      <div>
+                        <div style={{ fontSize: '0.83rem', fontWeight: 600 }}>{ej.nombre_es}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{ej.target}</div>
                       </div>
                     </div>
                   ))}
                 </div>
-                <button 
-                  className="btn btn-primary" 
-                  style={{ marginTop: '1rem', fontSize: '0.85rem', padding: '0.7rem', width: '100%', borderRadius: '12px' }}
-                  onClick={() => handleLoadRutina(msg.rutina_generada)}
-                >
-                  <Dumbbell size={16} /> Cargar en Gym
-                </button>
+                <div style={{ padding: '0.75rem 1rem', paddingTop: 0 }}>
+                  <button
+                    onClick={() => onLoadRutina && onLoadRutina(msg.rutina_generada)}
+                    style={{ width: '100%', background: '#38bdf8', color: '#000', border: 'none', borderRadius: '10px', padding: '0.6rem', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                  >
+                    <Dumbbell size={15} /> Cargar en Gym
+                  </button>
+                </div>
               </div>
             )}
 
-            {/* Card de Nutrición Detectada */}
+            {/* Card Nutrición */}
             {msg.nutricion_detectada && (
-              <div className="inline-card nutri-card animate-slide-up">
-                <div className="inline-card-header">
-                  <div className="icon-circle" style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444' }}>
-                    <Flame size={16} />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>Nutrición Registrada</span>
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Análisis biométrico completado</span>
-                  </div>
+              <div style={{ width: '90%', background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.2)', overflow: 'hidden' }}>
+                <div style={{ padding: '0.65rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderBottom: '1px solid var(--border-color)', background: 'rgba(239,68,68,0.05)' }}>
+                  <Flame size={14} color="#ef4444" />
+                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#ef4444' }}>{msg.nutricion_detectada.alimento}</span>
                 </div>
-                <div className="macro-card-grid">
-                  <div className="macro-chip" style={{ borderColor: '#ef4444' }}>
-                    <span className="m-val">{msg.nutricion_detectada.calorias}</span>
-                    <span className="m-lbl">kcal</span>
-                  </div>
-                  <div className="macro-chip" style={{ borderColor: '#3b82f6' }}>
-                    <span className="m-val">{msg.nutricion_detectada.proteinas}g</span>
-                    <span className="m-lbl">Prot</span>
-                  </div>
-                  <div className="macro-chip" style={{ borderColor: '#10b981' }}>
-                    <span className="m-val">{msg.nutricion_detectada.carbos}g</span>
-                    <span className="m-lbl">Carbs</span>
-                  </div>
-                  <div className="macro-chip" style={{ borderColor: '#f59e0b' }}>
-                    <span className="m-val">{msg.nutricion_detectada.grasas}g</span>
-                    <span className="m-lbl">Grasas</span>
-                  </div>
+                <div style={{ padding: '0.65rem 1rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <span style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderRadius: '8px', padding: '0.2rem 0.6rem', fontSize: '0.78rem', fontWeight: 700 }}>{msg.nutricion_detectada.calorias} kcal</span>
+                  <span style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6', borderRadius: '8px', padding: '0.2rem 0.6rem', fontSize: '0.78rem' }}>{msg.nutricion_detectada.proteinas}g prot</span>
+                  <span style={{ background: 'rgba(16,185,129,0.1)', color: '#10b981', borderRadius: '8px', padding: '0.2rem 0.6rem', fontSize: '0.78rem' }}>{msg.nutricion_detectada.carbos}g carbs</span>
+                  <span style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', borderRadius: '8px', padding: '0.2rem 0.6rem', fontSize: '0.78rem' }}>{msg.nutricion_detectada.grasas}g grasas</span>
                 </div>
               </div>
             )}
           </div>
         ))}
-        
+
+        {/* Loading */}
         {loading && (
-          <div style={{ alignSelf: 'flex-start', display: 'flex', gap: '0.5rem', alignItems: 'center', background: 'var(--bg-card)', padding: '0.75rem 1rem', borderRadius: '16px', color: 'var(--text-secondary)' }}>
-            <Loader2 size={16} className="spin" />
-            Pensando...
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', alignSelf: 'flex-start', padding: '0.6rem 0.9rem', background: 'var(--bg-card)', borderRadius: '16px 16px 16px 4px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+            <Loader2 size={14} className="spin" />
+            <span>Pensando...</span>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Botón flotante scroll-to-bottom */}
+      {/* Botón flotante scroll */}
       {showScrollBtn && (
         <button
           onClick={scrollToBottom}
-          style={{
-            position: 'absolute', bottom: '80px', right: '1rem',
-            background: 'var(--accent-chat, #38bdf8)', color: '#000',
-            border: 'none', borderRadius: '50%', width: '40px', height: '40px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-            zIndex: 100, animation: 'fadeIn 0.2s ease'
-          }}
+          style={{ position: 'absolute', bottom: '70px', right: '0.75rem', background: '#38bdf8', color: '#000', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', zIndex: 100 }}
         >
-          <ChevronsDown size={20} />
+          <ChevronsDown size={18} />
         </button>
       )}
 
-      {/* Input area */}
-      <form onSubmit={handleSend} className="chat-input-bar">
-        <input 
-          type="text" 
+      {/* Input */}
+      <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', marginTop: '0.25rem' }}>
+        <input
+          type="text"
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder="Pedí una rutina, registrá comida, o consultá..." 
+          placeholder="Pedí una rutina, registrá comida, o consultá..."
           className="chat-input"
+          style={{ flex: 1 }}
         />
-        <button 
-          type="submit" 
-          disabled={loading || !input.trim()} 
+        <button
+          type="submit"
+          disabled={loading || !input.trim()}
           className="chat-send-btn"
           style={{ opacity: (loading || !input.trim()) ? 0.4 : 1 }}
         >
-          <Send size={20} style={{ marginLeft: '-2px' }}/>
+          <Send size={18} style={{ marginLeft: '-1px' }} />
         </button>
       </form>
     </div>

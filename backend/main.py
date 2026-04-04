@@ -16,7 +16,9 @@ from core.database import (
     consultar_datos, guardar_log_set, guardar_evento, 
     obtener_alacena, guardar_en_alacena, eliminar_de_alacena,
     obtener_entrenamientos_resumen, obtener_eventos_timeline, obtener_macros_hoy,
-    obtener_ayuno, actualizar_ayuno
+    obtener_ayuno, actualizar_ayuno,
+    guardar_rutina, obtener_rutinas, eliminar_rutina,
+    obtener_comidas_hoy, eliminar_evento
 )
 from core.ai import (
     consultar_ollama, clasificar_intencion, generar_rutina_inteligente,
@@ -425,7 +427,54 @@ def generar_rutina_endpoint(req: RutinaIARequest):
         return {"status": "error", "error": str(e)}
 
 
+# ============================================================
+# RUTINAS GUARDADAS
+# ============================================================
 
+class GuardarRutinaRequest(BaseModel):
+    perfil: str
+    nombre: str
+    descripcion: str = ""
+    ejercicios: list
+
+@app.post("/api/rutinas/guardar")
+def guardar_rutina_endpoint(req: GuardarRutinaRequest):
+    try:
+        guardar_rutina(req.perfil, req.nombre, req.descripcion, req.ejercicios)
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.get("/api/rutinas/mis-rutinas")
+def get_mis_rutinas(perfil: str):
+    try:
+        rutinas = obtener_rutinas(perfil)
+        return {"status": "success", "rutinas": rutinas}
+    except Exception as e:
+        return {"status": "error", "rutinas": [], "error": str(e)}
+
+@app.delete("/api/rutinas/{rutina_id}")
+def delete_rutina(rutina_id: int):
+    eliminar_rutina(rutina_id)
+    return {"status": "success"}
+
+
+# ============================================================
+# LOG DE COMIDAS HOY
+# ============================================================
+
+@app.get("/api/nutricion/comidas-hoy")
+def get_comidas_hoy(perfil: str):
+    try:
+        comidas = obtener_comidas_hoy(perfil)
+        return {"status": "success", "comidas": comidas}
+    except Exception as e:
+        return {"status": "error", "comidas": [], "error": str(e)}
+
+@app.delete("/api/nutricion/evento/{evento_id}")
+def delete_evento_nutricion(evento_id: int):
+    eliminar_evento(evento_id)
+    return {"status": "success"}
 
 # ============================================================
 # GRÁFICOS / ANALYTICS

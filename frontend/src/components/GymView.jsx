@@ -7,7 +7,11 @@ export default function GymView({ perfil }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [selectedMuscle, setSelectedMuscle] = useState('All');
-  const [gifModal, setGifModal] = useState(null); // { nombre, gif_url, target }
+  const [gifModal, setGifModal] = useState(null);
+  const [misRutinas, setMisRutinas] = useState([]);
+  const [showMisRutinas, setShowMisRutinas] = useState(false);
+  const [showGuardarModal, setShowGuardarModal] = useState(false);
+  const [nombreRutina, setNombreRutina] = useState('');
   
   // AI Generator
   const [promptRutina, setPromptRutina] = useState('');
@@ -149,14 +153,61 @@ export default function GymView({ perfil }) {
   const totalSets = rutina.reduce((acc, curr) => acc + curr.sets.length, 0);
   
   // Muscle Data for Chart
+  const MUSCLE_ES = {
+    'pectorals': 'Pecho', 'pecs': 'Pecho', 'chest': 'Pecho',
+    'lats': 'Espalda', 'upper back': 'Espalda', 'middle back': 'Espalda', 'traps': 'Espalda', 'spine': 'Espalda',
+    'quadriceps': 'Cuádriceps', 'hamstrings': 'Isquios', 'glutes': 'Glúteos', 'calves': 'Pantorrillas', 'abductors': 'Abductores', 'adductors': 'Aductores',
+    'biceps': 'Bíceps', 'triceps': 'Tríceps', 'forearms': 'Antebrazos',
+    'delts': 'Hombros', 'shoulders': 'Hombros',
+    'abs': 'Abdominales', 'serratus anterior': 'Serrato', 'cardiovascular system': 'Cardio',
+    'levator scapulae': 'Espalda'
+  };
   const muscleMap = {};
   rutina.forEach(ej => {
-    const mus = ej.target !== 'Varios' ? ej.target : ej.body_part;
+    const rawMus = (ej.target && ej.target !== 'Varios' && ej.target !== 'undefined') ? ej.target : ej.body_part;
+    const mus = (MUSCLE_ES[rawMus?.toLowerCase()] || mapMuscle(rawMus) || 'Otros');
     if(!muscleMap[mus]) muscleMap[mus] = 0;
     muscleMap[mus] += ej.sets.length;
   });
   
-  const chartData = Object.keys(muscleMap).map(k => ({ name: k.substring(0,10), sets: muscleMap[k] })).sort((a,b) => b.sets - a.sets);
+  const chartData = Object.keys(muscleMap).map(k => ({ name: k, sets: muscleMap[k] })).sort((a,b) => b.sets - a.sets);
+
+  const guardarRutinaActual = async () => {
+    if (!nombreRutina.trim() || rutina.length === 0) return;
+    try {
+      await fetch('http://localhost:8000/api/rutinas/guardar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ perfil, nombre: nombreRutina, descripcion: `${rutina.length} ejercicios`, ejercicios: rutina.map(e => ({id_ejercicio: e.id_ejercicio, nombre_es: e.nombre_es, target: e.target, gif_url: e.gif_url || null})) })
+      });
+      setShowGuardarModal(false);
+      setNombreRutina('');
+      fetchMisRutinas();
+    } catch(e) { console.error(e); }
+  };
+
+  const fetchMisRutinas = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/rutinas/mis-rutinas?perfil=${perfil}`);
+      const data = await res.json();
+      if (data.rutinas) setMisRutinas(data.rutinas);
+    } catch(e) { console.error(e); }
+  };
+
+  const borrarRutina = async (id) => {
+    await fetch(`http://localhost:8000/api/rutinas/${id}`, { method: 'DELETE' });
+    fetchMisRutinas();
+  };
+
+  const cargarRutina = (ejerciciosSaved) => {
+    setRutina(ejerciciosSaved.map(e => ({
+      ...e,
+      sets: [{ reps: '', kg: '', done: false }, { reps: '', kg: '', done: false }, { reps: '', kg: '', done: false }]
+    })));
+    setShowMisRutinas(false);
+  };
+
+  useEffect(() => { fetchMisRutinas(); }, [perfil]);
 
   const finalizarSesion = async () => {
     if (!sessionActive) {
@@ -226,9 +277,34 @@ export default function GymView({ perfil }) {
             {rutina.map((ej, eIdx) => (
               <div key={eIdx} style={{ background: '#020617', borderRadius: '12px', padding: '1rem' }}>
                 
-                {/* Header Ejercicio */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems:'center', marginBottom: '1rem' }}>
-                  <div style={{ fontWeight: 600, color: 'var(--accent-gym)' }}>{ej.nombre_es}</div>
+        {/* Header Ejercicio */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems:'center', marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+                    {/* Miniatura clickeable -> GIF modal */}
+                    {ej.gif_url ? (
+                      <div
+                        onClick={() => setGifModal({ nombre: ej.nombre_es, gif_url: ej.gif_url, target: ej.target, body_part: ej.body_part || '' })}
+                        style={{ width: '44px', height: '44px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, cursor: 'pointer', background: 'white', position: 'relative' }}
+                        title="Ver cómo se hace"
+                      >
+                        <img src={ej.gif_url} alt={ej.nombre_es} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: '0.2s' }}
+                          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                          onMouseLeave={e => e.currentTarget.style.opacity = '0'}
+                        >
+                          <Play size={14} color="white" fill="white" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ width: '44px', height: '44px', borderRadius: '8px', background: 'var(--bg-outer)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <Dumbbell size={20} color="var(--text-secondary)" />
+                      </div>
+                    )}
+                    <div>
+                      <div style={{ fontWeight: 600, color: 'var(--accent-gym)', fontSize: '0.95rem' }}>{ej.nombre_es}</div>
+                      {ej.target && <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{ej.target}</div>}
+                    </div>
+                  </div>
                   <button onClick={() => removeEjercicio(eIdx)} style={{ background:'transparent', border:'none', color:'var(--danger-color)', cursor:'pointer' }}>
                     <X size={18} />
                   </button>
@@ -276,6 +352,16 @@ export default function GymView({ perfil }) {
           + Añadir Ejercicio
         </button>
 
+        {/* Botón guardar rutina */}
+        {rutina.length > 0 && (
+          <button
+            onClick={() => setShowGuardarModal(true)}
+            style={{ width: '100%', padding: '0.6rem', background: 'transparent', color: 'var(--text-secondary)', border: '1px solid var(--border-color)', borderRadius: '12px', cursor: 'pointer', marginTop: '0.5rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}
+          >
+            💾 Guardar como plantilla
+          </button>
+        )}
+
         <button className="btn btn-primary" onClick={finalizarSesion} style={{marginTop: '1.5rem', background: sessionActive ? '#ef4444' : 'var(--accent-gym)', color: sessionActive ? 'white' : '#000'}}>
           {sessionActive ? 'Finalizar Entrenamiento' : 'Iniciar Sesión'}
         </button>
@@ -295,6 +381,54 @@ export default function GymView({ perfil }) {
                </BarChart>
              </ResponsiveContainer>
            </div>
+        </div>
+      )}
+
+      {/* 2b. MIS RUTINAS GUARDADAS */}
+      <div className="card" style={{ padding: '1rem' }}>
+        <div
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+          onClick={() => setShowMisRutinas(s => !s)}
+        >
+          <h2 style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            💾 Mis Rutinas Guardadas
+            {misRutinas.length > 0 && <span style={{ fontSize: '0.75rem', background: 'var(--accent-gym)', color: '#000', borderRadius: '10px', padding: '0 6px', fontWeight: 'bold' }}>{misRutinas.length}</span>}
+          </h2>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>{showMisRutinas ? '▲' : '▼'}</span>
+        </div>
+        {showMisRutinas && (
+          <div style={{ marginTop: '0.75rem' }}>
+            {misRutinas.length === 0 ? (
+              <p className="text-muted" style={{ fontSize: '0.85rem' }}>No hay rutinas guardadas aún. Armá una y guardá como plantilla.</p>
+            ) : (
+              misRutinas.map(r => (
+                <div key={r.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', background: 'var(--bg-outer)', borderRadius: '10px', marginBottom: '0.5rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{r.nombre}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{r.descripcion}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button onClick={() => cargarRutina(r.ejercicios)} style={{ background: 'rgba(56,189,248,0.1)', border: '1px solid var(--accent-gym)', color: 'var(--accent-gym)', borderRadius: '8px', padding: '0.35rem 0.7rem', cursor: 'pointer', fontSize: '0.8rem' }}>Cargar</button>
+                    <button onClick={() => borrarRutina(r.id)} style={{ background: 'transparent', border: 'none', color: 'var(--danger-color)', cursor: 'pointer', padding: '0.35rem' }}><X size={16} /></button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Modal Guardar Rutina */}
+      {showGuardarModal && (
+        <div onClick={() => setShowGuardarModal(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: '16px', padding: '1.5rem', width: '100%', maxWidth: '400px' }}>
+            <h3 style={{ marginBottom: '1rem' }}>💾 Guardar Rutina</h3>
+            <input type="text" value={nombreRutina} onChange={e => setNombreRutina(e.target.value)} placeholder="Ej: Pecho y Tríceps" className="chat-input" style={{ width: '100%', marginBottom: '1rem' }} autoFocus />
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button onClick={() => setShowGuardarModal(false)} style={{ flex: 1, background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-secondary)', borderRadius: '10px', padding: '0.7rem', cursor: 'pointer' }}>Cancelar</button>
+              <button onClick={guardarRutinaActual} disabled={!nombreRutina.trim()} style={{ flex: 1, background: 'var(--accent-gym)', color: '#000', border: 'none', borderRadius: '10px', padding: '0.7rem', cursor: 'pointer', fontWeight: 'bold', opacity: nombreRutina.trim() ? 1 : 0.4 }}>Guardar</button>
+            </div>
+          </div>
         </div>
       )}
 

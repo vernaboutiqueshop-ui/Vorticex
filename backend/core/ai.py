@@ -210,16 +210,21 @@ def analizar_imagen_ollama(imagen_bytes):
 
 
 def generar_receta_alacena(perfil, ingredientes):
-    """Genera una receta usando los ingredientes de la alacena del usuario."""
-    prompt = f"""
-    Sos {PERSONALIDAD_BASE}. 
-    El usuario '{perfil}' tiene en su alacena ESTOS ingredientes exactos: {ingredientes}.
-    Inventale la mejor receta que puedas usando SOLAMENTE su alacena (podés sumar condimentos básicos).
-    Presentala paso a paso con emojis, profesional y motivadora.
-    Al final estimá las macros aproximadas de la receta completa en formato:
-    🔥 Calorías: X | 🥩 Proteínas: Xg | 🍞 Carbos: Xg | 🧈 Grasas: Xg
-    """
+    """Genera una receta corta usando los ingredientes de la alacena del usuario."""
+    prompt = f"""Sos un coach de nutrición conciso.
+Ingredientes disponibles: {ingredientes}
+
+Generá UNA receta simple y rápida. Formato ESTRICTO:
+**[Nombre del plato]**
+⏱️ [X] min | 🍽️ [X] porción
+
+Ingredientes: (lista breve)
+Preparación: (máximo 4 pasos cortos numerados)
+🔥 [cals]kcal | 🥩 [P]g | 🍞 [C]g | 🧈 [G]g
+
+Sin texto adicional, sin variaciones, sin consejos extras."""
     return consultar_ollama([{"role": "user", "content": prompt}])
+
 
 
 def estimar_calorias_ingrediente(ingrediente):

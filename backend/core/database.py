@@ -105,6 +105,18 @@ def inicializar_archivos():
             meta_horas REAL
         )
     ''')
+
+    # 8. Rutinas Guardadas
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS rutinas_guardadas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            perfil TEXT,
+            nombre TEXT,
+            descripcion TEXT,
+            ejercicios_json TEXT,
+            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
     
     # --- MIGRACIONES ---
     try:
@@ -181,6 +193,63 @@ def borrar_historial_chat(perfil):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute('DELETE FROM historial_mensajes WHERE perfil = ?', (perfil,))
+    conn.commit()
+    conn.close()
+
+
+# ============================================================
+# RUTINAS GUARDADAS
+# ============================================================
+
+def guardar_rutina(perfil, nombre, descripcion, ejercicios_json):
+    import json
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute('''
+        INSERT INTO rutinas_guardadas (perfil, nombre, descripcion, ejercicios_json)
+        VALUES (?, ?, ?, ?)
+    ''', (perfil, nombre, descripcion, json.dumps(ejercicios_json, ensure_ascii=False)))
+    conn.commit()
+    conn.close()
+
+def obtener_rutinas(perfil):
+    import json
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute('SELECT id, nombre, descripcion, ejercicios_json, fecha_creacion FROM rutinas_guardadas WHERE perfil=? ORDER BY fecha_creacion DESC', (perfil,))
+    rows = c.fetchall()
+    conn.close()
+    return [{'id': r[0], 'nombre': r[1], 'descripcion': r[2], 'ejercicios': json.loads(r[3]), 'fecha': r[4]} for r in rows]
+
+def eliminar_rutina(rutina_id):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute('DELETE FROM rutinas_guardadas WHERE id=?', (rutina_id,))
+    conn.commit()
+    conn.close()
+
+
+# ============================================================
+# LOG COMIDAS HOY
+# ============================================================
+
+def obtener_comidas_hoy(perfil):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute('''
+        SELECT id, timestamp, descripcion, calorias_aprox, proteinas, carbohidratos, grasas
+        FROM eventos
+        WHERE perfil=? AND tipo='Nutricion' AND DATE(timestamp)=DATE('now','localtime')
+        ORDER BY timestamp ASC
+    ''', (perfil,))
+    rows = c.fetchall()
+    conn.close()
+    return [{'id': r[0], 'timestamp': r[1], 'descripcion': r[2], 'calorias': r[3] or 0, 'proteinas': r[4] or 0, 'carbos': r[5] or 0, 'grasas': r[6] or 0} for r in rows]
+
+def eliminar_evento(evento_id):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute('DELETE FROM eventos WHERE id=?', (evento_id,))
     conn.commit()
     conn.close()
 
