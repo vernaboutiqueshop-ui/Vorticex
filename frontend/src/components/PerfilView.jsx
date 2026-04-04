@@ -110,6 +110,7 @@ export default function PerfilView({ perfil, perfiles, onChangePerfil }) {
             value={perfilData.descripcion}
             onChange={e => setPerfilData({...perfilData, descripcion: e.target.value})}
             placeholder="Ej: Programador, 32 años, foco en hipertrofia"
+            style={{ width: '100%', fontFamily: 'inherit' }}
           />
         </div>
 
@@ -117,7 +118,7 @@ export default function PerfilView({ perfil, perfiles, onChangePerfil }) {
           <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Detalle de Rutina actual</label>
           <textarea 
             className="chat-input"
-            style={{ height: '80px', paddingTop: '0.75rem' }}
+            style={{ width: '100%', height: '80px', paddingTop: '0.75rem', fontFamily: 'inherit', resize: 'vertical' }}
             value={perfilData.detalle}
             onChange={e => setPerfilData({...perfilData, detalle: e.target.value})}
             placeholder="Ej: Empuje, Tracción, Pierna 3 veces por semana..."
@@ -128,7 +129,7 @@ export default function PerfilView({ perfil, perfiles, onChangePerfil }) {
           <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Consigna para la IA (Su personalidad contigo)</label>
           <textarea 
             className="chat-input"
-            style={{ height: '80px', border: '1px solid rgba(56, 189, 248, 0.2)', paddingTop: '0.75rem' }}
+            style={{ width: '100%', height: '80px', border: '1px solid rgba(56, 189, 248, 0.2)', paddingTop: '0.75rem', fontFamily: 'inherit', resize: 'vertical' }}
             value={perfilData.objetivo_ia}
             onChange={e => setPerfilData({...perfilData, objetivo_ia: e.target.value})}
             placeholder="Ej: Sé muy exigente con mi nutrición, no me dejes pasar ni una. En el gym motiva al máximo."
