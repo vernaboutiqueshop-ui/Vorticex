@@ -324,7 +324,7 @@ def macros_hoy(perfil: str):
 class AyunoRequest(BaseModel):
     perfil: str
     en_ayuno: bool
-    inicio_iso: str = None
+    inicio_iso: Optional[str] = None
     meta_horas: float = 16
 
 @app.get("/api/nutricion/ayuno")
