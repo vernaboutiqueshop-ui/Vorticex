@@ -10,7 +10,7 @@ APP_NAME = "Vórtice Health"
 # --- IA LOCAL (Ollama) ---
 OLLAMA_URL = "http://localhost:11434/api/chat"
 MODELO_IA = "gemma4"
-MODELO_RAPIDO = "qwen2.5"  # Para extracciones JSON rápidas
+MODELO_RAPIDO = "gemma4"  # Unificado para evitar la penalización de swapping en la VRAM
 MODELO_VISION = "llava"     # Para análisis de imágenes
 
 PERSONALIDAD_BASE = """

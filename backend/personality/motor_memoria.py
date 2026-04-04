@@ -46,7 +46,7 @@ def generar_y_guardar_contexto(perfil):
     # FIX: Usar la firma correcta de consultar_ollama (lista de mensajes)
     contexto_narrativo = consultar_ollama(
         [{"role": "user", "content": prompt_sintesis}],
-        modelo="qwen2.5"
+        modelo=MODELO_RAPIDO
     )
     
     # 3. Guardar en SQLite
