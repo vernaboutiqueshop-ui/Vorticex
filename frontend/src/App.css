@@ -1,0 +1,50 @@
+/* App Specific Styles */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.navbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.brand {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-icon {
+  color: var(--accent-color);
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem 1rem;
+}
+
+.routine-header {
+  margin-bottom: 2rem;
+}
+
+.routine-header p {
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}

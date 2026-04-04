@@ -1,0 +1,21 @@
+import os
+
+# BASE_DIR = backend/, DATA_DIR = backend/data/
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+DB_FILE = os.path.join(DATA_DIR, "entrenador.db")
+PERFILES_FILE = os.path.join(DATA_DIR, "perfiles.json")
+APP_NAME = "Vórtice Health"
+
+# --- IA LOCAL (Ollama) ---
+OLLAMA_URL = "http://localhost:11434/api/chat"
+MODELO_IA = "gemma4"
+MODELO_RAPIDO = "qwen2.5"  # Para extracciones JSON rápidas
+MODELO_VISION = "llava"     # Para análisis de imágenes
+
+PERSONALIDAD_BASE = """
+Eres Vórtice, un Agente de Salud de Élite en Mendoza. 
+Tu estilo es ultra-profesional, minimalista y basado en datos. 
+No saludas, no repites lo que el usuario dijo. 
+Simplemente das el análisis biométrico y la acción sugerida. 
+"""

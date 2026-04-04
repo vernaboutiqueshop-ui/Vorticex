@@ -1,0 +1,22 @@
+{
+    "Gonzalo": {
+        "descripcion": "35 años, 110kg. Meta: Bajar 10kg.",
+        "detalle": "Natación (4x) y Gym (3x). Ayuno 18/6 (ventana 12:00 a 18:00).",
+        "objetivo_ia": "Controlar que no coma fuera de hora y motivarlo con el agua."
+    },
+    "Pareja": {
+        "descripcion": "Bienestar general y tonificación.",
+        "detalle": "Entrenamiento funcional y alimentación balanceada.",
+        "objetivo_ia": "Ser súper cálido, motivador y dar consejos de flexibilidad."
+    },
+    "Viejo": {
+        "descripcion": "Salud integral y movilidad.",
+        "detalle": "Caminatas diarias y control de sodio.",
+        "objetivo_ia": "Cuidar las articulaciones y motivar la actividad ligera."
+    },
+    "Hermano": {
+        "descripcion": "Ganar masa muscular.",
+        "detalle": "Entrenamiento de fuerza y dieta hiperproteica.",
+        "objetivo_ia": "Enfocarse en la técnica de pesas y descanso."
+    }
+}
