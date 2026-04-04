@@ -295,16 +295,16 @@ export default function GymView({ perfil }) {
       <div className="card">
         <h2 style={{display:'flex', alignItems:'center', gap:'0.5rem', fontSize:'1.1rem'}}><Brain size={18} color="var(--accent-gym)" /> Asistente de Rutinas</h2>
         <p className="text-muted" style={{fontSize: '0.8rem', padding:'0.5rem 0'}}>La IA diseñará un esquema de ejercicios base en segundos.</p>
-        <div style={{display:'flex', gap:'0.5rem'}}>
+        <div style={{display:'flex', gap:'0.5rem', marginTop: '0.75rem'}}>
           <input 
              type="text" 
              value={promptRutina}
              onChange={e => setPromptRutina(e.target.value)}
-             className="select-profile" 
+             className="chat-input" 
              placeholder="Ej: ¿Qué grupos musculares te gustaría destruir hoy?"
-             style={{background: 'var(--bg-outer)', backgroundImage: 'none', fontSize:'0.85rem'}}
+             style={{flex: 1}}
           />
-          <button className="btn btn-primary" style={{width:'auto', padding:'0 1rem'}} onClick={pedirRutinaIA} disabled={loadingAi}>
+          <button className="btn btn-primary" style={{width:'auto', padding:'0 1rem', marginBottom: 0}} onClick={pedirRutinaIA} disabled={loadingAi}>
             {loadingAi ? '...' : <Play size={18}/>}
           </button>
         </div>
@@ -314,14 +314,17 @@ export default function GymView({ perfil }) {
       <div className="card">
         <h2 style={{display:'flex', alignItems:'center', gap:'0.5rem', fontSize:'1.1rem'}}><Search size={18} /> Catálogo</h2>
         
-        <input 
-             type="text" 
-             value={searchTerm}
-             onChange={e => setSearchTerm(e.target.value)}
-             className="select-profile" 
-             placeholder="Buscar ejercicio..."
-             style={{background: 'var(--bg-outer)', backgroundImage: 'none', marginTop:'1rem', fontSize:'0.85rem'}}
-        />
+        <div style={{position: 'relative', marginTop: '1rem', display: 'flex', alignItems: 'center'}}>
+          <Search size={18} color="var(--text-secondary)" style={{position: 'absolute', left: '1rem'}} />
+          <input 
+               type="text" 
+               value={searchTerm}
+               onChange={e => setSearchTerm(e.target.value)}
+               className="chat-input" 
+               placeholder="Buscar ejercicio..."
+               style={{width: '100%', paddingLeft: '2.8rem'}}
+          />
+        </div>
 
         <div style={{maxHeight:'400px', overflowY:'auto', marginTop:'1rem', paddingRight:'0.5rem'}}>
           {filteredEjercicios.map(ej => (
