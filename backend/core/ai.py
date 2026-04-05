@@ -103,7 +103,7 @@ No agregues nada más."""
     try:
         conn = sqlite3.connect(DB_FILE)
         cursor = conn.cursor()
-        cursor.execute("SELECT id_ejercicio, nombre_es, body_part, target, gif_url FROM catalogo_ejercicios")
+        cursor.execute("SELECT id_ejercicio, nombre_es, body_part, target, gif_url, nombre_en FROM catalogo_ejercicios")
         catalogo = cursor.fetchall()
         conn.close()
     except:
@@ -136,7 +136,7 @@ No agregues nada más."""
                 "nombre_es": best_match[1],
                 "body_part": best_match[2],
                 "target": best_match[3],
-                "gif_url": best_match[4],
+                "gif_url": best_match[4] or None,
                 "sets": [{"reps": "", "kg": "", "done": False} for _ in range(3)]
             })
         else:
