@@ -8,10 +8,30 @@ import ejerciciosMaster from '../assets/ejercicios.json';
  * Rediseñado para UX Premium, Localización Argentina y Simplicidad.
  */
 export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
-  const [ejercicios, setEjercicios] = useState(ejerciciosMaster);
+  const [ejerciciosMasterLive, setEjerciciosMasterLive] = useState(ejerciciosMaster);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [selectedMuscle, setSelectedMuscle] = useState('Todos');
+  
+  // Sincronización Inteligente: Intentamos traer los datos más nuevos del Backend/Firestore
+  useEffect(() => {
+    const syncCatalog = async () => {
+      try {
+        const res = await fetch(`${API}/api/exercises`);
+        if (res.ok) {
+          const cloudData = await res.json();
+          if (cloudData && cloudData.length > 0) {
+            console.log('[VORTICE] Catálogo sincronizado desde Firestore');
+            setEjerciciosMasterLive(cloudData);
+          }
+        }
+      } catch (err) {
+        console.warn('[VORTICE] Fallo sincronización cloud, usando catálogo local (high performance)');
+      }
+    };
+    syncCatalog();
+  }, []);
+
   const [gifModal, setGifModal] = useState(null);
   const [misRutinas, setMisRutinas] = useState([]);
   const [showMisRutinas, setShowMisRutinas] = useState(false);
@@ -164,11 +184,11 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   const totalSets = rutina.reduce((acc, curr) => acc + (curr.sets || []).length, 0);
   const progress = totalSets > 0 ? (totalSetsDone / totalSets) * 100 : 0;
 
-  // Filtrado de catálogo optimizado
-  const ejerciciosFiltrados = ejerciciosMaster.filter(e => {
+  // Filtrado de catálogo optimizado: Ahora usa el catálogo vivo (Backend -> Local)
+  const ejerciciosFiltrados = ejerciciosMasterLive.filter(e => {
     // 1. Buscador texto
-    const searchMatch = e.nombre_es.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                      e.nombre_en.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchMatch = (e.nombre_es || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                      (e.nombre_en || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     // 2. Filtro de músculo
     if (selectedMuscle === 'Todos') return searchMatch;
