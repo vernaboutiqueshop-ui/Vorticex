@@ -3,7 +3,9 @@ import firebase_admin
 from firebase_admin import credentials, firestore, auth
 
 # Path relative to backend root
-cred_path = os.path.join(os.path.dirname(__file__), "..", "vortice-firebase-adminsdk.json")
+# En producción (Docker), el archivo suele estar en la raíz de /app
+cred_path = os.environ.get("FIREBASE_CREDENTIALS_PATH", 
+                          os.path.join(os.path.dirname(__file__), "..", "vortice-firebase-adminsdk.json"))
 
 def init_firebase():
     if not firebase_admin._apps:
