@@ -113,12 +113,12 @@ def get_perfiles_endpoint():
 
 @app.get("/api/debug/usuarios")
 def debug_usuarios():
-    # Solo para saber qué nombres hay en la base
+    # Para saber exactamente qué hay guardado en cada perfil
     try:
         from core.firebase import get_db
         db = get_db()
         docs = db.collection("usuarios").stream()
-        return {"nombres": [d.id for d in docs]}
+        return {d.id: d.to_dict() for d in docs}
     except Exception as e:
         return {"error": str(e)}
 
