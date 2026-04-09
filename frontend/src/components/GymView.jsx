@@ -28,9 +28,9 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
         const cloudRes = await fetch(`${API}/api/exercises`);
         if (cloudRes.ok) {
           const cloudData = await cloudRes.json();
-          if (cloudData && cloudData.length > 0) {
+          if (cloudData.status === "success" && cloudData.ejercicios) {
             console.log('[VORTICE] Catálogo sincronizado desde la nube');
-            setEjerciciosMasterLive(cloudData);
+            setEjerciciosMasterLive(cloudData.ejercicios);
           }
         }
       } catch (err) {
