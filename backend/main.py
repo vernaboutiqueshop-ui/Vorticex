@@ -22,7 +22,8 @@ from core.database import (
 )
 from core.ai import (
     generar_rutina_inteligente,
-    estimar_nutricion_ollama, analizar_imagen_ollama, generar_receta_alacena
+    estimar_nutricion_ollama, analizar_imagen_ollama, generar_receta_alacena,
+    fix_gif_url
 )
 from personality.prompt_builder import build_system_prompt
 from personality.motor_memoria import generar_y_guardar_contexto
@@ -387,7 +388,7 @@ class RutinaSaveRequest(BaseModel):
     perfil: str
     rutina: List[EjercicioEdit]
 
-@app.get("/api/ejercicios")
+@app.get("/api/exercises")
 def get_ejercicios_endpoint():
     try:
         rows = obtener_catalogo_completo()
