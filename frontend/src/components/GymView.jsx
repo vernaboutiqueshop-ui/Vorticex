@@ -150,18 +150,37 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   };
 
   const MUSCLE_GROUPS = {
-    'Todos': 'All',
-    'Pecho': 'chest',
-    'Espalda': 'lats',
-    'Piernas': 'quadriceps',
-    'Brazos': 'biceps',
-    'Hombros': 'shoulders',
-    'Core': 'abdominals'
+    'Todos': [],
+    'Pecho': ['chest', 'pectorals'],
+    'Espalda': ['back', 'lats', 'upper back'],
+    'Piernas': ['upper legs', 'lower legs', 'quads', 'hamstrings', 'calves', 'glutes'],
+    'Brazos': ['upper arms', 'lower arms', 'biceps', 'triceps', 'forearms'],
+    'Hombros': ['shoulders', 'delts'],
+    'Core': ['waist', 'abs', 'abdominals'],
+    'Cardio': ['cardio', 'cardiovascular system']
   };
 
-  const totalSetsDone = rutina.reduce((acc, curr) => acc + curr.sets.filter(s => s.done).length, 0);
-  const totalSets = rutina.reduce((acc, curr) => acc + curr.sets.length, 0);
+  const totalSetsDone = rutina.reduce((acc, curr) => acc + (curr.sets || []).filter(s => s.done).length, 0);
+  const totalSets = rutina.reduce((acc, curr) => acc + (curr.sets || []).length, 0);
   const progress = totalSets > 0 ? (totalSetsDone / totalSets) * 100 : 0;
+
+  // Filtrado de catálogo optimizado
+  const ejerciciosFiltrados = ejerciciosMaster.filter(e => {
+    // 1. Buscador texto
+    const searchMatch = e.nombre_es.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                      e.nombre_en.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // 2. Filtro de músculo
+    if (selectedMuscle === 'Todos') return searchMatch;
+    
+    const allowed = MUSCLE_GROUPS[selectedMuscle] || [];
+    const bPart = (e.body_part || '').toLowerCase();
+    const target = (e.target || '').toLowerCase();
+    
+    const muscleMatch = allowed.some(a => bPart.includes(a) || target.includes(a));
+    
+    return searchMatch && muscleMatch;
+  });
 
   return (
     <div className="main-content animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '5rem', maxWidth: '500px', margin: '0 auto' }}>
@@ -456,14 +475,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
             </div>
             {/* Lista Scroll */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 1rem 1rem' }}>
-               {ejercicios
-                  .filter(e => {
-                    const matchesSearch = e.nombre_es.toLowerCase().includes(searchTerm.toLowerCase());
-                    const targetLower = (e.target || '').toLowerCase();
-                    const groupTarget = MUSCLE_GROUPS[selectedMuscle].toLowerCase();
-                    const matchesMuscle = selectedMuscle === 'Todos' || targetLower.includes(groupTarget);
-                    return matchesSearch && matchesMuscle;
-                  })
+               {ejerciciosFiltrados
                   .slice(0, 40)
                   .map(e => (
                  <div key={e.id_ejercicio} style={{ padding: '0.75rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
