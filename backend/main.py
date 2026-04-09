@@ -122,6 +122,16 @@ def debug_usuarios():
     except Exception as e:
         return {"error": str(e)}
 
+@app.get("/api/debug/delete/{nombre}")
+def debug_delete_user(nombre: str):
+    try:
+        from core.firebase import get_db
+        db = get_db()
+        db.collection("usuarios").document(nombre).delete()
+        return {"status": "success", "message": f"Perfil {nombre} eliminado correctamente"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
 @app.get("/api/perfil/{nombre}")
 def get_perfil_endpoint(nombre: str):
     perfil = obtener_perfil(nombre)
