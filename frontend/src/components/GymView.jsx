@@ -1,32 +1,40 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Play, Plus, Search, Dumbbell, Brain, X, CheckCircle2, Clock, RotateCcw, Image as ImageIcon, ChevronDown, ChevronUp, Timer } from 'lucide-react';
-import API from '../config';
-import ejerciciosMaster from '../assets/ejercicios.json';
+import { API } from '../config';
 
 /**
- * GymView - El Módulo de Entrenamiento de Vórtice
+ * GymView — Catálogo de Ejercicios e Instructor Pro.
  * Rediseñado para UX Premium, Localización Argentina y Simplicidad.
  */
 export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
-  const [ejerciciosMasterLive, setEjerciciosMasterLive] = useState(ejerciciosMaster);
+  const [ejerciciosMasterLive, setEjerciciosMasterLive] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [selectedMuscle, setSelectedMuscle] = useState('Todos');
   
-  // Sincronización Inteligente: Intentamos traer los datos más nuevos del Backend/Firestore
+  // Sincronización Inteligente: Buscamos en el Catálogo Público y en Firestore
   useEffect(() => {
     const syncCatalog = async () => {
       try {
-        const res = await fetch(`${API}/api/exercises`);
-        if (res.ok) {
-          const cloudData = await res.json();
+        // 1. Intentamos cargar el catálogo local público (rápido y seguro)
+        const localRes = await fetch('/ejercicios.json');
+        if (localRes.ok) {
+          const localData = await localRes.json();
+          setEjerciciosMasterLive(localData);
+          console.log('[VORTICE] Catálogo local cargado');
+        }
+
+        // 2. Intentamos refrescar desde el Backend/Firestore por si hay algo nuevo
+        const cloudRes = await fetch(`${API}/api/exercises`);
+        if (cloudRes.ok) {
+          const cloudData = await cloudRes.json();
           if (cloudData && cloudData.length > 0) {
-            console.log('[VORTICE] Catálogo sincronizado desde Firestore');
+            console.log('[VORTICE] Catálogo sincronizado desde la nube');
             setEjerciciosMasterLive(cloudData);
           }
         }
       } catch (err) {
-        console.warn('[VORTICE] Fallo sincronización cloud, usando catálogo local (high performance)');
+        console.warn('[VORTICE] Usando datos disponibles o lista vacía');
       }
     };
     syncCatalog();
