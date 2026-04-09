@@ -168,12 +168,11 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   const progress = totalSets > 0 ? (totalSetsDone / totalSets) * 100 : 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '5rem', maxWidth: '500px', margin: '0 auto' }}>
+    <div className="main-content animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '5rem', maxWidth: '500px', margin: '0 auto' }}>
       
       {/* 1. HEADER DE SESIÓN / STATUS */}
-      <div className="card" style={{ 
-        background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)', 
-        border: '1px solid rgba(56,189,248,0.2)',
+      <div className="glass-card" style={{ 
+        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%)', 
         borderRadius: '24px',
         padding: '1.5rem'
       }}>
@@ -219,23 +218,13 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
         </div>
 
         <button 
-          className="btn" 
+          className="btn-premium" 
           onClick={() => sessionActive ? setShowFeedbackModal(true) : setSessionActive(true)}
           style={{ 
-            width: '100%', 
-            padding: '1.1rem', 
-            borderRadius: '18px', 
-            fontSize: '1.05rem', 
-            fontWeight: 900,
-            background: sessionActive ? '#ef4444' : 'var(--accent-gym)',
+            background: sessionActive ? 'var(--danger-color)' : 'var(--accent-gym)',
             color: sessionActive ? 'white' : 'black',
-            boxShadow: sessionActive ? '0 4px 20px rgba(239, 68, 68, 0.4)' : '0 4px 25px rgba(56, 189, 248, 0.4)',
-            transition: 'all 0.2s ease',
-            border: 'none',
-            cursor: 'pointer'
+            boxShadow: sessionActive ? '0 4px 20px rgba(244, 63, 94, 0.4)' : '0 10px 25px rgba(99, 102, 241, 0.4)',
           }}
-          onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'}
-          onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
         >
           {sessionActive ? 'Terminar Sesión' : 'Iniciar Entrenamiento'}
         </button>
@@ -319,12 +308,11 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
           </div>
         ) : (
           rutina.map((ej, eIdx) => (
-            <div key={eIdx} style={{ 
-              background: '#0f172a', 
+            <div key={eIdx} className="glass-card animate-in" style={{ 
+              animationDelay: `${eIdx * 0.1}s`,
+              background: 'rgba(15, 23, 42, 0.8)', 
               borderRadius: '20px', 
-              border: `1px solid ${collapsedExercises.has(eIdx) ? 'transparent' : 'rgba(255,255,255,0.05)'}`,
               overflow: 'hidden',
-              boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
             }}>
               {/* Card Header */}
               <div style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderBottom: collapsedExercises.has(eIdx) ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
@@ -408,14 +396,13 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
       </div>
 
       {/* 4. MAGIC AI GENERATOR BOX */}
-      <div className="card" style={{ 
-        background: 'linear-gradient(135deg, rgba(56,189,248,0.1) 0%, rgba(99,102,241,0.1) 100%)', 
-        border: '1.5px solid rgba(56,189,248,0.3)',
+      <div className="glass-card animate-in" style={{ 
+        background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%)', 
         borderRadius: '24px',
         padding: '1.25rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-gym)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-agent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
              <Brain size={20} color="black" />
           </div>
           <div>

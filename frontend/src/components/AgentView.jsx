@@ -107,31 +107,30 @@ export default function AgentView({ perfil, onLoadRutina }) {
         {/* Estado vacío */}
         {messages.length === 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '2rem 1rem', gap: '1.25rem' }}>
-            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(56,189,248,0.2), rgba(99,102,241,0.2))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>
-              ⚡
+            <div className="animate-in" style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.2), rgba(99, 102, 241, 0.2))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+              🦾
             </div>
             <div style={{ textAlign: 'center' }}>
-              <h3 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.35rem' }}>Vórtice Coach</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.5, maxWidth: '260px' }}>
-                Tu coach personal de nutrición y entrenamiento. Preguntame lo que necesités.
+              <h3 style={{ color: 'var(--text-primary)', fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>Vórtice IA</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6, maxWidth: '280px' }}>
+                Tu coach personal de alto rendimiento. ¿Qué desafío tenemos hoy?
               </p>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%', maxWidth: '300px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%', maxWidth: '300px' }}>
               {SUGGESTIONS.map((s, i) => (
                 <button
                   key={i}
+                  className="glass-card animate-in"
                   onClick={() => setInput(s.text)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.7rem 1rem',
-                    background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '12px',
-                    cursor: 'pointer', textAlign: 'left', color: 'var(--text-primary)', fontSize: '0.85rem',
-                    transition: 'border-color 0.2s'
+                    animationDelay: `${i * 0.1}s`,
+                    display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem',
+                    marginBottom: 0, cursor: 'pointer', textAlign: 'left',
+                    transition: 'all 0.3s'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-chat, #38bdf8)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-color)'}
                 >
-                  <span style={{ fontSize: '1.1rem' }}>{s.icon}</span>
-                  <span>{s.text}</span>
+                  <span style={{ fontSize: '1.2rem' }}>{s.icon}</span>
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{s.text}</span>
                 </button>
               ))}
             </div>
@@ -152,19 +151,21 @@ export default function AgentView({ perfil, onLoadRutina }) {
             )}
 
             {/* Burbuja */}
-            <div style={{
+            <div className="animate-in" style={{
               maxWidth: msg.rol === 'user' ? '80%' : '90%',
               background: msg.rol === 'user'
-                ? 'linear-gradient(135deg, #0ea5e9, #38bdf8)'
-                : 'var(--bg-card)',
-              color: msg.rol === 'user' ? '#000' : 'var(--text-primary)',
-              padding: '0.65rem 0.9rem',
-              borderRadius: msg.rol === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-              lineHeight: '1.55',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              fontSize: '0.88rem',
+                ? 'linear-gradient(135deg, var(--accent-gym), #4f46e5)'
+                : 'var(--bg-glass)',
+              backdropFilter: msg.rol === 'user' ? 'none' : 'blur(10px)',
+              border: msg.rol === 'user' ? 'none' : '1px solid var(--border-glass)',
+              color: 'white',
+              padding: '0.8rem 1.1rem',
+              borderRadius: msg.rol === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
+              lineHeight: '1.6',
+              boxShadow: msg.rol === 'user' ? '0 8px 20px rgba(99, 102, 241, 0.3)' : 'var(--shadow-sm)',
+              fontSize: '0.92rem',
               whiteSpace: 'pre-wrap',
-              fontWeight: msg.rol === 'user' ? 600 : 400,
+              fontWeight: msg.rol === 'user' ? 600 : 500,
             }}>
               {msg.contenido}
             </div>
@@ -244,22 +245,26 @@ export default function AgentView({ perfil, onLoadRutina }) {
       )}
 
       {/* Input */}
-      <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.5rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', marginTop: '0.25rem' }}>
+      <form onSubmit={handleSend} style={{ display: 'flex', gap: '0.75rem', padding: '1rem', background: 'var(--bg-glass-heavy)', backdropFilter: 'blur(20px)', borderTop: '1px solid var(--border-glass)', margin: '0 -1rem' }}>
         <input
           type="text"
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder="Pedí una rutina, registrá comida, o consultá..."
-          className="chat-input"
+          placeholder="Habla con tu coach..."
+          className="premium-input"
           style={{ flex: 1 }}
         />
         <button
           type="submit"
           disabled={loading || !input.trim()}
           className="chat-send-btn"
-          style={{ opacity: (loading || !input.trim()) ? 0.4 : 1 }}
+          style={{ 
+            opacity: (loading || !input.trim()) ? 0.4 : 1,
+            background: 'var(--accent-gym)',
+            color: 'white'
+          }}
         >
-          <Send size={18} style={{ marginLeft: '-1px' }} />
+          <Send size={20} />
         </button>
       </form>
     </div>
