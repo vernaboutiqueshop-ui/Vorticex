@@ -1,8 +1,94 @@
 import { useState, useEffect } from 'react';
+import { Player } from '@lottiefiles/react-lottie-player';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Camera, Search, Plus, X, ChefHat, Loader2, Flame, Clock, Play, Square, Settings, Pencil, Check } from 'lucide-react';
+import { Camera, Search, Plus, X, ChefHat, Loader2, Flame, Clock, Play, Square, Settings, Pencil, Check, Info } from 'lucide-react';
 
 const API = 'http://localhost:8000';
+
+// Etapas biológicas del ayuno con información científica
+const ETAPAS_AYUNO = [
+  { 
+    min: 0, max: 8, 
+    nombre: 'Nivel Insulina Alto', 
+    emoji: '🍎', 
+    lottie: null,
+    color: '#10b981', 
+    glow: 'rgba(16,185,129,0.5)',
+    badge: '🍎 Digestión',
+    desc: 'Tu cuerpo está digiriendo la última comida. La insulina está alta.',
+    beneficio: 'Procesando nutrientes. Bajando la persiana de la insulina.',
+    tip: '¡Tomá agua con gas o té sin azúcar si te agarra el antojo!',
+  },
+  { 
+    min: 8, max: 12, 
+    nombre: 'Quema de Azúcar', 
+    emoji: '🔥', 
+    lottie: null,
+    color: '#f59e0b', 
+    glow: 'rgba(245,158,11,0.5)',
+    badge: '🔥 Glucógeno',
+    desc: 'El cuerpo agota las reservas de azúcar y empieza a buscar grasa.',
+    beneficio: 'Empezando a movilizar las reservas. ¡Metele que vas bien!',
+    tip: 'Un café negro te puede ayudar a pasar el hambre de las 10hs.',
+  },
+  { 
+    min: 12, max: 18, 
+    nombre: 'Quema de Grasa', 
+    emoji: '💧', 
+    lottie: null,
+    color: '#f43f5e', 
+    glow: 'rgba(244,63,94,0.5)',
+    badge: '💧 Quema Grasa',
+    desc: 'Nivel bajo de insulina. Tu cuerpo está usando grasa como combustible principal.',
+    beneficio: '¡Fuego purificador! Estás quemando grasa a full.',
+    tip: 'Si sentís mareo, poné una pizca de sal en el agua. ¡Electrolitos, che!',
+  },
+  { 
+    min: 18, max: 24, 
+    nombre: 'Cetosis', 
+    emoji: '⚡', 
+    lottie: null,
+    color: '#38bdf8', 
+    glow: 'rgba(56,189,248,0.5)',
+    badge: '⚡ Cetosis',
+    desc: 'Las cetonas suben fuerte. Tu cerebro está a 220 con grasa.',
+    beneficio: 'Claridad mental total y desinflamación. Estás en la cresta de la ola.',
+    tip: 'Momento ideal para laburar o estudiar: el cerebro vuela.',
+  },
+  { 
+    min: 24, max: 48, 
+    nombre: 'Autofagia', 
+    emoji: '🌟', 
+    lottie: null,
+    color: '#a78bfa', 
+    glow: 'rgba(167,139,250,0.5)',
+    badge: '🌟 Renovación',
+    desc: 'Tu cuerpo recicla células viejas. Una limpieza profunda de adentro hacia afuera.',
+    beneficio: '¡Nivel Élite! Renovación celular y anti-aging natural.',
+    tip: 'Paciencia, che. Ya pasaste lo más difícil.',
+  },
+  { 
+    min: 48, max: Infinity, 
+    nombre: 'Ayuno Profundo', 
+    emoji: '💎', 
+    lottie: null,
+    color: '#ec4899', 
+    glow: 'rgba(236,72,153,0.4)',
+    badge: '💎 Diamante',
+    desc: 'Autofagia al máximo. El sistema inmune se resetea.',
+    beneficio: 'Modo supervivencia ancestral activado. Fuerza total.',
+    tip: '⚠️ Ojo con esto: si vas por más de 48hs, consultá con un médico.',
+  },
+];
+
+const getEtapaActual = (horasDecimal) => {
+  return ETAPAS_AYUNO.find(e => horasDecimal >= e.min && horasDecimal < e.max) || ETAPAS_AYUNO[0];
+};
+
+const getProximaEtapa = (horasDecimal) => {
+  const idx = ETAPAS_AYUNO.findIndex(e => horasDecimal >= e.min && horasDecimal < e.max);
+  return idx >= 0 && idx < ETAPAS_AYUNO.length - 1 ? ETAPAS_AYUNO[idx + 1] : null;
+};
 
 export default function NutricionView({ perfil }) {
   // Macros del día (real)
@@ -28,12 +114,46 @@ export default function NutricionView({ perfil }) {
   // Log de comidas del día
   const [comidasHoy, setComidasHoy] = useState([]);
 
-  // Ayuno
-  const [ayuno, setAyuno] = useState({ en_ayuno: false, inicio: null, meta_horas: 16 });
+  // Ayuno — inicializar desde localStorage para que sobreviva refresh
+  const [ayuno, setAyuno] = useState(() => {
+    try {
+      const cached = localStorage.getItem(`vortice_ayuno_${perfil}`);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        // Solo usar si en_ayuno está activo
+        if (parsed.en_ayuno && parsed.inicio) return parsed;
+      }
+    // eslint-disable-next-line no-empty
+    } catch { /* cache miss */ }
+    return { en_ayuno: false, inicio: null, meta_horas: 16 };
+  });
   const [horasAyunoStr, setHorasAyunoStr] = useState('00:00:00');
   const [progresoAyuno, setProgresoAyuno] = useState(0);
   const [showAyunoSettings, setShowAyunoSettings] = useState(false);
   const [metaHorasLocal, setMetaHorasLocal] = useState(16);
+  const [showEtapaInfo, setShowEtapaInfo] = useState(false);
+  // Horas decimales para calcular etapa biológica  
+  const [horasDecimal, setHorasDecimal] = useState(0);
+
+  // Calcula el tiempo de ayuno desde el inicio
+  const calcularTiempoAyuno = (inicioISO, metaHs) => {
+    if (!inicioISO) return { str: '00:00:00', pct: 0, hrsDecimal: 0 };
+    // Asegurar que el string tenga timezone UTC
+    const isoStr = inicioISO.endsWith('Z') || inicioISO.includes('+') ? inicioISO : inicioISO + 'Z';
+    const start = new Date(isoStr);
+    const now = new Date();
+    const diffMs = Math.max(0, now - start);
+    const diffHrs = diffMs / (1000 * 60 * 60);
+    const hrs = Math.floor(diffHrs);
+    const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    const secs = Math.floor((diffMs % (1000 * 60)) / 1000);
+    const pct = Math.min(100, (diffHrs / (metaHs || 16)) * 100);
+    return {
+      str: `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`,
+      pct,
+      hrsDecimal: diffHrs
+    };
+  };
   // Racha de 7 días (mock + futura integración)
   const [rachaAyuno, setRachaAyuno] = useState([]);
 
@@ -65,6 +185,12 @@ export default function NutricionView({ perfil }) {
         if (d.ayuno) {
           setAyuno(d.ayuno);
           setMetaHorasLocal(d.ayuno.meta_horas || 16);
+          // Guardar en cache local para sobrevivir refresh
+          if (d.ayuno.en_ayuno && d.ayuno.inicio) {
+            localStorage.setItem(`vortice_ayuno_${perfil}`, JSON.stringify(d.ayuno));
+          } else {
+            localStorage.removeItem(`vortice_ayuno_${perfil}`);
+          }
         }
       })
       .catch(console.error);
@@ -112,25 +238,26 @@ export default function NutricionView({ perfil }) {
   useEffect(() => {
     let interval;
     if (ayuno.en_ayuno && ayuno.inicio) {
-      interval = setInterval(() => {
-        const start = new Date(ayuno.inicio);
-        const now = new Date();
-        const diffMs = now - start;
-        const diffHrs = diffMs / (1000 * 60 * 60);
-        
-        let hrs = Math.floor(diffHrs);
-        let mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        let secs = Math.floor((diffMs % (1000 * 60)) / 1000);
-        
-        setHorasAyunoStr(`${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
-        
-        let pct = (diffHrs / ayuno.meta_horas) * 100;
-        if (pct > 100) pct = 100;
+      // Calcular inmediatamente al montar (dentro de setTimeout para evitar cascading)
+      setTimeout(() => {
+        const { str, pct, hrsDecimal: hd } = calcularTiempoAyuno(ayuno.inicio, ayuno.meta_horas);
+        setHorasAyunoStr(str);
         setProgresoAyuno(pct);
+        setHorasDecimal(hd);
+      }, 0);
+      // Actualizar cada segundo
+      interval = setInterval(() => {
+        const { str: s, pct: p, hrsDecimal: hd } = calcularTiempoAyuno(ayuno.inicio, ayuno.meta_horas);
+        setHorasAyunoStr(s);
+        setProgresoAyuno(p);
+        setHorasDecimal(hd);
       }, 1000);
     } else {
-      setHorasAyunoStr('00:00:00');
-      setProgresoAyuno(0);
+      setTimeout(() => {
+        setHorasAyunoStr('00:00:00');
+        setProgresoAyuno(0);
+        setHorasDecimal(0);
+      }, 0);
     }
     return () => clearInterval(interval);
   }, [ayuno]);
@@ -138,31 +265,51 @@ export default function NutricionView({ perfil }) {
   const toggleAyuno = async () => {
     const nuevoEstado = !ayuno.en_ayuno;
     const inicio = nuevoEstado ? new Date().toISOString() : null;
+    const metaActual = metaHorasLocal || ayuno.meta_horas || 16;
+    const nuevoAyuno = { en_ayuno: nuevoEstado, inicio, meta_horas: metaActual };
+
+    // 1. ACTUALIZACIÓN OPTIMISTA: ring arranca al instante y persiste en localStorage
+    setAyuno(nuevoAyuno);
+    if (nuevoEstado && inicio) {
+      localStorage.setItem(`vortice_ayuno_${perfil}`, JSON.stringify(nuevoAyuno));
+    } else {
+      localStorage.removeItem(`vortice_ayuno_${perfil}`);
+    }
     
-    // Si se termina el ayuno y se completó el objetivo, registrar como evento
+    // Si se termina y se completó el objetivo, notificar al coach
     if (!nuevoEstado && ayuno.en_ayuno && progresoAyuno >= 100) {
-      await fetch(`${API}/api/chat`, {
+      fetch(`${API}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ perfil, mensaje: `¡Completé mis ${ayuno.meta_horas} horas de ayuno intermitente!` })
       }).catch(() => {});
     }
 
-    await fetch(`${API}/api/nutricion/ayuno`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ perfil, en_ayuno: nuevoEstado, inicio_iso: inicio, meta_horas: metaHorasLocal })
-    });
-    fetchAyuno();
+    // 2. Guardar en BD
+    try {
+      await fetch(`${API}/api/nutricion/ayuno`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ perfil, en_ayuno: nuevoEstado, inicio_iso: inicio, meta_horas: metaActual })
+      });
+    } catch(e) { console.error('Error guardando ayuno:', e); }
+    
     fetchRachaAyuno();
   };
 
-  const guardarMetaAyuno = () => {
-    fetch(`${API}/api/nutricion/ayuno`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ perfil, en_ayuno: ayuno.en_ayuno, inicio_iso: ayuno.inicio, meta_horas: metaHorasLocal })
-    }).then(() => { fetchAyuno(); setShowAyunoSettings(false); });
+  const guardarMetaAyuno = async () => {
+    const metaActual = metaHorasLocal;
+    // Actualización optimista
+    setAyuno(prev => ({ ...prev, meta_horas: metaActual }));
+    try {
+      await fetch(`${API}/api/nutricion/ayuno`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // IMPORTANTE: preservar el inicio_iso actual del ayuno activo
+        body: JSON.stringify({ perfil, en_ayuno: ayuno.en_ayuno, inicio_iso: ayuno.inicio, meta_horas: metaActual })
+      });
+    } catch(e) { console.error(e); }
+    setShowAyunoSettings(false);
   };
 
   const buscarAlimento = async () => {
@@ -186,7 +333,7 @@ export default function NutricionView({ perfil }) {
   };
 
   const eliminarComida = async (id) => {
-    await fetch(`${API}/api/nutricion/evento/${id}`, { method: 'DELETE' });
+    await fetch(`${API}/api/nutricion/evento/${id}?perfil=${perfil}`, { method: 'DELETE' });
     fetchComidas();
     fetchMacros();
   };
@@ -222,12 +369,12 @@ export default function NutricionView({ perfil }) {
   };
 
   const eliminarAlacena = async (id) => {
-    await fetch(`${API}/api/alacena/${id}`, { method: 'DELETE' });
+    await fetch(`${API}/api/alacena/${id}?perfil=${perfil}`, { method: 'DELETE' });
     fetchAlacena();
   };
 
   const guardarEdicion = async (id) => {
-    await fetch(`${API}/api/alacena/${id}`, {
+    await fetch(`${API}/api/alacena/${id}?perfil=${perfil}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ingrediente: editText })
@@ -352,22 +499,174 @@ export default function NutricionView({ perfil }) {
           </div>
         )}
 
-        {ayuno.en_ayuno && (
-          <div style={{marginTop: '1.5rem', textAlign: 'center'}}>
-            <div style={{ fontSize: '2.5rem', fontFamily: 'monospace', fontWeight: 'bold', color: '#10b981', textShadow: '0px 0px 10px rgba(16,185,129,0.3)' }}>
-              {horasAyunoStr}
+        {ayuno.en_ayuno && (() => {
+          const etapa = getEtapaActual(horasDecimal);
+          const proxima = getProximaEtapa(horasDecimal);
+          const hsFaltanProxima = proxima ? (proxima.min - horasDecimal) : null;
+          const casiEnProxima = hsFaltanProxima !== null && hsFaltanProxima <= 1;
+
+          return (
+            <div style={{ marginTop: '1.5rem' }}>
+
+              {/* RING + ANIMATION */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center' }}>
+                
+                {/* Lottie / Stage icon animado */}
+                <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem' }}>
+                  {etapa.lottie ? (
+                    <Player
+                      autoplay loop
+                      src={etapa.lottie}
+                      style={{ width: '64px', height: '64px' }}
+                      onError={() => {}}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '64px', height: '64px', borderRadius: '50%',
+                      background: `radial-gradient(circle, ${etapa.glow}, transparent)`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '2rem',
+                      animation: 'pulse 2s ease-in-out infinite',
+                    }}>
+                      {etapa.emoji}
+                    </div>
+                  )}
+                  <span style={{
+                    fontSize: '0.65rem', fontWeight: 800, padding: '0.15rem 0.5rem',
+                    borderRadius: '20px', background: `${etapa.color}22`,
+                    color: etapa.color, border: `1px solid ${etapa.color}44`,
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {etapa.badge}
+                  </span>
+                </div>
+
+                {/* Ring Progress */}
+                <div style={{ position: 'relative', width: '160px', height: '160px', flexShrink: 0 }}>
+                  <svg width="160" height="160" style={{ transform: 'rotate(-90deg)' }}>
+                    {/* Glow outer ring */}
+                    <circle cx="80" cy="80" r="68" fill="none"
+                      stroke={etapa.glow} strokeWidth="4" />
+                    {/* Track */}
+                    <circle cx="80" cy="80" r="68" fill="none"
+                      stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
+                    {/* Progress */}
+                    <circle cx="80" cy="80" r="68" fill="none"
+                      stroke={etapa.color}
+                      strokeWidth="10"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 68}`}
+                      strokeDashoffset={`${2 * Math.PI * 68 * (1 - progresoAyuno / 100)}`}
+                      style={{
+                        transition: 'stroke-dashoffset 1s linear, stroke 0.5s',
+                        filter: `drop-shadow(0 0 6px ${etapa.color})`,
+                      }}
+                    />
+                  </svg>
+                  {/* Centro */}
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <div style={{ fontSize: '1.4rem', fontFamily: 'monospace', fontWeight: 800, color: etapa.color, lineHeight: 1 }}>
+                      {horasAyunoStr.slice(0, 5)}
+                    </div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                      de {ayuno.meta_horas}hs
+                    </div>
+                    <div style={{ fontSize: '1rem', fontWeight: 800, marginTop: '0.15rem', color: etapa.color }}>
+                      {Math.round(progresoAyuno)}%
+                    </div>
+                  </div>
+                </div>
+
+                {/* Botón info */}
+                <button
+                  onClick={() => setShowEtapaInfo(s => !s)}
+                  style={{
+                    width: '36px', height: '36px', borderRadius: '50%', flexShrink: 0,
+                    background: showEtapaInfo ? `${etapa.color}33` : 'rgba(255,255,255,0.08)',
+                    border: `1px solid ${showEtapaInfo ? etapa.color : 'var(--border-color)'}`,
+                    color: showEtapaInfo ? etapa.color : 'var(--text-secondary)',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 0.2s', alignSelf: 'center',
+                  }}
+                  title="Ver info de esta etapa"
+                >
+                  <Info size={16} />
+                </button>
+              </div>
+
+              {/* PANEL DE INFORMACIÓN DE ETAPA */}
+              {showEtapaInfo && (
+                <div style={{
+                  marginTop: '1rem',
+                  background: `linear-gradient(135deg, ${etapa.color}11, ${etapa.color}06)`,
+                  border: `1px solid ${etapa.color}33`,
+                  borderRadius: '14px', padding: '1rem',
+                  animation: 'slideUp 0.2s ease-out',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '1.3rem' }}>{etapa.emoji}</span>
+                    <div>
+                      <div style={{ fontWeight: 800, color: etapa.color, fontSize: '0.9rem' }}>
+                        {etapa.nombre}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                        {etapa.min}h – {etapa.max === Infinity ? '∞' : `${etapa.max}h`}
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-primary)', lineHeight: 1.5, marginBottom: '0.5rem' }}>
+                    {etapa.desc}
+                  </p>
+                  <div style={{
+                    background: `${etapa.color}15`, borderRadius: '8px', padding: '0.5rem 0.75rem',
+                    fontSize: '0.78rem', color: etapa.color, fontWeight: 600,
+                  }}>
+                    💡 {etapa.tip}
+                  </div>
+                </div>
+              )}
+
+              {/* ALERTA DE PRÓXIMA ETAPA */}
+              {proxima && casiEnProxima && (
+                <div style={{
+                  marginTop: '0.75rem',
+                  background: `linear-gradient(135deg, ${proxima.color}18, ${proxima.color}08)`,
+                  border: `1px solid ${proxima.color}44`,
+                  borderRadius: '12px', padding: '0.75rem 1rem',
+                  display: 'flex', alignItems: 'center', gap: '0.75rem',
+                }}>
+                  <div style={{
+                    fontSize: '1.5rem',
+                    animation: 'bounce 1s ease-in-out infinite',
+                  }}>
+                    {proxima.emoji}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, color: proxima.color, fontSize: '0.85rem' }}>
+                      ¡Casi en {proxima.nombre}!
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.1rem' }}>
+                      Te faltan {Math.round(hsFaltanProxima * 60)} min para desbloquear la siguiente fase.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Mensaje motivacional */}
+              {!casiEnProxima && (
+                <div style={{ marginTop: '0.75rem', fontSize: '0.82rem', color: 'var(--text-secondary)', textAlign: 'center', fontWeight: 500 }}>
+                  {etapa.beneficio}
+                </div>
+              )}
+
             </div>
-            <p style={{fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1rem'}}>
-               Objetivo: {ayuno.meta_horas}hs
-            </p>
-            <div style={{background: 'var(--bg-outer)', height: '10px', borderRadius: '5px', overflow: 'hidden', width: '100%'}}>
-               <div style={{height: '100%', width: `${progresoAyuno}%`, background: '#10b981', transition: 'width 1s linear', borderRadius: '5px'}}></div>
-            </div>
-            {progresoAyuno >= 100 && (
-               <p style={{color: '#10b981', fontWeight: 'bold', marginTop: '0.5rem', fontSize: '0.85rem'}}>¡Objetivo cumplido! 🎉</p>
-            )}
-          </div>
-        )}
+          );
+        })()}
+
+
 
         {/* Racha de 7 días */}
         {rachaAyuno.length > 0 && (

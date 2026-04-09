@@ -5,32 +5,36 @@ from typing import Optional, List
 import sys
 import os
 import json
-import sqlite3
 from contextlib import asynccontextmanager
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from core.config import DB_FILE, PERFILES_FILE
 from core.database import (
-    inicializar_archivos, obtener_historial_chat, guardar_mensaje, borrar_historial_chat,
-    consultar_datos, guardar_log_set, guardar_evento, 
-    obtener_alacena, guardar_en_alacena, eliminar_de_alacena,
+    obtener_historial_chat, guardar_mensaje, borrar_historial_chat,
+    consultar_datos, guardar_log_set, guardar_evento,
+    obtener_alacena, guardar_en_alacena, eliminar_de_alacena_perfil,
     obtener_entrenamientos_resumen, obtener_eventos_timeline, obtener_macros_hoy,
     obtener_ayuno, actualizar_ayuno,
-    guardar_rutina, obtener_rutinas, eliminar_rutina,
-    obtener_comidas_hoy, eliminar_evento
+    guardar_rutina, obtener_rutinas, eliminar_rutina_perfil,
+    obtener_comidas_hoy, eliminar_evento_perfil,
+    obtener_perfil, guardar_perfil, listar_perfiles,
+    buscar_ejercicio_por_id, obtener_catalogo_completo
 )
 from core.ai import (
     consultar_ollama, clasificar_intencion, generar_rutina_inteligente,
-    estimar_nutricion_ollama, analizar_imagen_ollama, generar_receta_alacena
+    estimar_nutricion_ollama, analizar_imagen_ollama, generar_receta_alacena,
+    fix_gif_url
 )
 from personality.prompt_builder import build_system_prompt
 from personality.motor_memoria import generar_y_guardar_contexto
+from core.auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
+from datetime import timedelta
+from fastapi import Depends
+from fastapi.security import OAuth2PasswordRequestForm
 
-@asynccontextmanager
 async def lifespan(app: FastAPI):
     # Acciones al iniciar
-    inicializar_archivos()
+    print("[VORTICE] Iniciando Vórtice Health API (Cloud Mode)")
     yield
     # Acciones al cerrar (si hubiera)
 
@@ -54,30 +58,57 @@ def read_root():
 
 
 # ============================================================
+# AUTENTICACIÓN Y ONBOARDING
+# ============================================================
+
+class RegisterRequest(BaseModel):
+    nombre: str
+    password: str
+    edad: int
+    peso: float
+    meta: str
+    deporte: str
+
+@app.post("/api/auth/register")
+def register_user(req: RegisterRequest):
+    data = {
+        "descripcion": f"Edad: {req.edad}, Peso: {req.peso}kg. Meta principal: {req.meta}. Deporte: {req.deporte}",
+        "detalle": "Onboarding completado",
+        "objetivo_ia": req.meta,
+        "password": req.password 
+    }
+    guardar_perfil(req.nombre, data)
+    access_token = create_access_token(data={"sub": req.nombre})
+    return {"access_token": access_token, "token_type": "bearer", "status": "success"}
+
+@app.post("/api/auth/token")
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = obtener_perfil(form_data.username)
+    if not user or user.get("password", "123456") != form_data.password:
+        return {"error": "Credenciales inválidas"}
+        
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": form_data.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer", "status": "success"}
+
+# ============================================================
 # PERFILES
 # ============================================================
 
 @app.get("/api/perfiles")
-def get_perfiles():
-    if os.path.exists(PERFILES_FILE):
-        with open(PERFILES_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return {"Gonzalo": {}}
+def get_perfiles_endpoint():
+    return listar_perfiles()
 
 @app.get("/api/perfil/{nombre}")
-def get_perfil(nombre: str):
-    if os.path.exists(PERFILES_FILE):
-        with open(PERFILES_FILE, 'r', encoding='utf-8') as f:
-            perfiles = json.load(f)
-        perfil = perfiles.get(nombre, {})
-        
-        # Agregar memoria viva
-        from core.database import obtener_memoria_perfil
+def get_perfil_endpoint(nombre: str):
+    perfil = obtener_perfil(nombre)
+    if perfil:
         memoria = obtener_memoria_perfil(nombre)
         perfil["memoria_viva"] = memoria["contexto_narrativo"] if memoria else "Sin contexto generado aún."
-        
         return {"status": "success", "perfil": perfil, "nombre": nombre}
-    return {"status": "error", "error": "Sin perfiles"}
+    return {"status": "error", "error": "Perfil no encontrado"}
 
 class PerfilUpdate(BaseModel):
     descripcion: str
@@ -85,22 +116,9 @@ class PerfilUpdate(BaseModel):
     objetivo_ia: str
 
 @app.put("/api/perfil/{nombre}")
-def update_perfil(nombre: str, data: PerfilUpdate):
+def update_perfil_endpoint(nombre: str, data: PerfilUpdate):
     try:
-        perfiles = {}
-        if os.path.exists(PERFILES_FILE):
-            with open(PERFILES_FILE, 'r', encoding='utf-8') as f:
-                perfiles = json.load(f)
-        
-        perfiles[nombre] = {
-            "descripcion": data.descripcion,
-            "detalle": data.detalle,
-            "objetivo_ia": data.objetivo_ia
-        }
-        
-        with open(PERFILES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(perfiles, f, ensure_ascii=False, indent=4)
-        
+        guardar_perfil(nombre, data.dict())
         return {"status": "success"}
     except Exception as e:
         return {"status": "error", "error": str(e)}
@@ -117,86 +135,82 @@ class ChatRequest(BaseModel):
 @app.post("/api/chat")
 def send_chat(req: ChatRequest):
     try:
-        # Cargar perfiles
-        perfiles = {}
-        if os.path.exists(PERFILES_FILE):
-            with open(PERFILES_FILE, 'r', encoding='utf-8') as f:
-                perfiles = json.load(f)
+        # Cargar perfiles desde Firestore
+        perfil_info = obtener_perfil(req.perfil) or {}
+
+        # 1. Recuperar contexto de corto plazo (últimos 5)
+        historial_dicts = obtener_historial_chat(req.perfil, limite=5)
+        hist_txt = "\n".join([f"{h['rol']}: {h['contenido']}" for h in historial_dicts])
         
-        perfil_info = perfiles.get(req.perfil, {})
-        
-        # Guardar mensaje del usuario
+        # 2. Recuperar Memoria Semántica (RAG)
+        from core.memoria_vectorial import buscar_memoria_semantica, guardar_chat_vectorial
+        contexto_rag = buscar_memoria_semantica(req.perfil, req.mensaje, limit=3)
+
+        # 3. Guardar mensaje del usuario (SQLite + Vectorial)
         guardar_mensaje(req.perfil, "user", req.mensaje)
+        guardar_chat_vectorial(req.perfil, "user", req.mensaje)
+
+        # 4. LLAMADA UNIFICADA AL CEREBRO VÓRTICE (Una sola llamada a Gemini)
+        from core.ai import cerebro_vortice_unificado
+        resultado = cerebro_vortice_unificado(
+            mensaje=req.mensaje,
+            perfil_info=perfil_info.get("descripcion", ""),
+            historial_previo=hist_txt,
+            contexto_vectorial=contexto_rag
+        )
         
-        # PASO 1: Clasificar la intención del mensaje
-        intencion = clasificar_intencion(req.mensaje)
-        tipo = intencion.get("tipo", "chat_normal")
-        tiene_info = intencion.get("suficiente_info", True)
-        datos_extra = intencion.get("datos", "")
+        tipo = resultado.get("tipo", "chat_normal")
+        respuesta_ia = resultado.get("respuesta", "Entendido, Gonzalo.")
         
-        response_data = {"status": "success", "tipo_intencion": tipo}
+        rutina_gen = None
+        nutricion_det = None
+
+        # 5. Actuar según la detección automática del Cerebro
+        if tipo == "nutricion" and resultado.get("nutricion"):
+            n = resultado["nutricion"]
+            nutricion_det = n
+            guardar_evento(req.perfil, "Nutricion", n.get('alimento','Comida'), "Auto", n.get('cal',0), n.get('prot',0), n.get('carb',0), n.get('gras',0))
         
-        # PASO 2: Actuar según la intención
-        if tipo == "rutina" and tiene_info:
-            # Generar rutina inteligente
-            rutina_generada, explicacion = generar_rutina_inteligente(
-                datos_extra or req.mensaje, 
-                perfil_info.get("descripcion", "")
-            )
+        elif (tipo == "rutina" or tipo == "gym") and (resultado.get("rutina") or resultado.get("ejercicios")):
+            raw_rutina = resultado.get("rutina") or resultado.get("ejercicios", [])
+            rutina_gen = []
             
-            respuesta_ia = explicacion if explicacion else "Te armé una rutina basada en tu pedido. Revisala y cargala en el módulo de Gym."
-            guardar_mensaje(req.perfil, "assistant", respuesta_ia)
-            
-            response_data["respuesta"] = respuesta_ia
-            response_data["rutina_generada"] = rutina_generada
-            
-        elif tipo == "rutina" and not tiene_info:
-            # Pedir más datos — chat normal pero enfocado
-            historial_dicts = obtener_historial_chat(req.perfil, limite=5)
-            mensajes_para_ia = [{"role": x["rol"], "content": x["contenido"]} for x in historial_dicts]
-            
-            sys_prompt = build_system_prompt(req.perfil, perfil_info, consultar_datos("eventos", req.perfil))
-            sys_prompt += "\n\nINSTRUCCIÓN EXTRA: El usuario quiere una rutina pero no dio suficientes datos. Preguntale de forma profesional: ¿qué grupos musculares quiere? ¿cuánto tiempo tiene? ¿qué equipamiento tiene disponible? Sé conciso."
-            mensajes_para_ia.insert(0, {"role": "system", "content": sys_prompt})
-            
-            respuesta_ia = consultar_ollama(mensajes_para_ia)
-            guardar_mensaje(req.perfil, "assistant", respuesta_ia)
-            response_data["respuesta"] = respuesta_ia
-            
-        elif tipo == "nutricion" and tiene_info:
-            # Estimar nutrición y responder
-            nutricion = estimar_nutricion_ollama(datos_extra or req.mensaje)
-            
-            if nutricion:
-                guardar_evento(
-                    req.perfil, "Nutricion", 
-                    nutricion["descripcion"], "Chat", 
-                    nutricion["calorias"], nutricion["proteinas"], 
-                    nutricion["carbos"], nutricion["grasas"]
-                )
+            # Intentar buscar info completa en el catálogo para cada ID sugerido por la IA
+            for r in raw_rutina:
+                eid = r.get("id") or r.get("id_ejercicio")
+                if not eid: continue
                 
-                respuesta_ia = f"Registré: **{nutricion['alimento']}** — 🔥 {nutricion['calorias']} kcal | 🥩 {nutricion['proteinas']}g prot | 🍞 {nutricion['carbos']}g carbs | 🧈 {nutricion['grasas']}g grasas."
-                guardar_mensaje(req.perfil, "assistant", respuesta_ia)
-                response_data["respuesta"] = respuesta_ia
-                response_data["nutricion_detectada"] = nutricion
-            else:
-                # Fallback a chat normal si falló la estimación
-                response_data = _chat_normal(req, perfil_info)
-                
-        elif tipo == "alacena" and tiene_info:
-            # Estimar calorías y agregar a alacena
-            from core.ai import estimar_calorias_ingrediente
-            cals = estimar_calorias_ingrediente(datos_extra)
-            guardar_en_alacena(req.perfil, datos_extra, "", calorias=cals)
+                row = buscar_ejercicio_por_id(eid)
+                if row:
+                    rutina_gen.append({
+                        "id_ejercicio": row.get('id_ejercicio'),
+                        "nombre_es": row.get('nombre_es'),
+                        "target": row.get('target'),
+                        "body_part": UI_MUSCULO_ES.get(row.get('target','').lower(), row.get('target','').capitalize() or "General"),
+                        "gif_url": fix_gif_url(row.get('gif_url')),
+                        "sets": r.get("sets") or [{"reps": "12", "kg": "", "done": False} for _ in range(r.get("series", 3))]
+                    })
             
-            respuesta_ia = f"✅ Agregué **{datos_extra}** a tu alacena (~{cals} kcal). Cuando quieras, pedime una receta con lo que tenés."
-            guardar_mensaje(req.perfil, "assistant", respuesta_ia)
-            response_data["respuesta"] = respuesta_ia
-        else:
-            # Chat normal — usar el flujo existente con memoria
-            response_data = _chat_normal(req, perfil_info)
+        elif tipo == "alacena":
+            guardar_en_alacena(req.perfil, resultado.get("datos_extra", req.mensaje), "")
+            
+        # 6. Guardar y Responder
+        guardar_mensaje(req.perfil, "assistant", respuesta_ia)
+        guardar_chat_vectorial(req.perfil, "assistant", respuesta_ia)
         
-        return response_data
+        return {
+            "status": "success", 
+            "respuesta": respuesta_ia, 
+            "tipo_intencion": tipo,
+            "rutina_generada": rutina_gen,
+            "nutricion_detectada": nutricion_det,
+            "datos_extra": resultado.get("datos_extra", "")
+        }
+
+
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return {"status": "error", "error": str(e)}
         
     except Exception as e:
         import traceback
@@ -204,16 +218,36 @@ def send_chat(req: ChatRequest):
         return {"status": "error", "error": str(e)}
 
 
+from core.langchain_coach import chatear_con_langchain
+from core.memoria_vectorial import guardar_chat_vectorial, buscar_memoria_semantica
+
 def _chat_normal(req: ChatRequest, perfil_info: dict):
-    """Flujo de chat normal con memoria viva y contexto SQLite."""
+    """Flujo de chat normal con memoria viva (SQLite) y profunda (ChromaDB) vía LangChain."""
+    
+    # 1. Recuperar contexto de corto plazo (SQLite)
     historial_dicts = obtener_historial_chat(req.perfil, limite=5)
-    mensajes_para_ia = [{"role": x["rol"], "content": x["contenido"]} for x in historial_dicts]
     
-    sys_prompt = build_system_prompt(req.perfil, perfil_info, consultar_datos("eventos", req.perfil))
-    mensajes_para_ia.insert(0, {"role": "system", "content": sys_prompt})
+    # 2. Recuperar contexto narrativo (SQLite)
+    contexto_sqlite = build_system_prompt(req.perfil, perfil_info, consultar_datos("eventos", req.perfil))
     
-    respuesta_ia = consultar_ollama(mensajes_para_ia)
+    # 3. Recuperar memoria semántica (ChromaDB - RAG)
+    contexto_vectorial = buscar_memoria_semantica(req.perfil, req.mensaje, limit=3)
+    
+    # 4. Guardar mensaje del usuario en la memoria profunda
+    guardar_chat_vectorial(req.perfil, "user", req.mensaje)
+    
+    # 5. Generar respuesta usando LangChain
+    respuesta_ia = chatear_con_langchain(
+        perfil_actual=req.perfil,
+        ultima_pregunta=req.mensaje,
+        contexto_sqlite=contexto_sqlite,
+        contexto_vectorial=contexto_vectorial,
+        ultimos_mensajes=[{"role": x["rol"], "content": x["contenido"]} for x in historial_dicts]
+    )
+    
+    # 6. Guardar respuesta del asistente
     guardar_mensaje(req.perfil, "assistant", respuesta_ia)
+    guardar_chat_vectorial(req.perfil, "assistant", respuesta_ia)
     
     return {"status": "success", "respuesta": respuesta_ia, "tipo_intencion": "chat_normal"}
 
@@ -249,14 +283,10 @@ class RutinaSaveRequest(BaseModel):
     rutina: List[EjercicioEdit]
 
 @app.get("/api/ejercicios")
-def get_ejercicios():
+def get_ejercicios_endpoint():
     try:
-        conn = sqlite3.connect(DB_FILE)
-        cursor = conn.cursor()
-        cursor.execute("SELECT id_ejercicio, nombre_es, nombre_en, body_part, target, gif_url FROM catalogo_ejercicios")
-        rows = cursor.fetchall()
-        conn.close()
-        return {"status": "success", "ejercicios": [{"id_ejercicio": r[0], "nombre_es": r[1], "nombre_en": r[2] or "", "body_part": r[3], "target": r[4], "gif_url": r[5]} for r in rows]}
+        rows = obtener_catalogo_completo()
+        return {"status": "success", "ejercicios": [{"id_ejercicio": r['id_ejercicio'], "nombre_es": r['nombre_es'], "nombre_en": r.get('nombre_en', ""), "body_part": r.get('body_part'), "target": r.get('target'), "gif_url": fix_gif_url(r.get('gif_url'))} for r in rows]}
     except Exception as e:
         return {"status": "error", "ejercicios": [], "error": str(e)}
 
@@ -278,6 +308,30 @@ def guardar_sesion(req: RutinaSaveRequest):
             guardar_evento(req.perfil, "Gym", f"Sesión terminada: {ejercicios_completados} series. Volumen total: {tot_kg:.0f}kg", "Sólido", 300)
             
         return {"status": "success", "series": ejercicios_completados, "volumen": tot_kg}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+class GymFeedbackRequest(BaseModel):
+    perfil: str
+    feedback: str
+    rating: int = 0
+    ejercicios: str = ""
+
+@app.post("/api/gym/feedback")
+def gym_feedback(req: GymFeedbackRequest):
+    """Guarda el feedback del entrenamiento como memoria del agente."""
+    try:
+        # Guardar como evento de tipo Feedback
+        guardar_evento(
+            req.perfil, "Feedback_Gym",
+            f"Rating: {req.rating}/5 | Ejercicios: {req.ejercicios} | Comentario: {req.feedback}",
+            "Feedback", 0
+        )
+        # Registrar el feedback como mensaje del sistema en el historial para que la IA lo lea
+        feedback_msg = f"[Sistema: El usuario acabó de entrenar ({req.ejercicios}) y dejó este feedback (rating {req.rating}/5): '{req.feedback}'. Tené esto en cuenta en la próxima conversación.]"
+        guardar_mensaje(req.perfil, "system", feedback_msg)
+        return {"status": "success"}
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
@@ -368,21 +422,20 @@ def add_alacena(req: AlacenaRequest):
     return {"status": "success", "calorias": cals}
 
 @app.delete("/api/alacena/{item_id}")
-def delete_alacena(item_id: int):
-    eliminar_de_alacena(item_id)
+def delete_alacena(item_id: str, perfil: str):
+    eliminar_de_alacena_perfil(perfil, item_id)
     return {"status": "success"}
 
 class AlacenaEditRequest(BaseModel):
     ingrediente: str
 
 @app.put("/api/alacena/{item_id}")
-def edit_alacena(item_id: int, req: AlacenaEditRequest):
+def edit_alacena(item_id: str, req: AlacenaEditRequest, perfil: str = ""):
     try:
-        conn = sqlite3.connect(DB_FILE)
-        c = conn.cursor()
-        c.execute('UPDATE alacena SET ingrediente=? WHERE id=?', (req.ingrediente, item_id))
-        conn.commit()
-        conn.close()
+        from core.firebase import get_db
+        db = get_db()
+        if db and perfil:
+            db.collection("usuarios").document(perfil).collection("alacena").document(item_id).update({"ingrediente": req.ingrediente})
         return {"status": "success"}
     except Exception as e:
         return {"status": "error", "error": str(e)}
@@ -412,11 +465,7 @@ class RutinaIARequest(BaseModel):
 @app.post("/api/rutinas/generar")
 def generar_rutina_endpoint(req: RutinaIARequest):
     try:
-        perfiles = {}
-        if os.path.exists(PERFILES_FILE):
-            with open(PERFILES_FILE, 'r', encoding='utf-8') as f:
-                perfiles = json.load(f)
-        perfil_info = perfiles.get(req.perfil, {})
+        perfil_info = obtener_perfil(req.perfil) or {}
         rutina_generada, explicacion = generar_rutina_inteligente(
             req.prompt,
             perfil_info.get("descripcion", "")
@@ -424,6 +473,40 @@ def generar_rutina_endpoint(req: RutinaIARequest):
         return {"status": "success", "rutina": rutina_generada, "explicacion": explicacion}
     except Exception as e:
         import traceback; traceback.print_exc()
+        return {"status": "error", "error": str(e)}
+
+class ReemplazoIARequest(BaseModel):
+    perfil: str
+    ejercicio_actual: str
+    target: str
+    motivo: Optional[str] = ""
+
+@app.post("/api/rutinas/reemplazar")
+def reemplazar_rutina_ia(req: ReemplazoIARequest):
+    try:
+        from core.ai import sugerir_reemplazo_ia, UI_MUSCULO_ES, TECNICO_MAP
+        res = sugerir_reemplazo_ia(req.ejercicio_actual, req.target, req.motivo)
+        if not res: return {"status": "error", "error": "IA no disponible"}
+        
+        id_nuevo = res.get("id_nuevo")
+        row = buscar_ejercicio_por_id(id_nuevo)
+        if not row: return {"status": "error", "error": f"ID {id_nuevo} no disponible en Firestore"}
+        
+        t_raw = (row.get('target') or "chest").lower()
+        t_tecnico = TECNICO_MAP.get(t_raw, t_raw)
+        
+        alternativa = {
+            "id": row.get('id_ejercicio'),
+            "id_ejercicio": row.get('id_ejercicio'),
+            "nombre_es": row.get('nombre_es'),
+            "target": t_tecnico,
+            "body_part": UI_MUSCULO_ES.get(t_tecnico, t_tecnico.capitalize()),
+            "gif_url": fix_gif_url(row.get('gif_url')),
+            "equipment": row.get('equipment')
+        }
+        
+        return {"status": "success", "alternativa": alternativa, "mensaje": res.get("mensaje")}
+    except Exception as e:
         return {"status": "error", "error": str(e)}
 
 
@@ -454,8 +537,8 @@ def get_mis_rutinas(perfil: str):
         return {"status": "error", "rutinas": [], "error": str(e)}
 
 @app.delete("/api/rutinas/{rutina_id}")
-def delete_rutina(rutina_id: int):
-    eliminar_rutina(rutina_id)
+def delete_rutina(rutina_id: str, perfil: str):
+    eliminar_rutina_perfil(perfil, rutina_id)
     return {"status": "success"}
 
 
@@ -472,8 +555,8 @@ def get_comidas_hoy(perfil: str):
         return {"status": "error", "comidas": [], "error": str(e)}
 
 @app.delete("/api/nutricion/evento/{evento_id}")
-def delete_evento_nutricion(evento_id: int):
-    eliminar_evento(evento_id)
+def delete_evento_nutricion(evento_id: str, perfil: str):
+    eliminar_evento_perfil(perfil, evento_id)
     return {"status": "success"}
 
 # ============================================================

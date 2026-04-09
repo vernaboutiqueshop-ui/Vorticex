@@ -1,38 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MessageSquare, Apple, Activity, BarChart2, User, Zap } from 'lucide-react';
 import AgentView from './components/AgentView';
 import GymView from './components/GymView';
 import NutricionView from './components/NutricionView';
 import GraficosView from './components/GraficosView';
 import PerfilView from './components/PerfilView';
+import LoginView from './components/LoginView';
 import './index.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState('agente');
-  const [perfil, setPerfil] = useState('Gonzalo');
-  const [perfiles, setPerfiles] = useState(['Gonzalo']);
-  
-  // State compartido: rutina generada desde el Chat → Gym
   const [pendingRutina, setPendingRutina] = useState(null);
 
-  useEffect(() => {
-    fetch('http://localhost:8000/api/perfiles')
-      .then(res => res.json())
-      .then(data => {
-        const keys = Object.keys(data);
-        if (keys.length > 0) {
-          setPerfiles(keys);
-          if (!keys.includes(perfil)) setPerfil(keys[0]);
-        }
-      })
-      .catch(err => console.log('Sin conexión al backend'));
-  }, []);
+  // AUTH STATE — persiste en localStorage
+  const [authUser, setAuthUser] = useState(() => localStorage.getItem('vortice_user') || null);
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem('vortice_token') || null);
 
-  // Cuando hay una rutina pendiente, cambiar a tab Gym
+  const handleLogin = (username, token) => {
+    setAuthUser(username);
+    setAuthToken(token);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('vortice_user');
+    localStorage.removeItem('vortice_token');
+    setAuthUser(null);
+    setAuthToken(null);
+  };
+
   const handleLoadRutina = (rutina) => {
     setPendingRutina(rutina);
     setActiveTab('gym');
   };
+
+  // Si no está autenticado, mostrar login
+  if (!authUser || !authToken) {
+    return <LoginView onLogin={handleLogin} />;
+  }
+
+  const perfil = authUser;
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -45,9 +51,9 @@ function App() {
       case 'graficos':
         return <GraficosView perfil={perfil} />;
       case 'perfil':
-        return <PerfilView perfil={perfil} perfiles={perfiles} onChangePerfil={setPerfil} />;
+        return <PerfilView perfil={perfil} onLogout={handleLogout} />;
       default:
-        return <div>Selecciona una pestaña</div>;
+        return <div>Seleccioná una pestaña</div>;
     }
   };
 

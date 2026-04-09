@@ -1,17 +1,9 @@
+# Secrets y Entorno
+backend/.env
+backend/vortice-firebase-adminsdk.json
+backend/.venv/
+.venv/
 venv/
 __pycache__/
-*.pyc
-.env
-.idea/
-.vscode/
-
-# Frontend
 node_modules/
-dist/
-build/
-.env.local
-.vite/
-
-# Bases de datos 
-# backend/data/entrenador.db 
-# backend/config.json
+.DS_Store

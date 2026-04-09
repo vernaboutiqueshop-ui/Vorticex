@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User, Save, RefreshCw, LogOut, ChevronRight, Zap } from 'lucide-react';
 
 const API = 'http://localhost:8000';
 
-export default function PerfilView({ perfil, perfiles, onChangePerfil }) {
+export default function PerfilView({ perfil, onLogout }) {
   const [perfilData, setPerfilData] = useState({
     descripcion: '',
     detalle: '',
@@ -14,7 +14,7 @@ export default function PerfilView({ perfil, perfiles, onChangePerfil }) {
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchPerfil = async () => {
+  const fetchPerfil = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/perfil/${perfil}`);
@@ -24,11 +24,11 @@ export default function PerfilView({ perfil, perfiles, onChangePerfil }) {
       console.error(e);
     }
     setLoading(false);
-  };
+  }, [perfil]);
 
   useEffect(() => {
     fetchPerfil();
-  }, [perfil]);
+  }, [perfil, fetchPerfil]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -65,31 +65,20 @@ export default function PerfilView({ perfil, perfiles, onChangePerfil }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '2rem' }}>
       
-      {/* 1. Selector de Perfil (Migrado del header) */}
+      {/* 1. Usuario Activo */}
       <div className="card">
         <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <User size={18} color="var(--accent-color)" /> Usuario Activo
         </h2>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {perfiles.map(p => (
-            <button 
-              key={p} 
-              className={`suggestion-chip ${perfil === p ? 'active' : ''}`}
-              onClick={() => onChangePerfil(p)}
-              style={{
-                background: perfil === p ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)',
-                color: perfil === p ? '#000' : 'var(--text-primary)',
-                padding: '0.6rem 1.2rem',
-                borderRadius: '12px',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 600,
-                fontSize: '0.9rem'
-              }}
-            >
-              {p}
-            </button>
-          ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(56,189,248,0.07)', borderRadius: '12px', padding: '0.85rem 1rem' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #0ea5e9, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: 'white', fontSize: '1.1rem' }}>
+            {perfil.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{perfil}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Sesión activa</div>
+          </div>
+          <span className="dot pulse" style={{ marginLeft: 'auto' }}></span>
         </div>
       </div>
 
@@ -159,7 +148,11 @@ export default function PerfilView({ perfil, perfiles, onChangePerfil }) {
         </div>
       </div>
 
-      <button className="btn" style={{ background: 'transparent', borderColor: 'var(--danger-color)', color: 'var(--danger-color)', marginTop: '1rem' }} onClick={() => alert('Cerrando sesión...')}>
+      <button 
+        className="btn" 
+        style={{ background: 'transparent', borderColor: 'var(--danger-color)', color: 'var(--danger-color)', marginTop: '1rem' }} 
+        onClick={onLogout}
+      >
         <LogOut size={18} /> Cerrar Sesión
       </button>
 

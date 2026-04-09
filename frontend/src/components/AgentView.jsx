@@ -43,8 +43,10 @@ export default function AgentView({ perfil, onLoadRutina }) {
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    const userText = input;
+    const userText = input.trim();
+    // Zen: Validación, Bloqueo y filtro de "ruido" (símbolos)
+    if (!userText || userText.length < 3 || /^[\W_]+$/.test(userText) || loading) return; 
+    
     setInput('');
     setMessages(prev => [...prev, { rol: 'user', contenido: userText, tipo: 'chat_normal' }]);
     setLoading(true);
