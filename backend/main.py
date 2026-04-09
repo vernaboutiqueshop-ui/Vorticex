@@ -83,13 +83,23 @@ def register_user(req: RegisterRequest):
 
 @app.post("/api/auth/token")
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = obtener_perfil(form_data.username)
+    # Intentamos encontrar el usuario tal cual, o con la primera letra capitalizada, o todo minúscula
+    nombres_a_probar = [form_data.username, form_data.username.capitalize(), form_data.username.lower()]
+    user = None
+    final_username = form_data.username
+    
+    for nombre in nombres_a_probar:
+        user = obtener_perfil(nombre)
+        if user:
+            final_username = nombre
+            break
+
     if not user or user.get("password", "123456") != form_data.password:
         return {"error": "Credenciales inválidas"}
         
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": form_data.username}, expires_delta=access_token_expires
+        data={"sub": final_username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer", "status": "success"}
 
