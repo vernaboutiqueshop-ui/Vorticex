@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User, Save, RefreshCw, LogOut, ChevronRight, Zap } from 'lucide-react';
-
-const API = 'http://localhost:8000';
+import API from '../config';
 
 export default function PerfilView({ perfil, onLogout }) {
   const [perfilData, setPerfilData] = useState({

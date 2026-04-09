@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Play, Plus, Search, Dumbbell, Brain, X, CheckCircle2, Clock, RotateCcw, Image as ImageIcon, ChevronDown, ChevronUp, Timer } from 'lucide-react';
+import API from '../config';
 
 /**
  * GymView - El Módulo de Entrenamiento de Vórtice
@@ -57,7 +58,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
 
   // Fetch catalog
   useEffect(() => {
-    fetch('http://localhost:8000/api/ejercicios')
+    fetch(`${API}/api/ejercicios`)
       .then(res => res.json())
       .then(data => { if (data.ejercicios) setEjercicios(data.ejercicios); })
       .catch(console.error);
@@ -103,7 +104,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
     if (!prompt || prompt.length < 3 || loadingAi) return; // Zen: Validación y Bloqueo
     setLoadingAi(true);
     try {
-      const res = await fetch('http://localhost:8000/api/rutinas/generar', {
+      const res = await fetch(`${API}/api/rutinas/generar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ perfil, prompt })
@@ -123,7 +124,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   const reemplazarEjercicio = async (eIdx) => {
     const ejActual = rutina[eIdx];
     try {
-      const res = await fetch('http://localhost:8000/api/rutinas/reemplazar', {
+      const res = await fetch(`${API}/api/rutinas/reemplazar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

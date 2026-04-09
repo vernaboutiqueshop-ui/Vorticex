@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Zap, User, Lock, ChevronRight, Scale, Target, Trophy, Dumbbell, Waves, PersonStanding, Timer, Flame } from 'lucide-react';
-
-const API = 'http://localhost:8000';
+import API from '../config';
 
 const METAS = [
   { id: 'bajar_peso', icon: '🔥', label: 'Bajar de peso', desc: 'Déficit calórico inteligente' },

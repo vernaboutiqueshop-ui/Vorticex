@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { Player } from '@lottiefiles/react-lottie-player';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Camera, Search, Plus, X, ChefHat, Loader2, Flame, Clock, Play, Square, Settings, Pencil, Check, Info } from 'lucide-react';
-
-const API = 'http://localhost:8000';
+import API from '../config';
 
 // Etapas biológicas del ayuno con información científica
 const ETAPAS_AYUNO = [

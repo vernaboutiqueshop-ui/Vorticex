@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Dumbbell, Flame, Loader2, Trash2, ChevronsDown, Sparkles, BrainCircuit } from 'lucide-react';
-
-const API = 'http://localhost:8000';
+import API from '../config';
 
 export default function AgentView({ perfil, onLoadRutina }) {
   const [messages, setMessages] = useState([]);

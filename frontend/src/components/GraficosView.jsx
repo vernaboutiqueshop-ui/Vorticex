@@ -4,8 +4,7 @@ import {
   PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
 import { Calendar, Activity, PieChart as PieIcon, TrendingUp, History } from 'lucide-react';
-
-const API = 'http://localhost:8000';
+import API from '../config';
 
 export default function GraficosView({ perfil }) {
   const [trainingData, setTrainingData] = useState({ por_dia: [], por_musculo: [] });
