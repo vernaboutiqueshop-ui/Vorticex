@@ -1,0 +1,2222 @@
+[
+  {
+    "id_ejercicio": "0007",
+    "nombre_en": "alternate lateral pulldown",
+    "nombre_es": "Alternate lateral pulldown",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0007",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0015",
+    "nombre_en": "assisted parallel close grip pull-up",
+    "nombre_es": "Assisted parallel close grip pull-up",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0015",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0017",
+    "nombre_en": "assisted pull-up",
+    "nombre_es": "Assisted pull-up",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0017",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0022",
+    "nombre_en": "barbell pullover to press",
+    "nombre_es": "Barbell pullover to press",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0022",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0027",
+    "nombre_en": "barbell bent over row",
+    "nombre_es": "Barbell bent over row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0027",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0034",
+    "nombre_en": "barbell decline bent arm pullover",
+    "nombre_es": "Barbell decline bent arm pullover",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0034",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0037",
+    "nombre_en": "barbell decline wide-grip pullover",
+    "nombre_es": "Barbell decline wide-grip pullover",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0037",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0049",
+    "nombre_en": "barbell incline row",
+    "nombre_es": "Barbell incline row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0049",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0064",
+    "nombre_en": "barbell one arm bent over row",
+    "nombre_es": "Barbell one arm bent over row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0064",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0073",
+    "nombre_en": "barbell pullover",
+    "nombre_es": "Barbell pullover",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0073",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0501",
+    "nombre_en": "jack burpee",
+    "nombre_es": "Jack burpee",
+    "target": "cardiovascular system",
+    "body_part": "cardio",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0501",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0630",
+    "nombre_en": "mountain climber",
+    "nombre_es": "Mountain climber",
+    "target": "cardiovascular system",
+    "body_part": "cardio",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0630",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0684",
+    "nombre_en": "run (equipment)",
+    "nombre_es": "Run (equipment)",
+    "target": "cardiovascular system",
+    "body_part": "cardio",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0684",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0685",
+    "nombre_en": "run",
+    "nombre_es": "Run",
+    "target": "cardiovascular system",
+    "body_part": "cardio",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0685",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0798",
+    "nombre_en": "stationary bike walk",
+    "nombre_es": "Stationary bike walk",
+    "target": "cardiovascular system",
+    "body_part": "cardio",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0798",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1160",
+    "nombre_en": "burpee",
+    "nombre_es": "Burpee",
+    "target": "cardiovascular system",
+    "body_part": "cardio",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/1160",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1201",
+    "nombre_en": "dumbbell burpee",
+    "nombre_es": "Dumbbell burpee",
+    "target": "cardiovascular system",
+    "body_part": "cardio",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/1201",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "2138",
+    "nombre_en": "stationary bike run v. 3",
+    "nombre_es": "Stationary bike run v. 3",
+    "target": "cardiovascular system",
+    "body_part": "cardio",
+    "equipment": "stationary bike",
+    "gif_url": "/api/exercises/gif/2138",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "2141",
+    "nombre_en": "walk elliptical cross trainer",
+    "nombre_es": "Walk elliptical cross trainer",
+    "target": "cardiovascular system",
+    "body_part": "cardio",
+    "equipment": "elliptical machine",
+    "gif_url": "/api/exercises/gif/2141",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "2311",
+    "nombre_en": "walking on stepmill",
+    "nombre_es": "Walking on stepmill",
+    "target": "cardiovascular system",
+    "body_part": "cardio",
+    "equipment": "stepmill machine",
+    "gif_url": "/api/exercises/gif/2311",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0009",
+    "nombre_en": "assisted chest dip (kneeling)",
+    "nombre_es": "Assisted chest dip (kneeling)",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0009",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0025",
+    "nombre_en": "barbell bench press",
+    "nombre_es": "Barbell bench press",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0025",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0033",
+    "nombre_en": "barbell decline bench press",
+    "nombre_es": "Barbell decline bench press",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0033",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0036",
+    "nombre_en": "barbell decline wide-grip press",
+    "nombre_es": "Barbell decline wide-grip press",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0036",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0040",
+    "nombre_en": "barbell front raise and pullover",
+    "nombre_es": "Barbell front raise and pullover",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0040",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0045",
+    "nombre_en": "barbell guillotine bench press",
+    "nombre_es": "Barbell guillotine bench press",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0045",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0047",
+    "nombre_en": "barbell incline bench press",
+    "nombre_es": "Barbell incline bench press",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0047",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0050",
+    "nombre_en": "barbell incline shoulder raise",
+    "nombre_es": "Barbell incline shoulder raise",
+    "target": "serratus anterior",
+    "body_part": "chest",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0050",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0122",
+    "nombre_en": "barbell wide bench press",
+    "nombre_es": "Barbell wide bench press",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0122",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0151",
+    "nombre_en": "cable bench press",
+    "nombre_es": "Cable bench press",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0151",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0079",
+    "nombre_en": "barbell reverse wrist curl v. 2",
+    "nombre_es": "Barbell reverse wrist curl v. 2",
+    "target": "forearms",
+    "body_part": "lower arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0079",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0082",
+    "nombre_en": "barbell reverse wrist curl",
+    "nombre_es": "Barbell reverse wrist curl",
+    "target": "forearms",
+    "body_part": "lower arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0082",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0104",
+    "nombre_en": "barbell standing back wrist curl",
+    "nombre_es": "Barbell standing back wrist curl",
+    "target": "forearms",
+    "body_part": "lower arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0104",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0125",
+    "nombre_en": "barbell wrist curl v. 2",
+    "nombre_es": "Barbell wrist curl v. 2",
+    "target": "forearms",
+    "body_part": "lower arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0125",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0126",
+    "nombre_en": "barbell wrist curl",
+    "nombre_es": "Barbell wrist curl",
+    "target": "forearms",
+    "body_part": "lower arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0126",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0210",
+    "nombre_en": "cable reverse wrist curl",
+    "nombre_es": "Cable reverse wrist curl",
+    "target": "forearms",
+    "body_part": "lower arms",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0210",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0224",
+    "nombre_en": "cable standing back wrist curl",
+    "nombre_es": "Cable standing back wrist curl",
+    "target": "forearms",
+    "body_part": "lower arms",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0224",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0247",
+    "nombre_en": "cable wrist curl",
+    "nombre_es": "Cable wrist curl",
+    "target": "forearms",
+    "body_part": "lower arms",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0247",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0347",
+    "nombre_en": "dumbbell lying pronation",
+    "nombre_es": "Dumbbell lying pronation",
+    "target": "forearms",
+    "body_part": "lower arms",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0347",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0349",
+    "nombre_en": "dumbbell lying supination",
+    "nombre_es": "Dumbbell lying supination",
+    "target": "forearms",
+    "body_part": "lower arms",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0349",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0088",
+    "nombre_en": "barbell seated calf raise",
+    "nombre_es": "Barbell seated calf raise",
+    "target": "calves",
+    "body_part": "lower legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0088",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0108",
+    "nombre_en": "barbell standing leg calf raise",
+    "nombre_es": "Barbell standing leg calf raise",
+    "target": "calves",
+    "body_part": "lower legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0108",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0111",
+    "nombre_en": "barbell standing rocking leg calf raise",
+    "nombre_es": "Barbell standing rocking leg calf raise",
+    "target": "calves",
+    "body_part": "lower legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0111",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0257",
+    "nombre_en": "circles knee stretch",
+    "nombre_es": "Circles knee stretch",
+    "target": "calves",
+    "body_part": "lower legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0257",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0284",
+    "nombre_en": "donkey calf raise",
+    "nombre_es": "Donkey calf raise",
+    "target": "calves",
+    "body_part": "lower legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0284",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0400",
+    "nombre_en": "dumbbell seated one leg calf raise",
+    "nombre_es": "Dumbbell seated one leg calf raise",
+    "target": "calves",
+    "body_part": "lower legs",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0400",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0409",
+    "nombre_en": "dumbbell single leg calf raise",
+    "nombre_es": "Dumbbell single leg calf raise",
+    "target": "calves",
+    "body_part": "lower legs",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0409",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0417",
+    "nombre_en": "dumbbell standing calf raise",
+    "nombre_es": "Dumbbell standing calf raise",
+    "target": "calves",
+    "body_part": "lower legs",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0417",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0594",
+    "nombre_en": "lever seated calf raise",
+    "nombre_es": "Lever seated calf raise",
+    "target": "calves",
+    "body_part": "lower legs",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0594",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0605",
+    "nombre_en": "lever standing calf raise",
+    "nombre_es": "Lever standing calf raise",
+    "target": "calves",
+    "body_part": "lower legs",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0605",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0716",
+    "nombre_en": "side push neck stretch",
+    "nombre_es": "Side push neck stretch",
+    "target": "levator scapulae",
+    "body_part": "neck",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0716",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1403",
+    "nombre_en": "neck side stretch",
+    "nombre_es": "Neck side stretch",
+    "target": "levator scapulae",
+    "body_part": "neck",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/1403",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0041",
+    "nombre_en": "barbell front raise",
+    "nombre_es": "Barbell front raise",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0041",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0067",
+    "nombre_en": "barbell one arm snatch",
+    "nombre_es": "Barbell one arm snatch",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0067",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0075",
+    "nombre_en": "barbell rear delt raise",
+    "nombre_es": "Barbell rear delt raise",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0075",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0076",
+    "nombre_en": "barbell rear delt row",
+    "nombre_es": "Barbell rear delt row",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0076",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0086",
+    "nombre_en": "barbell seated behind head military press",
+    "nombre_es": "Barbell seated behind head military press",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0086",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0087",
+    "nombre_en": "barbell seated bradford rocky press",
+    "nombre_es": "Barbell seated bradford rocky press",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0087",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0091",
+    "nombre_en": "barbell seated overhead press",
+    "nombre_es": "Barbell seated overhead press",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0091",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0100",
+    "nombre_en": "barbell skier",
+    "nombre_es": "Barbell skier",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0100",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0105",
+    "nombre_en": "barbell standing bradford press",
+    "nombre_es": "Barbell standing bradford press",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0105",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0107",
+    "nombre_en": "barbell standing front raise over head",
+    "nombre_es": "Barbell standing front raise over head",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0107",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0018",
+    "nombre_en": "assisted standing triceps extension (with towel)",
+    "nombre_es": "Assisted standing triceps extension (with towel)",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "assisted (towel)",
+    "gif_url": "/api/exercises/gif/0018",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0019",
+    "nombre_en": "assisted triceps dip (kneeling)",
+    "nombre_es": "Assisted triceps dip (kneeling)",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0019",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0023",
+    "nombre_en": "barbell alternate biceps curl",
+    "nombre_es": "Barbell alternate biceps curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0023",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0030",
+    "nombre_en": "barbell close-grip bench press",
+    "nombre_es": "Barbell close-grip bench press",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0030",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0031",
+    "nombre_en": "barbell curl",
+    "nombre_es": "Barbell curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0031",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0035",
+    "nombre_en": "barbell decline close grip to skull press",
+    "nombre_es": "Barbell decline close grip to skull press",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0035",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0038",
+    "nombre_en": "barbell drag curl",
+    "nombre_es": "Barbell drag curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0038",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0048",
+    "nombre_en": "barbell incline reverse-grip press",
+    "nombre_es": "Barbell incline reverse-grip press",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0048",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0052",
+    "nombre_en": "barbell jm bench press",
+    "nombre_es": "Barbell jm bench press",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0052",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0055",
+    "nombre_en": "barbell lying close-grip press",
+    "nombre_es": "Barbell lying close-grip press",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0055",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0016",
+    "nombre_en": "assisted prone hamstring",
+    "nombre_es": "Assisted prone hamstring",
+    "target": "hamstrings",
+    "body_part": "upper legs",
+    "equipment": "assisted",
+    "gif_url": "/api/exercises/gif/0016",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0020",
+    "nombre_en": "balance board",
+    "nombre_es": "Balance board",
+    "target": "quads",
+    "body_part": "upper legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0020",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0024",
+    "nombre_en": "barbell bench front squat",
+    "nombre_es": "Barbell bench front squat",
+    "target": "quads",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0024",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0026",
+    "nombre_en": "barbell bench squat",
+    "nombre_es": "Barbell bench squat",
+    "target": "quads",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0026",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0028",
+    "nombre_en": "barbell clean and press",
+    "nombre_es": "Barbell clean and press",
+    "target": "quads",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0028",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0029",
+    "nombre_en": "barbell clean-grip front squat",
+    "nombre_es": "Barbell clean-grip front squat",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0029",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0032",
+    "nombre_en": "barbell deadlift",
+    "nombre_es": "Barbell deadlift",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0032",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0039",
+    "nombre_en": "barbell front chest squat",
+    "nombre_es": "Barbell front chest squat",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0039",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0042",
+    "nombre_en": "barbell front squat",
+    "nombre_es": "Barbell front squat",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0042",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0043",
+    "nombre_en": "barbell full squat",
+    "nombre_es": "Barbell full squat",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0043",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0001",
+    "nombre_en": "3/4 sit-up",
+    "nombre_es": "3/4 sit-up",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0001",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0002",
+    "nombre_en": "45° side bend",
+    "nombre_es": "45° side bend",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0002",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0003",
+    "nombre_en": "air bike",
+    "nombre_es": "Air bike",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0003",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0006",
+    "nombre_en": "alternate heel touchers",
+    "nombre_es": "Alternate heel touchers",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0006",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0010",
+    "nombre_en": "assisted hanging knee raise with throw down",
+    "nombre_es": "Assisted hanging knee raise with throw down",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "assisted",
+    "gif_url": "/api/exercises/gif/0010",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0011",
+    "nombre_en": "assisted hanging knee raise",
+    "nombre_es": "Assisted hanging knee raise",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "assisted",
+    "gif_url": "/api/exercises/gif/0011",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0012",
+    "nombre_en": "assisted lying leg raise with lateral throw down",
+    "nombre_es": "Assisted lying leg raise with lateral throw down",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "assisted",
+    "gif_url": "/api/exercises/gif/0012",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0013",
+    "nombre_en": "assisted lying leg raise with throw down",
+    "nombre_es": "Assisted lying leg raise with throw down",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "assisted",
+    "gif_url": "/api/exercises/gif/0013",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0014",
+    "nombre_en": "assisted motion russian twist",
+    "nombre_es": "Assisted motion russian twist",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "medicine ball",
+    "gif_url": "/api/exercises/gif/0014",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0071",
+    "nombre_en": "barbell press sit-up",
+    "nombre_es": "Barbell press sit-up",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0071",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0597",
+    "nombre_en": "lever seated hip abduction",
+    "nombre_es": "Lever seated hip abduction",
+    "target": "abductors",
+    "body_part": "upper legs",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0597",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0710",
+    "nombre_en": "side hip abduction",
+    "nombre_es": "Side hip abduction",
+    "target": "abductors",
+    "body_part": "upper legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0710",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1427",
+    "nombre_en": "straight leg outer hip abductor",
+    "nombre_es": "Straight leg outer hip abductor",
+    "target": "abductors",
+    "body_part": "upper legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/1427",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1774",
+    "nombre_en": "side bridge hip abduction",
+    "nombre_es": "Side bridge hip abduction",
+    "target": "abductors",
+    "body_part": "upper legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/1774",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "3006",
+    "nombre_en": "resistance band seated hip abduction",
+    "nombre_es": "Resistance band seated hip abduction",
+    "target": "abductors",
+    "body_part": "upper legs",
+    "equipment": "resistance band",
+    "gif_url": "/api/exercises/gif/3006",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0168",
+    "nombre_en": "cable hip adduction",
+    "nombre_es": "Cable hip adduction",
+    "target": "adductors",
+    "body_part": "upper legs",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0168",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0598",
+    "nombre_en": "lever seated hip adduction",
+    "nombre_es": "Lever seated hip adduction",
+    "target": "adductors",
+    "body_part": "upper legs",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0598",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1494",
+    "nombre_en": "butterfly yoga pose",
+    "nombre_es": "Butterfly yoga pose",
+    "target": "adductors",
+    "body_part": "upper legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/1494",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1712",
+    "nombre_en": "assisted side lying adductor stretch",
+    "nombre_es": "Assisted side lying adductor stretch",
+    "target": "adductors",
+    "body_part": "upper legs",
+    "equipment": "assisted",
+    "gif_url": "/api/exercises/gif/1712",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1775",
+    "nombre_en": "side plank hip adduction",
+    "nombre_es": "Side plank hip adduction",
+    "target": "adductors",
+    "body_part": "upper legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/1775",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "3667",
+    "nombre_en": "side lying hip adduction (male)",
+    "nombre_es": "Side lying hip adduction (male)",
+    "target": "adductors",
+    "body_part": "upper legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/3667",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0059",
+    "nombre_en": "barbell lying preacher curl",
+    "nombre_es": "Barbell lying preacher curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0059",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0070",
+    "nombre_en": "barbell preacher curl",
+    "nombre_es": "Barbell preacher curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0070",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0072",
+    "nombre_en": "barbell prone incline curl",
+    "nombre_es": "Barbell prone incline curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0072",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0080",
+    "nombre_en": "barbell reverse curl",
+    "nombre_es": "Barbell reverse curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0080",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0081",
+    "nombre_en": "barbell reverse preacher curl",
+    "nombre_es": "Barbell reverse preacher curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0081",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0089",
+    "nombre_en": "barbell seated close-grip concentration curl",
+    "nombre_es": "Barbell seated close-grip concentration curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0089",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0106",
+    "nombre_en": "barbell standing close grip curl",
+    "nombre_es": "Barbell standing close grip curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0106",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0046",
+    "nombre_en": "barbell hack squat",
+    "nombre_es": "Barbell hack squat",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0046",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0051",
+    "nombre_en": "barbell jefferson squat",
+    "nombre_es": "Barbell jefferson squat",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0051",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0053",
+    "nombre_en": "barbell jump squat",
+    "nombre_es": "Barbell jump squat",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0053",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0054",
+    "nombre_en": "barbell lunge",
+    "nombre_es": "Barbell lunge",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0054",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0058",
+    "nombre_en": "barbell lying lifting (on hip)",
+    "nombre_es": "Barbell lying lifting (on hip)",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0058",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0044",
+    "nombre_en": "barbell good morning",
+    "nombre_es": "Barbell good morning",
+    "target": "hamstrings",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0044",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0116",
+    "nombre_en": "barbell straight leg deadlift",
+    "nombre_es": "Barbell straight leg deadlift",
+    "target": "hamstrings",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0116",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0339",
+    "nombre_en": "dumbbell lying femoral",
+    "nombre_es": "Dumbbell lying femoral",
+    "target": "hamstrings",
+    "body_part": "upper legs",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0339",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0496",
+    "nombre_en": "inverse leg curl (bench support)",
+    "nombre_es": "Inverse leg curl (bench support)",
+    "target": "hamstrings",
+    "body_part": "upper legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0496",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0535",
+    "nombre_en": "kettlebell hang clean",
+    "nombre_es": "Kettlebell hang clean",
+    "target": "hamstrings",
+    "body_part": "upper legs",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0535",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0555",
+    "nombre_en": "kick out sit",
+    "nombre_es": "Kick out sit",
+    "target": "hamstrings",
+    "body_part": "upper legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0555",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0582",
+    "nombre_en": "lever kneeling leg curl",
+    "nombre_es": "Lever kneeling leg curl",
+    "target": "hamstrings",
+    "body_part": "upper legs",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0582",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0586",
+    "nombre_en": "lever lying leg curl",
+    "nombre_es": "Lever lying leg curl",
+    "target": "hamstrings",
+    "body_part": "upper legs",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0586",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0599",
+    "nombre_en": "lever seated leg curl",
+    "nombre_es": "Lever seated leg curl",
+    "target": "hamstrings",
+    "body_part": "upper legs",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0599",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0150",
+    "nombre_en": "cable bar lateral pulldown",
+    "nombre_es": "Cable bar lateral pulldown",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0150",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0153",
+    "nombre_en": "cable cross-over lateral pulldown",
+    "nombre_es": "Cable cross-over lateral pulldown",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0153",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0172",
+    "nombre_en": "cable incline pushdown",
+    "nombre_es": "Cable incline pushdown",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0172",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0155",
+    "nombre_en": "cable cross-over variation",
+    "nombre_es": "Cable cross-over variation",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0155",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0068",
+    "nombre_en": "barbell one leg squat",
+    "nombre_es": "Barbell one leg squat",
+    "target": "quads",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0068",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0069",
+    "nombre_en": "barbell overhead squat",
+    "nombre_es": "Barbell overhead squat",
+    "target": "quads",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0069",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0097",
+    "nombre_en": "barbell side split squat v. 2",
+    "nombre_es": "Barbell side split squat v. 2",
+    "target": "quads",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0097",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0098",
+    "nombre_en": "barbell side split squat",
+    "nombre_es": "Barbell side split squat",
+    "target": "quads",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0098",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0099",
+    "nombre_en": "barbell single leg split squat",
+    "nombre_es": "Barbell single leg split squat",
+    "target": "quads",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0099",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0102",
+    "nombre_en": "barbell squat (on knees)",
+    "nombre_es": "Barbell squat (on knees)",
+    "target": "quads",
+    "body_part": "upper legs",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0102",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0328",
+    "nombre_en": "dumbbell incline shoulder raise",
+    "nombre_es": "Dumbbell incline shoulder raise",
+    "target": "serratus anterior",
+    "body_part": "chest",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0328",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0759",
+    "nombre_en": "smith incline shoulder raises",
+    "nombre_es": "Smith incline shoulder raises",
+    "target": "serratus anterior",
+    "body_part": "chest",
+    "equipment": "smith machine",
+    "gif_url": "/api/exercises/gif/0759",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "3011",
+    "nombre_en": "incline scapula push up",
+    "nombre_es": "Incline scapula push up",
+    "target": "serratus anterior",
+    "body_part": "chest",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/3011",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "3021",
+    "nombre_en": "scapula push-up",
+    "nombre_es": "Scapula push-up",
+    "target": "serratus anterior",
+    "body_part": "chest",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/3021",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0488",
+    "nombre_en": "hyperextension (on bench)",
+    "nombre_es": "Hyperextension (on bench)",
+    "target": "spine",
+    "body_part": "back",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0488",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0489",
+    "nombre_en": "hyperextension",
+    "nombre_es": "Hyperextension",
+    "target": "spine",
+    "body_part": "back",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0489",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0573",
+    "nombre_en": "lever back extension",
+    "nombre_es": "Lever back extension",
+    "target": "spine",
+    "body_part": "back",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0573",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0835",
+    "nombre_en": "weighted hyperextension (on stability ball)",
+    "nombre_es": "Weighted hyperextension (on stability ball)",
+    "target": "spine",
+    "body_part": "back",
+    "equipment": "weighted",
+    "gif_url": "/api/exercises/gif/0835",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1010",
+    "nombre_en": "band straight leg deadlift",
+    "nombre_es": "Band straight leg deadlift",
+    "target": "spine",
+    "body_part": "back",
+    "equipment": "band",
+    "gif_url": "/api/exercises/gif/1010",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1314",
+    "nombre_en": "back extension on exercise ball",
+    "nombre_es": "Back extension on exercise ball",
+    "target": "spine",
+    "body_part": "back",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/1314",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1333",
+    "nombre_en": "exercise ball back extension with arms extended",
+    "nombre_es": "Exercise ball back extension with arms extended",
+    "target": "spine",
+    "body_part": "back",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/1333",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1334",
+    "nombre_en": "exercise ball back extension with hands behind head",
+    "nombre_es": "Exercise ball back extension with hands behind head",
+    "target": "spine",
+    "body_part": "back",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/1334",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1335",
+    "nombre_en": "exercise ball back extension with knees off ground",
+    "nombre_es": "Exercise ball back extension with knees off ground",
+    "target": "spine",
+    "body_part": "back",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/1335",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1336",
+    "nombre_en": "exercise ball back extension with rotation",
+    "nombre_es": "Exercise ball back extension with rotation",
+    "target": "spine",
+    "body_part": "back",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/1336",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0095",
+    "nombre_en": "barbell shrug",
+    "nombre_es": "Barbell shrug",
+    "target": "traps",
+    "body_part": "back",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0095",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0220",
+    "nombre_en": "cable shrug",
+    "nombre_es": "Cable shrug",
+    "target": "traps",
+    "body_part": "back",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0220",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0304",
+    "nombre_en": "dumbbell decline shrug v. 2",
+    "nombre_es": "Dumbbell decline shrug v. 2",
+    "target": "traps",
+    "body_part": "back",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0304",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0305",
+    "nombre_en": "dumbbell decline shrug",
+    "nombre_es": "Dumbbell decline shrug",
+    "target": "traps",
+    "body_part": "back",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0305",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0329",
+    "nombre_en": "dumbbell incline shrug",
+    "nombre_es": "Dumbbell incline shrug",
+    "target": "traps",
+    "body_part": "back",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0329",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0406",
+    "nombre_en": "dumbbell shrug",
+    "nombre_es": "Dumbbell shrug",
+    "target": "traps",
+    "body_part": "back",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0406",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0548",
+    "nombre_en": "kettlebell sumo high pull",
+    "nombre_es": "Kettlebell sumo high pull",
+    "target": "traps",
+    "body_part": "back",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0548",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0580",
+    "nombre_en": "lever gripless shrug",
+    "nombre_es": "Lever gripless shrug",
+    "target": "traps",
+    "body_part": "back",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0580",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0604",
+    "nombre_en": "lever shrug",
+    "nombre_es": "Lever shrug",
+    "target": "traps",
+    "body_part": "back",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0604",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0688",
+    "nombre_en": "scapular pull-up",
+    "nombre_es": "Scapular pull-up",
+    "target": "traps",
+    "body_part": "back",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0688",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0056",
+    "nombre_en": "barbell lying close-grip triceps extension",
+    "nombre_es": "Barbell lying close-grip triceps extension",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0056",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0057",
+    "nombre_en": "barbell lying extension",
+    "nombre_es": "Barbell lying extension",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0057",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0060",
+    "nombre_en": "barbell lying triceps extension skull crusher",
+    "nombre_es": "Barbell lying triceps extension skull crusher",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0060",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0118",
+    "nombre_en": "barbell reverse grip bent over row",
+    "nombre_es": "Barbell reverse grip bent over row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "barbell",
+    "gif_url": "/api/exercises/gif/0118",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0159",
+    "nombre_en": "cable decline seated wide-grip row",
+    "nombre_es": "Cable decline seated wide-grip row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0159",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0160",
+    "nombre_en": "cable floor seated wide-grip row",
+    "nombre_es": "Cable floor seated wide-grip row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0160",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0167",
+    "nombre_en": "cable high row (kneeling)",
+    "nombre_es": "Cable high row (kneeling)",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0167",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0180",
+    "nombre_en": "cable low seated row",
+    "nombre_es": "Cable low seated row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0180",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0189",
+    "nombre_en": "cable one arm bent over row",
+    "nombre_es": "Cable one arm bent over row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0189",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0193",
+    "nombre_en": "cable one arm straight back high row (kneeling)",
+    "nombre_es": "Cable one arm straight back high row (kneeling)",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0193",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0148",
+    "nombre_en": "cable alternate shoulder press",
+    "nombre_es": "Cable alternate shoulder press",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0148",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0149",
+    "nombre_en": "cable alternate triceps extension",
+    "nombre_es": "Cable alternate triceps extension",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0149",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0152",
+    "nombre_en": "cable concentration extension (on knee)",
+    "nombre_es": "Cable concentration extension (on knee)",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0152",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0154",
+    "nombre_en": "cable cross-over reverse fly",
+    "nombre_es": "Cable cross-over reverse fly",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0154",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0157",
+    "nombre_en": "cable deadlift",
+    "nombre_es": "Cable deadlift",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "cable",
+    "gif_url": "/api/exercises/gif/0157",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0285",
+    "nombre_en": "dumbbell alternate biceps curl",
+    "nombre_es": "Dumbbell alternate biceps curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0285",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0286",
+    "nombre_en": "dumbbell alternate side press",
+    "nombre_es": "Dumbbell alternate side press",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0286",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0287",
+    "nombre_en": "dumbbell arnold press v. 2",
+    "nombre_es": "Dumbbell arnold press v. 2",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0287",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0288",
+    "nombre_en": "dumbbell around pullover",
+    "nombre_es": "Dumbbell around pullover",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0288",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0289",
+    "nombre_en": "dumbbell bench press",
+    "nombre_es": "Dumbbell bench press",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0289",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0290",
+    "nombre_en": "dumbbell bench seated press",
+    "nombre_es": "Dumbbell bench seated press",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0290",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0291",
+    "nombre_en": "dumbbell bench squat",
+    "nombre_es": "Dumbbell bench squat",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0291",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0292",
+    "nombre_en": "dumbbell one arm bent-over row",
+    "nombre_es": "Dumbbell one arm bent-over row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0292",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0293",
+    "nombre_en": "dumbbell bent over row",
+    "nombre_es": "Dumbbell bent over row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0293",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0294",
+    "nombre_en": "dumbbell biceps curl",
+    "nombre_es": "Dumbbell biceps curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "dumbbell",
+    "gif_url": "/api/exercises/gif/0294",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0571",
+    "nombre_en": "lever alternating narrow grip seated row",
+    "nombre_es": "Lever alternating narrow grip seated row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0571",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0572",
+    "nombre_en": "lever assisted chin-up",
+    "nombre_es": "Lever assisted chin-up",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0572",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0575",
+    "nombre_en": "lever bicep curl",
+    "nombre_es": "Lever bicep curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0575",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0576",
+    "nombre_en": "lever chest press",
+    "nombre_es": "Lever chest press",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0576",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0577",
+    "nombre_en": "lever chest press",
+    "nombre_es": "Lever chest press",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "leverage machine",
+    "gif_url": "/api/exercises/gif/0577",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0517",
+    "nombre_en": "kettlebell advanced windmill",
+    "nombre_es": "Kettlebell advanced windmill",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0517",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0518",
+    "nombre_en": "kettlebell alternating hang clean",
+    "nombre_es": "Kettlebell alternating hang clean",
+    "target": "forearms",
+    "body_part": "lower arms",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0518",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0519",
+    "nombre_en": "kettlebell alternating press on floor",
+    "nombre_es": "Kettlebell alternating press on floor",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0519",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0520",
+    "nombre_en": "kettlebell alternating press",
+    "nombre_es": "Kettlebell alternating press",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0520",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0521",
+    "nombre_en": "kettlebell alternating renegade row",
+    "nombre_es": "Kettlebell alternating renegade row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0521",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0522",
+    "nombre_en": "kettlebell alternating row",
+    "nombre_es": "Kettlebell alternating row",
+    "target": "upper back",
+    "body_part": "back",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0522",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0523",
+    "nombre_en": "kettlebell arnold press",
+    "nombre_es": "Kettlebell arnold press",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0523",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0524",
+    "nombre_en": "kettlebell bent press",
+    "nombre_es": "Kettlebell bent press",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0524",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0525",
+    "nombre_en": "kettlebell bottoms up clean from the hang position",
+    "nombre_es": "Kettlebell bottoms up clean from the hang position",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0525",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0526",
+    "nombre_en": "kettlebell double alternating hang clean",
+    "nombre_es": "Kettlebell double alternating hang clean",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "kettlebell",
+    "gif_url": "/api/exercises/gif/0526",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0968",
+    "nombre_en": "band alternating biceps curl",
+    "nombre_es": "Band alternating biceps curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "band",
+    "gif_url": "/api/exercises/gif/0968",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0969",
+    "nombre_en": "band alternating v-up",
+    "nombre_es": "Band alternating v-up",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "band",
+    "gif_url": "/api/exercises/gif/0969",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0970",
+    "nombre_en": "band assisted pull-up",
+    "nombre_es": "Band assisted pull-up",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "band",
+    "gif_url": "/api/exercises/gif/0970",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0971",
+    "nombre_en": "band assisted wheel rollerout",
+    "nombre_es": "Band assisted wheel rollerout",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "band",
+    "gif_url": "/api/exercises/gif/0971",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0972",
+    "nombre_en": "band bicycle crunch",
+    "nombre_es": "Band bicycle crunch",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "band",
+    "gif_url": "/api/exercises/gif/0972",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0974",
+    "nombre_en": "band close-grip pulldown",
+    "nombre_es": "Band close-grip pulldown",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "band",
+    "gif_url": "/api/exercises/gif/0974",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0975",
+    "nombre_en": "band close-grip push-up",
+    "nombre_es": "Band close-grip push-up",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "band",
+    "gif_url": "/api/exercises/gif/0975",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0976",
+    "nombre_en": "band concentration curl",
+    "nombre_es": "Band concentration curl",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "band",
+    "gif_url": "/api/exercises/gif/0976",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0977",
+    "nombre_en": "band front lateral raise",
+    "nombre_es": "Band front lateral raise",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "band",
+    "gif_url": "/api/exercises/gif/0977",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0978",
+    "nombre_en": "band front raise",
+    "nombre_es": "Band front raise",
+    "target": "delts",
+    "body_part": "shoulders",
+    "equipment": "band",
+    "gif_url": "/api/exercises/gif/0978",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0129",
+    "nombre_en": "bench dip (knees bent)",
+    "nombre_es": "Bench dip (knees bent)",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0129",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0130",
+    "nombre_en": "bench hip extension",
+    "nombre_es": "Bench hip extension",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0130",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0137",
+    "nombre_en": "body-up",
+    "nombre_es": "Body-up",
+    "target": "triceps",
+    "body_part": "upper arms",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0137",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0138",
+    "nombre_en": "bottoms-up",
+    "nombre_es": "Bottoms-up",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0138",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0139",
+    "nombre_en": "biceps narrow pull-ups",
+    "nombre_es": "Biceps narrow pull-ups",
+    "target": "biceps",
+    "body_part": "upper arms",
+    "equipment": "body weight",
+    "gif_url": "/api/exercises/gif/0139",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0271",
+    "nombre_en": "crunch (on stability ball)",
+    "nombre_es": "Crunch (on stability ball)",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/0271",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0272",
+    "nombre_en": "crunch (on stability ball, arms straight)",
+    "nombre_es": "Crunch (on stability ball, arms straight)",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/0272",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0650",
+    "nombre_en": "pull-in (on stability ball)",
+    "nombre_es": "Pull-in (on stability ball)",
+    "target": "abs",
+    "body_part": "waist",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/0650",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0655",
+    "nombre_en": "push-up (on stability ball)",
+    "nombre_es": "Push-up (on stability ball)",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/0655",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0656",
+    "nombre_en": "push-up (on stability ball)",
+    "nombre_es": "Push-up (on stability ball)",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/0656",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "0675",
+    "nombre_en": "reverse hyper extension (on stability ball)",
+    "nombre_es": "Reverse hyper extension (on stability ball)",
+    "target": "glutes",
+    "body_part": "upper legs",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/0675",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1272",
+    "nombre_en": "chest stretch with exercise ball",
+    "nombre_es": "Chest stretch with exercise ball",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/1272",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1296",
+    "nombre_en": "exercise ball pike push up",
+    "nombre_es": "Exercise ball pike push up",
+    "target": "pectorals",
+    "body_part": "chest",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/1296",
+    "source": "static_raw_v1"
+  },
+  {
+    "id_ejercicio": "1332",
+    "nombre_en": "exercise ball alternating arm ups",
+    "nombre_es": "Exercise ball alternating arm ups",
+    "target": "lats",
+    "body_part": "back",
+    "equipment": "stability ball",
+    "gif_url": "/api/exercises/gif/1332",
+    "source": "static_raw_v1"
+  }
+]
