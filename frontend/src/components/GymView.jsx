@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Play, Plus, Search, Dumbbell, Brain, X, CheckCircle2, Clock, RotateCcw, Image as ImageIcon, ChevronDown, ChevronUp, Timer } from 'lucide-react';
 import API from '../config';
+import ejerciciosMaster from '../assets/ejercicios.json';
 
 /**
  * GymView - El Módulo de Entrenamiento de Vórtice
  * Rediseñado para UX Premium, Localización Argentina y Simplicidad.
  */
 export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
-  const [ejercicios, setEjercicios] = useState([]);
+  const [ejercicios, setEjercicios] = useState(ejerciciosMaster);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [selectedMuscle, setSelectedMuscle] = useState('Todos');
@@ -56,13 +57,8 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
     return next;
   });
 
-  // Fetch catalog
-  useEffect(() => {
-    fetch(`${API}/api/ejercicios`)
-      .then(res => res.json())
-      .then(data => { if (data.ejercicios) setEjercicios(data.ejercicios); })
-      .catch(console.error);
-  }, []);
+  // El catálogo ahora es estático para máxima fluidez. 
+  // Podríamos sincronizar con Firestore en segundo plano si fuera necesario.
 
   // Timer de sesión
   useEffect(() => {
@@ -320,7 +316,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                   onClick={() => setGifModal(ej)}
                   style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'white', flexShrink: 0, cursor: 'pointer', overflow: 'hidden' }}
                 >
-                  <img src={ej.gif_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={ej.gif_url?.startsWith('http') ? ej.gif_url : `${API}${ej.gif_url}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }} onClick={() => toggleCollapse(eIdx)}>
                   <div style={{ fontWeight: 800, fontSize: '1rem', color: 'white', marginBottom: '0.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ej.nombre_es}</div>
@@ -471,7 +467,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                   .slice(0, 40)
                   .map(e => (
                  <div key={e.id_ejercicio} style={{ padding: '0.75rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <img src={e.gif_url} style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'white' }} />
+                    <img src={e.gif_url?.startsWith('http') ? e.gif_url : `${API}${e.gif_url}`} style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'white' }} />
                     <div style={{ flex: 1 }}>
                        <div style={{ fontWeight: 700, color: 'white', fontSize: '0.85rem' }}>{e.nombre_es}</div>
                        <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{e.target}</div>
@@ -504,15 +500,85 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
         </div>
       )}
 
-      {/* GIF MODAL */}
+      {/* MODAL DETALLE DE EJERCICIO (PROFESIONAL) */}
       {gifModal && (
-        <div onClick={() => setGifModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-           <div onClick={e => e.stopPropagation()} style={{ background: '#0f172a', borderRadius: '24px', width: '100%', maxWidth: '400px', overflow: 'hidden' }}>
-              <img src={gifModal.gif_url} style={{ width: '100%', background: 'white' }} />
-              <div style={{ padding: '1.5rem' }}>
-                 <h2 style={{ color: 'white', margin: 0, fontSize: '1.2rem' }}>{gifModal.nombre_es}</h2>
-                 <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Objetivo: {gifModal.target}</p>
-                 <button onClick={() => setGifModal(null)} style={{ width: '100%', padding: '0.8rem', background: '#1e293b', border: 'none', color: 'white', borderRadius: '12px', marginTop: '1rem', fontWeight: 800 }}>CERRAR</button>
+        <div onClick={() => setGifModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+           <div onClick={e => e.stopPropagation()} style={{ 
+             background: '#0f172a', 
+             borderRadius: '28px', 
+             width: '100%', 
+             maxWidth: '430px', 
+             maxHeight: '90vh',
+             overflowY: 'auto',
+             boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+             border: '1px solid rgba(255,255,255,0.1)'
+           }}>
+              {/* Media Section */}
+              <div style={{ position: 'relative', width: '100%', height: '250px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                 <img src={gifModal.gif_url?.startsWith('http') ? gifModal.gif_url : `${API}${gifModal.gif_url}`} alt={gifModal.nombre_es} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                 <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
+                    <button onClick={() => setGifModal(null)} style={{ background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer' }}><X size={20}/></button>
+                 </div>
+              </div>
+
+              {/* Content Section */}
+              <div style={{ padding: '2rem' }}>
+                 <div style={{ marginBottom: '1.5rem' }}>
+                    <h2 style={{ color: 'white', margin: '0 0 0.5rem 0', fontSize: '1.5rem', fontWeight: 900, lineHeight: 1.1 }}>{gifModal.nombre_es}</h2>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                       <span style={{ fontSize: '0.7rem', color: 'black', background: 'var(--accent-gym)', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{gifModal.target_es || gifModal.target}</span>
+                       <span style={{ fontSize: '0.7rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{gifModal.equipment_es || gifModal.equipment}</span>
+                    </div>
+                 </div>
+
+                 {gifModal.resumen_es && (
+                   <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(56,189,248,0.05)', borderRadius: '16px', borderLeft: '4px solid var(--accent-gym)' }}>
+                      <p style={{ color: '#bae6fd', fontSize: '0.85rem', margin: 0, fontStyle: 'italic', lineHeight: 1.5 }}>"{gifModal.resumen_es}"</p>
+                   </div>
+                 )}
+
+                 <div style={{ marginBottom: '1.5rem' }}>
+                    <h4 style={{ color: 'white', fontSize: '0.9rem', fontWeight: 800, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                       📋 Instrucciones Paso a Paso
+                    </h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                       {(gifModal.instrucciones_es || gifModal.instructions || []).map((step, idx) => (
+                         <div key={idx} style={{ display: 'flex', gap: '0.75rem' }}>
+                            <span style={{ color: 'var(--accent-gym)', fontWeight: 900, fontSize: '0.85rem' }}>{idx + 1}.</span>
+                            <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0, lineHeight: 1.4 }}>{step}</p>
+                         </div>
+                       ))}
+                    </div>
+                 </div>
+
+                 {gifModal.tips_es && gifModal.tips_es.length > 0 && (
+                   <div style={{ marginBottom: '1.5rem' }}>
+                      <h4 style={{ color: 'white', fontSize: '0.9rem', fontWeight: 800, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                         💡 Tips del Instructor
+                      </h4>
+                      <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#64748b', fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                         {gifModal.tips_es.map((tip, idx) => (
+                           <li key={idx} style={{ lineHeight: 1.4 }}>{tip}</li>
+                         ))}
+                      </ul>
+                   </div>
+                 )}
+
+                 <button 
+                   onClick={() => setGifModal(null)} 
+                   style={{ 
+                     width: '100%', 
+                     padding: '1.1rem', 
+                     background: 'white', 
+                     color: 'black', 
+                     border: 'none', 
+                     borderRadius: '16px', 
+                     marginTop: '1rem', 
+                     fontWeight: 900,
+                     fontSize: '1rem',
+                     cursor: 'pointer'
+                   }}
+                 >ENTENDIDO</button>
               </div>
            </div>
         </div>

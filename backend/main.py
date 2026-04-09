@@ -69,6 +69,48 @@ app.add_middleware(
 def read_root():
     return {"status": "ok", "message": "Vórtice Health API is running - VERSION 1.1"}
 
+@app.get("/api/exercises/gif/{exercise_id}")
+async def get_exercise_gif(exercise_id: str):
+    """
+    Proxy seguro para obtener GIFs de ExerciseDB.
+    Esto permite usar la API Key sin exponerla en el Frontend.
+    """
+    import httpx
+    from fastapi import HTTPException
+    from fastapi.responses import StreamingResponse
+
+    X_RAPIDAPI_KEY = os.getenv("X_RAPIDAPI_KEY")
+    X_RAPIDAPI_HOST = os.getenv("X_RAPIDAPI_HOST", "exercisedb.p.rapidapi.com")
+
+    if not X_RAPIDAPI_KEY:
+        raise HTTPException(status_code=500, detail="Falta configuración de API Key")
+
+    url = f"https://{X_RAPIDAPI_HOST}/image"
+    
+    async with httpx.AsyncClient() as client:
+        try:
+            # Pedimos el GIF a ExerciseDB (resolución 360 por defecto para velocidad)
+            response = await client.get(
+                url, 
+                params={"exerciseId": exercise_id, "resolution": "360"},
+                headers={
+                    "x-rapidapi-key": X_RAPIDAPI_KEY,
+                    "x-rapidapi-host": X_RAPIDAPI_HOST
+                },
+                timeout=10.0
+            )
+            
+            if response.status_code != 200:
+                raise HTTPException(status_code=response.status_code, detail="Error de la API de origen")
+
+            # Servimos el contenido directamente al frontend
+            return StreamingResponse(
+                response.iter_bytes(),
+                media_type="image/gif"
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
 
 # ============================================================
 # AUTENTICACIÓN Y ONBOARDING
@@ -229,19 +271,29 @@ def send_chat(req: ChatRequest):
             raw_rutina = resultado.get("rutina") or resultado.get("ejercicios", [])
             rutina_gen = []
             
-            # Intentar buscar info completa en el catálogo para cada ID sugerido por la IA
+            # Cargar catálogo local para máxima velocidad y consistencia
+            try:
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                cat_path = os.path.join(os.path.dirname(base_dir), "raw_catalog.json")
+                with open(cat_path, "r", encoding="utf-8") as f:
+                    ejercicios_todos = json.load(f)
+            except:
+                ejercicios_todos = []
+
+            # Buscar info completa en el catálogo local para cada ID sugerido por la IA
             for r in raw_rutina:
                 eid = r.get("id") or r.get("id_ejercicio")
                 if not eid: continue
                 
-                row = buscar_ejercicio_por_id(eid)
-                if row:
+                # Buscar en el catálogo local
+                orig = next((x for x in ejercicios_todos if x['id'] == eid), None)
+                if orig:
                     rutina_gen.append({
-                        "id_ejercicio": row.get('id_ejercicio'),
-                        "nombre_es": row.get('nombre_es'),
-                        "target": row.get('target'),
-                        "body_part": UI_MUSCULO_ES.get(row.get('target','').lower(), row.get('target','').capitalize() or "General"),
-                        "gif_url": fix_gif_url(row.get('gif_url')),
+                        "id_ejercicio": orig['id'],
+                        "nombre_es": orig['name'].capitalize(),
+                        "target": orig['target'],
+                        "body_part": UI_MUSCULO_ES.get(orig['target',''].lower(), orig['target',''].capitalize() or "General"),
+                        "gif_url": f"/api/exercises/gif/{orig['id']}",
                         "sets": r.get("sets") or [{"reps": "12", "kg": "", "done": False} for _ in range(r.get("series", 3))]
                     })
             

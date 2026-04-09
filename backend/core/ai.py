@@ -126,14 +126,24 @@ def procesar_mensaje_local(mensaje):
     return None
 
 def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_vectorial=""):
-    """Detección de intención y respuesta en un solo paso."""
+    """Detección de intención y respuesta en un solo paso optimizado."""
     
     # Intento de respuesta local (Zen Optimization)
     local_res = procesar_mensaje_local(mensaje)
     if local_res:
         return local_res
 
-    sys_prompt = f"Eres Vórtice Coach, experto fitness argento. Responde JSON: {{'tipo': 'chat_normal|nutricion|rutina', 'respuesta': '...'}}. Contexto: {perfil_info}. Responde con toda la onda argenta."
+    sys_prompt = (
+        f"Eres Vórtice Coach, un instructor fitness elite de Argentina. Tu tono es motivador, técnico y usa voseo. "
+        f"DEBES analizar el mensaje del usuario y responder ÚNICAMENTE en JSON con este formato:\n"
+        f"{{\n"
+        f"  'tipo': 'chat_normal' | 'nutricion' | 'rutina',\n"
+        f"  'respuesta': 'Tu respuesta motivadora en español argentino',\n"
+        f"  'nutricion': {{'alimento': 'nombré', 'cal': 100, 'prot': 0, 'carb': 0, 'gras': 0}} (solo si tipo es nutricion),\n"
+        f"  'datos_extra': 'Cualquier detalle relevante'\n"
+        f"}}\n"
+        f"Contexto del usuario: {perfil_info}"
+    )
     
     res_raw = consultar_gemini([
         {"role": "system", "content": sys_prompt},
@@ -141,67 +151,69 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
     ], formato_json=True)
     
     if res_raw == "ERROR_CUOTA":
-        return {"tipo": "chat_normal", "respuesta": "¡Uff! Me quedé sin aire. Google me puso un stop por exceso de consultas. ¡Dame un respiro y volvemos con todo!"}
-    if res_raw in ["ERROR_KEY", "ERROR_CONFIG"]:
-        return {"tipo": "chat_normal", "respuesta": "Che, hay un tema con mi llave... Revisá el archivo .env porque no puedo arrancar."}
-    if not res_raw or res_raw == "ERROR_GENERICO":
-        return {"tipo": "chat_normal", "respuesta": "Che, me tildé un segundo analizando tanta potencia. ¿Me repetís lo último?"}
-
+        return {"tipo": "chat_normal", "respuesta": "¡Me quedé sin aire! Google me puso un stop por hoy. ¡Metamosle garra y mañana seguimos con el catálogo completo!"}
+    
     res = clean_json(res_raw)
     try: 
-        return json.loads(res)
+        data = json.loads(res)
+        # Si la IA detectó nutrición pero no mandó el objeto, forzamos una estimación rápida
+        if data.get("tipo") == "nutricion" and not data.get("nutricion"):
+            data["nutricion"] = estimar_nutricion_ollama(mensaje)
+        return data
     except: 
         return {"tipo": "chat_normal", "respuesta": res_raw}
 
 def generar_rutina_inteligente(objetivo, perfil_info=""):
-    print(f"[VORTICE] Generando rutina para: {objetivo}")
+    """Genera una rutina usando ÚNICAMENTE el catálogo local ya cosechado."""
+    print(f"[VORTICE] Generando rutina PRO para: {objetivo}")
     try:
-        from .database import buscar_ejercicio_por_id, obtener_catalogo_completo
+        # Cargar catálogo local
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        cat_path = os.path.join(os.path.dirname(base_dir), "raw_catalog.json")
         
-        # Obtener una muestra del catálogo para dar contexto a la IA
-        ejercicios_todos = obtener_catalogo_completo()
-        # Tomamos una muestra representativa (por ahora limitada para no exceder tokens del prompt)
-        cat_str = "\n".join([f"{e.get('id_ejercicio')}|{e.get('nombre_es')}|{e.get('target')}" for e in ejercicios_todos[:150] if e.get('nombre_es')])
+        with open(cat_path, "r", encoding="utf-8") as f:
+            ejercicios_todos = json.load(f)
+            
+        # Muestra representativa para el prompt
+        cat_str = "\n".join([f"{e['id']}|{e['name']}" for e in ejercicios_todos[:120]])
 
-        sys_prompt = "Eres Vórtice Coach. Responde JSON: [{'id': 'ID', 'nombre_es': 'Nombre', 'series': 4}]. Usa español de Argentina."
-        res_txt = consultar_gemini([{"role": "system", "content": sys_prompt}, {"role": "user", "content": f"Objetivo: {objetivo}. Catálogo:\n{cat_str}"}], formato_json=True)
+        sys_prompt = (
+            "Eres Vórtice Instructor Elite. Crea una rutina JSON con ejercicios de la lista adjunta. "
+            "Responde EXACTAMENTE así: [{'id': 'ID_REAL', 'series': 4, 'reps': '12'}]. Usa el voseo argentino en tu charla."
+        )
         
-        if res_txt in ["ERROR_CUOTA", "ERROR_CONFIG", "ERROR_KEY"]:
-            return [], "Error de cuota o configuración en la IA."
-
+        res_txt = consultar_gemini([
+            {"role": "system", "content": sys_prompt}, 
+            {"role": "user", "content": f"Objetivo: {objetivo}. Catálogo disponible:\n{cat_str}"}
+        ], formato_json=True)
+        
         try:
             ej_ia = json.loads(res_txt)
             if isinstance(ej_ia, dict): ej_ia = ej_ia.get("ejercicios", [])
         except:
-            return [], "La IA devolvió un formato inválido."
+            return [], "Che, me dio un calambre mental. ¿Probamos de nuevo?"
 
         rutina_final = []
         for e in ej_ia[:8]:
-            row = buscar_ejercicio_por_id(e.get('id'))
-            if row:
-                tr = (row.get('target') or "chest").lower()
+            orig = next((x for x in ejercicios_todos if x['id'] == e.get('id')), None)
+            if orig:
                 sc = int(e.get("series", 4))
                 rutina_final.append({
-                    "id": row.get('id_ejercicio'), 
-                    "id_ejercicio": row.get('id_ejercicio'), 
-                    "nombre_es": e.get("nombre_es") or row.get('nombre_es'),
-                    "target": tr, 
-                    "body_part": UI_MUSCULO_ES.get(tr, tr), 
-                    "gif_url": fix_gif_url(row.get('gif_url')),
-                    "equipment": row.get('equipment'), 
+                    "id_ejercicio": orig['id'], 
+                    "nombre_es": orig['name'].capitalize(),
+                    "target": orig['target'], 
+                    "body_part": UI_MUSCULO_ES.get(orig['target'], orig['target'].capitalize()), 
+                    "gif_url": f"/api/exercises/gif/{orig['id']}",
                     "series": sc, 
-                    "sets": [{"reps": "12", "kg": "", "done": False} for _ in range(sc)]
+                    "sets": [{"reps": str(e.get("reps", "12")), "kg": "", "done": False} for _ in range(sc)]
                 })
-        return rutina_final, "Rutina lista para darle con todo."
+        return rutina_final, "¡Rutina lista, fiera! Dale sin miedo."
     except Exception as ex:
         print(f"Error rutina: {ex}")
         return [], "Error generando rutina."
 
-def clasificar_intencion(msg):
-    return {"tipo": "chat_normal", "datos": "", "suficiente_info": True}
-
 def estimar_nutricion_ollama(alimento):
-    prompt = f"Estima calorías y macros para: {alimento}. Responde JSON: {{'calorias': 0, 'proteinas': 0, 'carbos': 0, 'grasas': 0, 'descripcion': '...'}}"
+    prompt = f"Sé un nutricionista argento. Estima calorías y macros para: {alimento}. Responde ÚNICAMENTE JSON: {{'alimento': '...', 'cal': 0, 'prot': 0, 'carb': 0, 'gras': 0, 'descripcion': '...'}}"
     res = consultar_gemini([{"role": "user", "content": prompt}], formato_json=True)
     try: return json.loads(res)
     except: return None
@@ -210,8 +222,9 @@ def analizar_imagen_ollama(contents):
     return None
 
 def generar_receta_alacena(perfil, ings):
-    prompt = f"Con estos ingredientes: {ings}, sugiere una receta rápida argentina."
+    prompt = f"Con estos ingredientes: {ings}, sugiere una receta rápida argentina con toda la onda."
     return consultar_gemini([{"role": "user", "content": prompt}])
 
-def sugerir_reemplazo_ia(ejercicio_actual, target):
+def sugerir_reemplazo_ia(ejercicio_actual, target, motivo=""):
+    """Próxima mejora: Reemplazos usando el catálogo local."""
     return None
