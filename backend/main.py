@@ -35,7 +35,20 @@ from fastapi.security import OAuth2PasswordRequestForm
 async def lifespan(app: FastAPI):
     # Acciones al iniciar
     print("[VORTICE] Iniciando Vórtice Health API (Cloud Mode)")
+    
+    # Auto-seed exercises if catalog is empty
+    try:
+        from core.database import obtener_catalogo_completo
+        from seed_ejercicios import seed
+        catalogo = obtener_catalogo_completo()
+        if not catalogo or len(catalogo) == 0:
+            print("[VORTICE] Catálogo vacío detectado. Ejecutando semilla automática...")
+            seed()
+    except Exception as e:
+        print(f"[VORTICE] Error en auto-seed: {e}")
+        
     yield
+
     # Acciones al cerrar (si hubiera)
 
 app = FastAPI(
