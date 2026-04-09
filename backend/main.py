@@ -54,7 +54,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"status": "ok", "message": "Vórtice Health API is running"}
+    return {"status": "ok", "message": "Vórtice Health API is running - VERSION 1.1"}
 
 
 # ============================================================
