@@ -21,9 +21,8 @@ from core.database import (
     buscar_ejercicio_por_id, obtener_catalogo_completo
 )
 from core.ai import (
-    consultar_ollama, clasificar_intencion, generar_rutina_inteligente,
-    estimar_nutricion_ollama, analizar_imagen_ollama, generar_receta_alacena,
-    fix_gif_url
+    generar_rutina_inteligente,
+    estimar_nutricion_ollama, analizar_imagen_ollama, generar_receta_alacena
 )
 from personality.prompt_builder import build_system_prompt
 from personality.motor_memoria import generar_y_guardar_contexto
