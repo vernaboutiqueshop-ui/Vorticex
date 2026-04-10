@@ -193,11 +193,6 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   const progress = totalSets > 0 ? (totalSetsDone / totalSets) * 100 : 0;
 
   // Filtrado de catálogo optimizado: Ahora usa el catálogo vivo (Backend -> Local)
-  const ejerciciosFiltrados = ejerciciosMasterLive.filter(e => {
-    // 1. Buscador texto
-    const searchMatch = (e.nombre_es || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-                      (e.nombre_en || '').toLowerCase().includes(searchTerm.toLowerCase());
-    
     // 2. Filtro de músculo
     if (selectedMuscle === 'Todos') return searchMatch;
     
@@ -205,7 +200,10 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
     const bPart = (e.body_part || '').toLowerCase();
     const target = (e.target || '').toLowerCase();
     
-    const muscleMatch = allowed.some(a => bPart.includes(a) || target.includes(a));
+    // El filtro ahora busca coincidencias exactas o parciales en los términos normalizados
+    const muscleMatch = allowed.length === 0 || allowed.some(a => 
+      bPart === a || target === a || bPart.includes(a) || target.includes(a)
+    );
     
     return searchMatch && muscleMatch;
   });
