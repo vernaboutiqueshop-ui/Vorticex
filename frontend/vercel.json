@@ -1,6 +1,5 @@
 {
   "routes": [
-    { "src": "/api/exercises/gif/(.*)", "dest": "/api/exercises/gif/$1" },
     { "src": "/api/(.*)", "dest": "https://vorticex-1.onrender.com/api/$1" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
