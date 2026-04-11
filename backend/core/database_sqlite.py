@@ -262,7 +262,8 @@ def guardar_log_set(perfil: str, id_ejercicio: str, set_num: int, peso: float, r
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
-        u_id = cur.fetchone()['id']
+        res = cur.fetchone()
+        u_id = res['id'] if res else 1
         cur.execute("""
             INSERT INTO activity_logs (user_id, type, description, val1, val2, ref_id)
             VALUES (?, 'GymSet', ?, ?, ?, ?)
@@ -283,7 +284,8 @@ def guardar_en_alacena(perfil: str, ingrediente: str, cantidad: str, calorias: f
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
-        u_id = cur.fetchone()['id']
+        res = cur.fetchone()
+        u_id = res['id'] if res else 1
         cur.execute("""
             INSERT INTO pantry (user_id, ingredient, amount, calories)
             VALUES (?, ?, ?, ?)
@@ -329,7 +331,8 @@ def actualizar_ayuno(perfil: str, en_ayuno: bool, inicio_iso: str, meta_horas: f
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
-        u_id = cur.fetchone()['id']
+        res = cur.fetchone()
+        u_id = res['id'] if res else 1
         cur.execute("""
             INSERT INTO fasting (user_id, start_time, hours_goal, is_active)
             VALUES (?, ?, ?, ?)

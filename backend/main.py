@@ -40,6 +40,11 @@ async def lifespan(app: FastAPI):
     print("[VORTICE] Iniciando Vórtice Health API (All-Local Mode)")
     # Asegúrate de que la carpeta de datos existe
     os.makedirs(os.path.join(os.path.dirname(__file__), "data"), exist_ok=True)
+    try:
+        from scripts.init_final_db import init_final_db
+        init_final_db()
+    except Exception as e:
+        print(f"[VORTICE] Error inicializando DB: {e}")
     yield
 
 app = FastAPI(
