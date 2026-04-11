@@ -1,15 +1,20 @@
-from fastapi import FastAPI, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional, List
 import sys
 import os
 import json
+print(f"--- VORTICE STARTING FROM: {os.path.abspath(__file__)} ---")
 from contextlib import asynccontextmanager
+from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
+from typing import Optional, List
+from datetime import timedelta
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from core.database import (
+from core.database_sqlite import (
     obtener_historial_chat, guardar_mensaje, borrar_historial_chat,
     consultar_datos, guardar_log_set, guardar_evento,
     obtener_alacena, guardar_en_alacena, eliminar_de_alacena_perfil,
@@ -20,40 +25,26 @@ from core.database import (
     obtener_perfil, guardar_perfil, listar_perfiles,
     buscar_ejercicio_por_id, obtener_catalogo_completo
 )
+
 from core.ai import (
     generar_rutina_inteligente,
-    estimar_nutricion_ollama, analizar_imagen_ollama, generar_receta_alacena,
-    fix_gif_url
+    estimar_nutricion_ollama, analizar_imagen_ollama, generar_receta_alacena
 )
 from personality.prompt_builder import build_system_prompt
 from personality.motor_memoria import generar_y_guardar_contexto
+from core.intelligence import semantic_search_exercises
 from core.auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
-from datetime import timedelta
-from fastapi import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 async def lifespan(app: FastAPI):
-    # Acciones al iniciar
-    print("[VORTICE] Iniciando Vórtice Health API (Cloud Mode)")
-    
-    # Auto-seed exercises if catalog is empty
-    try:
-        from core.database import obtener_catalogo_completo
-        from seed_ejercicios import seed
-        catalogo = obtener_catalogo_completo()
-        if not catalogo or len(catalogo) == 0:
-            print("[VORTICE] Catálogo vacío detectado. Ejecutando semilla automática...")
-            seed()
-    except Exception as e:
-        print(f"[VORTICE] Error en auto-seed: {e}")
-        
+    print("[VORTICE] Iniciando Vórtice Health API (All-Local Mode)")
+    # Asegúrate de que la carpeta de datos existe
+    os.makedirs(os.path.join(os.path.dirname(__file__), "data"), exist_ok=True)
     yield
-
-    # Acciones al cerrar (si hubiera)
 
 app = FastAPI(
     title="Vórtice Health API", 
-    description="API para la app Vórtice Health Coach",
+    description="API para la app Vórtice Health Coach (Modo Local + SQLite)",
     lifespan=lifespan
 )
 
@@ -65,51 +56,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Montar GIFs estáticos para consumo ultra-rápido local
+gifs_path = os.path.join(os.path.dirname(__file__), "data", "exercises", "gifs")
+if os.path.exists(gifs_path):
+    app.mount("/gifs", StaticFiles(directory=gifs_path), name="gifs")
+else:
+    print(f"[VORTICE] ADVERTENCIA: Carpeta de GIFs no encontrada en {gifs_path}")
+
 @app.get("/")
 def read_root():
-    return {"status": "ok", "message": "Vórtice Health API is running - VERSION 1.1"}
-
-@app.get("/api/exercises/gif/{exercise_id}")
-async def get_exercise_gif(exercise_id: str):
-    """
-    Proxy seguro para obtener GIFs de ExerciseDB.
-    Esto permite usar la API Key sin exponerla en el Frontend.
-    """
-    import httpx
-    from fastapi import HTTPException
-    from fastapi.responses import StreamingResponse
-
-    X_RAPIDAPI_KEY = os.getenv("X_RAPIDAPI_KEY")
-    X_RAPIDAPI_HOST = os.getenv("X_RAPIDAPI_HOST", "exercisedb.p.rapidapi.com")
-
-    if not X_RAPIDAPI_KEY:
-        raise HTTPException(status_code=500, detail="Falta configuración de API Key")
-
-    url = f"https://{X_RAPIDAPI_HOST}/image"
-    
-    async with httpx.AsyncClient() as client:
-        try:
-            # Pedimos el GIF a ExerciseDB (resolución 360 por defecto para velocidad)
-            response = await client.get(
-                url, 
-                params={"exerciseId": exercise_id, "resolution": "360"},
-                headers={
-                    "x-rapidapi-key": X_RAPIDAPI_KEY,
-                    "x-rapidapi-host": X_RAPIDAPI_HOST
-                },
-                timeout=10.0
-            )
-            
-            if response.status_code != 200:
-                raise HTTPException(status_code=response.status_code, detail="Error de la API de origen")
-
-            # Servimos el contenido directamente al frontend
-            return StreamingResponse(
-                response.iter_bytes(),
-                media_type="image/gif"
-            )
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+    return {"status": "ok", "message": "Vórtice Health API is running - LOCAL EDITION"}
 
 
 # ============================================================
@@ -165,37 +121,6 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
 @app.get("/api/perfiles")
 def get_perfiles_endpoint():
     return listar_perfiles()
-
-@app.get("/api/debug/usuarios")
-def debug_usuarios():
-    # Para saber exactamente qué hay guardado en cada perfil
-    try:
-        from core.firebase import get_db
-        db = get_db()
-        docs = db.collection("usuarios").stream()
-        return {d.id: d.to_dict() for d in docs}
-    except Exception as e:
-        return {"error": str(e)}
-
-@app.get("/api/debug/delete/{nombre}")
-def debug_delete_user(nombre: str):
-    try:
-        from core.firebase import get_db
-        db = get_db()
-        db.collection("usuarios").document(nombre).delete()
-        return {"status": "success", "message": f"Perfil {nombre} eliminado correctamente"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.get("/api/debug/seed-ejercicios")
-def debug_seed_ejercicios():
-    """Limpia y puebla la biblioteca de ejercicios usando el script externo."""
-    try:
-        from seed_ejercicios import seed
-        seed()
-        return {"status": "success", "message": "Semilla ejecutada correctamente."}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
 
 @app.get("/api/perfil/{nombre}")
 def get_perfil_endpoint(nombre: str):
@@ -392,9 +317,91 @@ class RutinaSaveRequest(BaseModel):
 def get_ejercicios_endpoint():
     try:
         rows = obtener_catalogo_completo()
-        return {"status": "success", "ejercicios": [{"id_ejercicio": r['id_ejercicio'], "nombre_es": r['nombre_es'], "nombre_en": r.get('nombre_en', ""), "body_part": r.get('body_part'), "target": r.get('target'), "gif_url": fix_gif_url(r.get('gif_url'))} for r in rows]}
+        return {"status": "success", "ejercicios": [
+            {"id_ejercicio": r['id_ejercicio'], "nombre_es": r['nombre_es'], 
+             "nombre_en": r.get('nombre_en', ""), "body_part": r.get('body_part'), 
+             "target": r.get('target'), "gif_url": r.get('gif_url'),
+             "equipment": r.get('equipment', ""), "instrucciones_es": r.get('instrucciones_es', [])} for r in rows
+        ]}
     except Exception as e:
         return {"status": "error", "ejercicios": [], "error": str(e)}
+
+@app.get("/api/exercises/search")
+def search_ejercicios_endpoint(q: str = ""):
+    if not q or len(q) < 3:
+        return {"status": "error", "error": "Query demasiado corta"}
+    try:
+        from core.intelligence import get_chroma_client
+        client = get_chroma_client()
+        col = client.get_collection(name="exercises_v2")
+        results = col.query(query_texts=[q], n_results=10)
+        
+        # Obtener catálogo para armar respuesta
+        cat = obtener_catalogo_completo()
+        cat_map = { e['id_ejercicio']: e for e in cat }
+        
+        encontrados = []
+        if results and results['ids'] and len(results['ids']) > 0:
+            for ex_id in results['ids'][0]:
+                if ex_id in cat_map:
+                    encontrados.append(cat_map[ex_id])
+        return {"status": "success", "ejercicios": encontrados}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.get("/view/exercises", response_class=HTMLResponse)
+def view_exercises_html():
+    try:
+        rows = obtener_catalogo_completo()
+        html_content = """
+        <html>
+        <head>
+            <title>Catálogo de Ejercicios - Vórtice Elite</title>
+            <style>
+                body { font-family: system-ui, sans-serif; background: #0f172a; color: white; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+                th { background: #1e293b; color: #38bdf8; }
+                img { width: 80px; height: 80px; border-radius: 8px; background: white; object-fit: contain; }
+                .badges { display: flex; gap: 8px; }
+                .badge { background: #38bdf8; color: black; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
+                .badge-eq { background: #475569; color: white; }
+            </style>
+        </head>
+        <body>
+            <h1>💪 Catálogo de Ejercicios Offline <span>(Total: {count})</span></h1>
+            <table>
+                <tr>
+                    <th>GIF</th>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Músculo / Tipo</th>
+                    <th>Instrucciones</th>
+                </tr>
+        """.replace("{count}", str(len(rows)))
+        
+        for r in rows:
+            insts = "<br>".join([f"- {i}" for i in r.get('instrucciones_es', [])[:2]])
+            html_content += f"""
+                <tr>
+                    <td><img src="{r.get('gif_url')}" alt="GIF"/></td>
+                    <td><small>#{r['id_ejercicio']}</small></td>
+                    <td><strong>{r['nombre_es']}</strong></td>
+                    <td>
+                        <div class="badges">
+                            <span class="badge">{r.get('body_part')}</span>
+                            <span class="badge badge-eq">{r.get('target')}</span>
+                        </div>
+                    </td>
+                    <td><small>{insts}...</small></td>
+                </tr>
+            """
+            
+        html_content += "</table></body></html>"
+        return html_content
+    except Exception as e:
+        return f"<html><body><h1>Error al cargar</h1><p>{str(e)}</p></body></html>"
+
 
 @app.post("/api/gym/guardar")
 def guardar_sesion(req: RutinaSaveRequest):
@@ -537,14 +544,8 @@ class AlacenaEditRequest(BaseModel):
 
 @app.put("/api/alacena/{item_id}")
 def edit_alacena(item_id: str, req: AlacenaEditRequest, perfil: str = ""):
-    try:
-        from core.firebase import get_db
-        db = get_db()
-        if db and perfil:
-            db.collection("usuarios").document(perfil).collection("alacena").document(item_id).update({"ingrediente": req.ingrediente})
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
+    # TODO: Implementar en base de datos SQLite si se usa
+    return {"status": "error", "error": "Not implemented in SQLite yet"}
 
 
 class RecetaRequest(BaseModel):

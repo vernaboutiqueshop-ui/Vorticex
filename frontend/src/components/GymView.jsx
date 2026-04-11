@@ -9,6 +9,8 @@ import { API } from '../config';
 export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   const [ejerciciosMasterLive, setEjerciciosMasterLive] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [semanticResults, setSemanticResults] = useState([]);
+  const [isSearchingSemantic, setIsSearchingSemantic] = useState(false);
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [selectedMuscle, setSelectedMuscle] = useState('Todos');
   
@@ -39,6 +41,29 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
     };
     syncCatalog();
   }, []);
+
+  // Búsqueda Semántica en tiempo real
+  useEffect(() => {
+    if (searchTerm.length < 3) {
+      setSemanticResults([]);
+      return;
+    }
+    const timeout = setTimeout(async () => {
+      setIsSearchingSemantic(true);
+      try {
+        const res = await fetch(`${API}/api/exercises/search?q=${encodeURIComponent(searchTerm)}`);
+        const data = await res.json();
+        if (data.status === 'success') {
+          setSemanticResults(data.ejercicios);
+        }
+      } catch (e) {
+        console.error("Semantic search error", e);
+      }
+      setIsSearchingSemantic(false);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeout);
+  }, [searchTerm]);
 
   const [gifModal, setGifModal] = useState(null);
   const [misRutinas, setMisRutinas] = useState([]);
@@ -179,12 +204,12 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
 
   const MUSCLE_GROUPS = {
     'Todos': [],
-    'Pecho': ['chest', 'pectorals'],
-    'Espalda': ['back', 'lats', 'upper back'],
-    'Piernas': ['upper legs', 'lower legs', 'quads', 'hamstrings', 'calves', 'glutes'],
-    'Brazos': ['upper arms', 'lower arms', 'biceps', 'triceps', 'forearms'],
-    'Hombros': ['shoulders', 'delts'],
-    'Core': ['waist', 'abs', 'abdominals'],
+    'Pecho': ['chest', 'pectorals', 'pecho'],
+    'Espalda': ['back', 'lats', 'upper back', 'espalda'],
+    'Piernas': ['upper legs', 'lower legs', 'quads', 'hamstrings', 'calves', 'glutes', 'piernas'],
+    'Brazos': ['upper arms', 'lower arms', 'biceps', 'triceps', 'forearms', 'brazos'],
+    'Hombros': ['shoulders', 'delts', 'hombros'],
+    'Abs': ['waist', 'abs', 'abdominals', 'cintura', 'core'],
     'Cardio': ['cardio', 'cardiovascular system']
   };
 
@@ -193,10 +218,13 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   const progress = totalSets > 0 ? (totalSetsDone / totalSets) * 100 : 0;
 
   // Filtrado de catálogo optimizado: Ahora usa el catálogo vivo (Backend -> Cloud)
-  const ejerciciosFiltrados = ejerciciosMasterLive.filter(e => {
-    // 1. Buscador texto
-    const searchMatch = (e.nombre_es || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-                      (e.nombre_en || '').toLowerCase().includes(searchTerm.toLowerCase());
+  const baseEjercicios = (semanticResults.length > 0 && searchTerm.length >= 3) ? semanticResults : ejerciciosMasterLive;
+  
+  const ejerciciosFiltrados = baseEjercicios.filter(e => {
+    // 1. Buscador texto (solo aplica si NO estamos usando la búsqueda semántica, o como refuerzo)
+    const searchMatch = (semanticResults.length > 0 && searchTerm.length >= 3) ? true 
+                      : ((e.nombre_es || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (e.nombre_en || '').toLowerCase().includes(searchTerm.toLowerCase()));
     
     // 2. Filtro de músculo
     if (selectedMuscle === 'Todos') return searchMatch;
@@ -510,12 +538,14 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                   .slice(0, 40)
                   .map(e => (
                  <div key={e.id_ejercicio} style={{ padding: '0.75rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <img src={e.gif_url?.startsWith('http') ? e.gif_url : `${API}${e.gif_url}`} style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'white' }} />
-                    <div style={{ flex: 1 }}>
-                       <div style={{ fontWeight: 700, color: 'white', fontSize: '0.85rem' }}>{e.nombre_es}</div>
-                       <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{e.target}</div>
+                    <div onClick={() => setGifModal(e)} style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, cursor: 'pointer' }}>
+                        <img src={e.gif_url?.startsWith('http') ? e.gif_url : `${API}${e.gif_url}`} style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'white' }} />
+                        <div>
+                           <div style={{ fontWeight: 700, color: 'white', fontSize: '0.85rem' }}>{e.nombre_es}</div>
+                           <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{e.target}</div>
+                        </div>
                     </div>
-                    <button onClick={() => { setRutina([...rutina, { ...e, sets:[{reps:'12',kg:'',done:false}] }]); setShowCatalogModal(false); }} style={{ background: 'var(--accent-gym)', borderRadius: '8px', padding: '0.4rem', border: 'none' }}><Plus size={18}/></button>
+                    <button onClick={(event) => { event.stopPropagation(); setRutina([...rutina, { ...e, sets:[{reps:'12',kg:'',done:false}] }]); setShowCatalogModal(false); }} style={{ background: 'var(--accent-gym)', borderRadius: '8px', padding: '0.4rem', border: 'none', cursor: 'pointer' }}><Plus size={18}/></button>
                  </div>
                ))}
             </div>

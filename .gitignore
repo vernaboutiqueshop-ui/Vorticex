@@ -1,9 +1,25 @@
-# Secrets y Entorno
-backend/.env
-backend/vortice-firebase-adminsdk.json
-backend/.venv/
-.venv/
-venv/
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Node
 node_modules/
-.DS_Store
+dist/
+.vercel
+
+# Temp/Scratch
+scratch/
+*.log
+temp/
+debug_db.py
+check_dbs.py
+check_chroma.py
+test_catalogo.json
+api_out.json
+
+# DB (Opcional, pero para esta app queremos que el seed suba)
+# !backend/data/vortice_elite.db
+# !backend/data/exercises/gifs/

@@ -14,6 +14,8 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 # Use a default encoding for print if needed, but removing emojis is safer
 load_dotenv()
 
+from core.intelligence import recall_nutrition, learn_nutrition
+
 # --- CONFIGURACIÓN DE MODELOS ---
 MODELO_PRINCIPAL = "models/gemini-flash-latest"
 api_key = os.getenv("GEMINI_API_KEY", "AIzaSyBuh-W_reEPT0H90xDqBZr_VXEuGNjDCNs")
@@ -30,16 +32,14 @@ def clean_json(text):
         return match.group(0)
     return text.strip()
 
-def fix_gif_url(url):
-    if not url: return ""
-    new_url = url
-    if url.lower().endswith(".gif"):
-        new_url = url.replace(".gif", ".jpg")
-    elif not any(url.lower().endswith(ext) for ext in [".jpg", ".png", ".jpeg"]):
-        new_url = url.rstrip("/") + "/0.jpg"
-    if "raw.githubusercontent.com" in url:
-        new_url = new_url.replace("raw.githubusercontent.com", "raw.githack.com")
-    return new_url
+def clean_json(text):
+    """Limpia backticks de Markdown y extrae solo el bloque JSON."""
+    if not text: return ""
+    # Buscar el primer '{' y el último '}' para ignorar texto extra
+    match = re.search(r'(\{.*\}|\[.*\])', text, re.DOTALL)
+    if match:
+        return match.group(0)
+    return text.strip()
 
 # --- MOTOR DE IA (Gemini) ---
 def consultar_gemini(mensajes, formato_json=False, modelo=MODELO_PRINCIPAL):
@@ -128,18 +128,31 @@ def procesar_mensaje_local(mensaje):
 def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_vectorial=""):
     """Detección de intención y respuesta en un solo paso optimizado."""
     
-    # Intento de respuesta local (Zen Optimization)
-    local_res = procesar_mensaje_local(mensaje)
-    if local_res:
-        return local_res
+    # --- CAPA DE APRENDIZAJE LOCAL (NUTRICHORE) ---
+    es_nutricion = any(kw in mensaje.lower() for kw in ["comí", "comer", "cena", "almuerzo", "desayuno", "nutricion", "calorías"])
+    if es_nutricion:
+        memoria_fresca = recall_nutrition(mensaje)
+        if memoria_fresca:
+            print(f"[VORTICE] ¡Aprendizaje detectado! Usando memoria local para: {mensaje}")
+            return {
+                "tipo": "nutricion",
+                "respuesta": f"¡Ya me acordaba de esto! Para {memoria_fresca['food_name']}, son unas {memoria_fresca['calories']} kcal. ¿Lo anoto?",
+                "nutricion": {
+                    "alimento": memoria_fresca['food_name'],
+                    "cal": memoria_fresca['calories'],
+                    "prot": memoria_fresca['proteins'],
+                    "carb": memoria_fresca['carbs'],
+                    "gras": memoria_fresca['fats']
+                }
+            }
 
     sys_prompt = (
         f"Eres Vórtice Coach, un instructor fitness elite de Argentina. Tu tono es motivador, técnico y usa voseo. "
-        f"DEBES analizar el mensaje del usuario y responder ÚNICAMENTE en JSON con este formato:\n"
+        f"Analiza el mensaje del usuario y responde ÚNICAMENTE en JSON con este formato:\n"
         f"{{\n"
         f"  'tipo': 'chat_normal' | 'nutricion' | 'rutina',\n"
         f"  'respuesta': 'Tu respuesta motivadora en español argentino',\n"
-        f"  'nutricion': {{'alimento': 'nombré', 'cal': 100, 'prot': 0, 'carb': 0, 'gras': 0}} (solo si tipo es nutricion),\n"
+        f"  'nutricion': {{'alimento': 'nombre', 'cal': 100, 'prot': 0, 'carb': 0, 'gras': 0}} (solo si tipo es nutricion),\n"
         f"  'datos_extra': 'Cualquier detalle relevante'\n"
         f"}}\n"
         f"Contexto del usuario: {perfil_info}"
@@ -156,9 +169,10 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
     res = clean_json(res_raw)
     try: 
         data = json.loads(res)
-        # Si la IA detectó nutrición pero no mandó el objeto, forzamos una estimación rápida
-        if data.get("tipo") == "nutricion" and not data.get("nutricion"):
-            data["nutricion"] = estimar_nutricion_ollama(mensaje)
+        # Si la IA detectó nutrición, ¡lo aprendemos para la próxima!
+        if data.get("tipo") == "nutricion" and data.get("nutricion"):
+            learn_nutrition(mensaje, data["nutricion"])
+            print(f"[VORTICE] Nuevo aprendizaje guardado: {mensaje}")
         return data
     except: 
         return {"tipo": "chat_normal", "respuesta": res_raw}
@@ -167,15 +181,13 @@ def generar_rutina_inteligente(objetivo, perfil_info=""):
     """Genera una rutina usando ÚNICAMENTE el catálogo local ya cosechado."""
     print(f"[VORTICE] Generando rutina PRO para: {objetivo}")
     try:
-        # Cargar catálogo local
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        cat_path = os.path.join(os.path.dirname(base_dir), "raw_catalog.json")
-        
-        with open(cat_path, "r", encoding="utf-8") as f:
-            ejercicios_todos = json.load(f)
+        from core.database_sqlite import obtener_catalogo_completo
+        ejercicios_todos = obtener_catalogo_completo()
+        if not ejercicios_todos:
+            return [], "Error: Catálogo vacío."
             
         # Muestra representativa para el prompt
-        cat_str = "\n".join([f"{e['id']}|{e['name']}" for e in ejercicios_todos[:120]])
+        cat_str = "\n".join([f"{e['id_ejercicio']}|{e['nombre_es']}" for e in ejercicios_todos[:120]])
 
         sys_prompt = (
             "Eres Vórtice Instructor Elite. Crea una rutina JSON con ejercicios de la lista adjunta. "
@@ -195,15 +207,15 @@ def generar_rutina_inteligente(objetivo, perfil_info=""):
 
         rutina_final = []
         for e in ej_ia[:8]:
-            orig = next((x for x in ejercicios_todos if x['id'] == e.get('id')), None)
+            orig = next((x for x in ejercicios_todos if x['id_ejercicio'] == e.get('id')), None)
             if orig:
                 sc = int(e.get("series", 4))
                 rutina_final.append({
-                    "id_ejercicio": orig['id'], 
-                    "nombre_es": orig['name'].capitalize(),
+                    "id_ejercicio": orig['id_ejercicio'], 
+                    "nombre_es": orig['nombre_es'].capitalize(),
                     "target": orig['target'], 
-                    "body_part": UI_MUSCULO_ES.get(orig['target'], orig['target'].capitalize()), 
-                    "gif_url": f"/api/exercises/gif/{orig['id']}",
+                    "body_part": UI_MUSCULO_ES.get(orig['target'], orig['target'].capitalize() if orig['target'] else "General"), 
+                    "gif_url": orig['gif_url'],
                     "series": sc, 
                     "sets": [{"reps": str(e.get("reps", "12")), "kg": "", "done": False} for _ in range(sc)]
                 })
