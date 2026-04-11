@@ -13,3 +13,5 @@ fastembed
 python-multipart
 python-jose[cryptography]
 watchfiles
+langchain-core
+langchain
