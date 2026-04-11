@@ -263,7 +263,8 @@ def obtener_alacena(perfil: str):
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute("""
-            SELECT * FROM pantry 
+            SELECT id, ingredient as ingrediente, amount as cantidad, calories as calorias 
+            FROM pantry 
             WHERE user_id = (SELECT id FROM users WHERE name = ?)
         """, (perfil,))
         return [dict(r) for r in cur.fetchall()]

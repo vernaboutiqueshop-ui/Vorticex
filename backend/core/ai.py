@@ -225,7 +225,7 @@ def generar_rutina_inteligente(objetivo, perfil_info=""):
         return [], "Error generando rutina."
 
 def estimar_nutricion_ollama(alimento):
-    prompt = f"Sé un nutricionista argento. Estima calorías y macros para: {alimento}. Responde ÚNICAMENTE JSON: {{'alimento': '...', 'cal': 0, 'prot': 0, 'carb': 0, 'gras': 0, 'descripcion': '...'}}"
+    prompt = f"Sé un nutricionista argento. Estima calorías y macros para: {alimento}. Responde ÚNICAMENTE JSON: {{'alimento': '...', 'calorias': 0, 'proteinas': 0, 'carbos': 0, 'grasas': 0, 'descripcion': '...'}}"
     res = consultar_gemini([{"role": "user", "content": prompt}], formato_json=True)
     try: return json.loads(res)
     except: return None

@@ -145,6 +145,15 @@ def update_perfil_endpoint(nombre: str, data: PerfilUpdate):
         return {"status": "error", "error": str(e)}
 
 
+@app.get("/api/debug/audit")
+def debug_audit(perfil: str):
+    """Retorna los últimos 50 eventos para diagnóstico UX."""
+    try:
+        logs = obtener_eventos_timeline(perfil, 50)
+        return {"status": "success", "logs": logs}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
 # ============================================================
 # CHAT INTELIGENTE (Feature Estrella ⭐)
 # ============================================================

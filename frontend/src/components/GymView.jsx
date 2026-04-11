@@ -517,8 +517,11 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 1000, padding: '1rem' }}>
           <div style={{ background: '#0f172a', width: '100%', height: '100%', borderRadius: '24px', display: 'flex', flexDirection: 'column', border: '1px solid rgba(255,255,255,0.05)' }}>
             <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-               <h2 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 900 }}>Catálogo</h2>
-               <button onClick={() => setShowCatalogModal(false)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '10px' }}><X/></button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+               <h2 style={{ color: 'white', fontSize: '1.4rem', fontWeight: 900 }}>Catálogo</h2>
+               <button onClick={() => setShowCatalogModal(false)} style={{ background: '#ef4444', border: 'none', color: 'white', padding: '0.6rem 1rem', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  CERRAR <X size={18}/>
+               </button>
             </div>
             {/* Filtros */}
             <div style={{ padding: '1rem' }}>

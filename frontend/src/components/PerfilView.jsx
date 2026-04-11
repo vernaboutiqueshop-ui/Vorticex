@@ -13,6 +13,9 @@ export default function PerfilView({ perfil, onLogout }) {
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [loadingAudit, setLoadingAudit] = useState(false);
+
   const fetchPerfil = useCallback(async () => {
     setLoading(true);
     try {
@@ -144,6 +147,38 @@ export default function PerfilView({ perfil, onLogout }) {
         </div>
         <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
           Este párrafo es lo que la IA "sabe" de vos. Evoluciona con cada chat y cada entrenamiento.
+        </div>
+      </div>
+
+      {/* 4. Auditoría Interna (Logs) */}
+      <div className="card" style={{ borderLeft: '3px solid #10b981' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 style={{ fontSize: '1.1rem', color: '#10b981' }}>🔍 Auditoría del Sistema</h2>
+          <button 
+            className="btn" 
+            style={{ width: 'auto', marginBottom: 0, padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
+            onClick={async () => {
+               setLoadingAudit(true);
+               const res = await fetch(`${API}/api/debug/audit?perfil=${perfil}`);
+               const data = await res.json();
+               if (data.logs) setAuditLogs(data.logs);
+               setLoadingAudit(false);
+            }}
+            disabled={loadingAudit}
+          >
+            {loadingAudit ? <RefreshCw size={14} className="spin" /> : 'Refrescar Logs'}
+          </button>
+        </div>
+        <div style={{ maxHeight: '250px', overflowY: 'auto', fontSize: '0.75rem', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', padding: '0.5rem' }}>
+          {auditLogs.length > 0 ? auditLogs.map((log, i) => (
+            <div key={i} style={{ padding: '0.4rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '0.5rem' }}>
+              <span style={{ color: '#64748b', whiteSpace: 'nowrap' }}>[{log.timestamp?.split(' ')[1]}]</span>
+              <span style={{ color: '#10b981', fontWeight: 'bold' }}>{log.type}</span>
+              <span style={{ color: 'var(--text-primary)' }}>{log.description}</span>
+            </div>
+          )) : (
+            <p style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>Hacé click en refrescar para ver la actividad interna.</p>
+          )}
         </div>
       </div>
 
