@@ -17,6 +17,7 @@ def init_final_db():
         password TEXT DEFAULT '123456',
         weight REAL,
         goal TEXT,
+        memoria_viva TEXT DEFAULT 'Sin contexto generado aún.',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
     """)
@@ -109,6 +110,12 @@ def init_final_db():
     # Migrar password si falta la columna (en caso de que la tabla ya exista)
     try:
         cur.execute("ALTER TABLE users ADD COLUMN password TEXT DEFAULT '123456'")
+        conn.commit()
+    except:
+        pass
+
+    try:
+        cur.execute("ALTER TABLE users ADD COLUMN memoria_viva TEXT DEFAULT 'Sin contexto generado aún.'")
         conn.commit()
     except:
         pass

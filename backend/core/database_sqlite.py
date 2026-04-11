@@ -32,8 +32,18 @@ def obtener_perfil(nombre: str):
             # Re-mapear para compatibilidad con el resto de la app
             res["descripcion"] = f"Meta: {res.get('goal')}. Peso: {res.get('weight')}kg."
             res["objetivo_ia"] = res.get('goal')
+            res["memoria_viva"] = res.get('memoria_viva', 'Sin contexto generado aún.')
             return res
     return None
+
+def obtener_memoria_perfil(nombre: str):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT memoria_viva FROM users WHERE name = ?", (nombre,))
+        row = cur.fetchone()
+        if row:
+            return {"contexto_narrativo": row['memoria_viva']}
+    return {"contexto_narrativo": "Sin contexto generado aún."}
 
 def guardar_perfil(nombre: str, data: dict):
     # Extraemos datos, priorizando los campos directos o los de data

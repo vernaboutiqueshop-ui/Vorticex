@@ -22,7 +22,7 @@ from core.database_sqlite import (
     obtener_ayuno, actualizar_ayuno,
     guardar_rutina, obtener_rutinas, eliminar_rutina_perfil,
     obtener_comidas_hoy, eliminar_evento_perfil,
-    obtener_perfil, guardar_perfil, listar_perfiles,
+    obtener_perfil, guardar_perfil, listar_perfiles, obtener_memoria_perfil,
     buscar_ejercicio_por_id, obtener_catalogo_completo
 )
 
