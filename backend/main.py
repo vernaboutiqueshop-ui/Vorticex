@@ -70,7 +70,11 @@ else:
 
 @app.get("/")
 def read_root():
-    return {"status": "ok", "message": "Vórtice Health API is running - LOCAL EDITION"}
+    return {"status": "ok", "message": "Vórtice v3.1 Elite Running"}
+
+@app.get("/api/ping")
+def ping():
+    return {"version": "3.1", "db": "sqlite"}
 
 
 # ============================================================

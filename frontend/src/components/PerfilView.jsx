@@ -79,47 +79,46 @@ export default function PerfilView({ perfil, onLogout }) {
           </div>
           <div>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{perfil}</div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Perfil v.Elite</h1>
+            <h2 style={{ fontSize: '0.9rem', color: 'var(--accent-color)' }}>v3.1 Elite Edition</h2>
           </div>
           <span className="dot pulse" style={{ marginLeft: 'auto' }}></span>
         </div>
+        
+        {/* Auditoría dentro de la primera card para que no haya dudas */}
+        <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#10b981' }}>🔍 Auditoría v3.1</span>
+            <button 
+              className="btn" 
+              style={{ width: 'auto', marginBottom: 0, padding: '0.2rem 0.5rem', fontSize: '0.65rem' }}
+              onClick={async () => {
+                 setLoadingAudit(true);
+                 setErrorAudit(null);
+                 try {
+                   const res = await fetch(`${API}/api/logs?perfil=${perfil}`);
+                   const data = await res.json();
+                   if (data.status === 'success') setAuditLogs(data.logs);
+                   else setErrorAudit(data.error || 'Error backend');
+                 } catch (e) {
+                   setErrorAudit('Error conexión');
+                 }
+                 setLoadingAudit(false);
+              }}
+              disabled={loadingAudit}
+            >
+              {loadingAudit ? '...' : 'Refrescar'}
+            </button>
+          </div>
+          <div style={{ maxHeight: '120px', overflowY: 'auto', fontSize: '0.65rem' }}>
+            {auditLogs && auditLogs.length > 0 ? auditLogs.map((log, i) => (
+              <div key={i} style={{ padding: '0.2rem 0', borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
+                <span style={{ color: '#10b981' }}>{log.type}:</span> {log.description}
+              </div>
+            )) : <div style={{ opacity: 0.5, textAlign: 'center' }}>Hacé click en refrescar</div>}
+          </div>
+        </div>
       </div>
 
-      {/* 0. Auditoría Interna (Logs) - MOVIDO ARRIBA PARA VISIBILIDAD */}
-      <div className="card" style={{ borderLeft: '4px solid #10b981', background: 'rgba(16, 185, 129, 0.05)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <h2 style={{ fontSize: '1rem', color: '#10b981', margin: 0 }}>🔍 Auditoría del Sistema v2</h2>
-          <button 
-            className="btn" 
-            style={{ width: 'auto', marginBottom: 0, padding: '0.3rem 0.6rem', fontSize: '0.7rem' }}
-            onClick={async () => {
-               setLoadingAudit(true);
-               setErrorAudit(null);
-               try {
-                 const res = await fetch(`${API}/api/logs?perfil=${perfil}`);
-                 const data = await res.json();
-                 if (data.status === 'success') setAuditLogs(data.logs);
-                 else setErrorAudit(data.error || 'Error desconocido');
-               } catch (e) {
-                 setErrorAudit('Error de conexión');
-               }
-               setLoadingAudit(false);
-            }}
-            disabled={loadingAudit}
-          >
-            {loadingAudit ? <RefreshCw size={12} className="spin" /> : 'Refrescar'}
-          </button>
-        </div>
-        <div style={{ maxHeight: '180px', overflowY: 'auto', fontSize: '0.7rem', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', padding: '0.5rem' }}>
-          {errorAudit && <p style={{ color: 'var(--danger-color)', textAlign: 'center' }}>{errorAudit}</p>}
-          {auditLogs && auditLogs.length > 0 ? auditLogs.map((log, i) => (
-            <div key={i} style={{ padding: '0.3rem 0', borderBottom: '1px solid rgba(255,255,255,0.03)', display: 'flex', gap: '0.4rem' }}>
-              <span style={{ color: '#10b981', fontWeight: 700, minWidth: '50px' }}>{log.type}</span>
-              <span style={{ color: 'var(--text-primary)', flex: 1 }}>{log.description}</span>
-            </div>
-          )) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', opacity: 0.6 }}>Sin logs recientes.</p>}
-        </div>
-      </div>
 
       {/* 2. Configuración de IA y Perfil */}
       <div className="card">
