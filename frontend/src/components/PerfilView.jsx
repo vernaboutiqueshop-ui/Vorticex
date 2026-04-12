@@ -154,15 +154,21 @@ export default function PerfilView({ perfil, onLogout }) {
       {/* 4. Auditoría Interna (Logs) */}
       <div className="card" style={{ borderLeft: '3px solid #10b981' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ fontSize: '1.1rem', color: '#10b981' }}>🔍 Auditoría del Sistema</h2>
+          <h2 style={{ fontSize: '1.1rem', color: '#10b981' }}>🔍 Auditoría del Sistema v2</h2>
           <button 
             className="btn" 
             style={{ width: 'auto', marginBottom: 0, padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
             onClick={async () => {
                setLoadingAudit(true);
-               const res = await fetch(`${API}/api/debug/audit?perfil=${perfil}`);
-               const data = await res.json();
-               if (data.logs) setAuditLogs(data.logs);
+               setErrorAudit(null);
+               try {
+                 const res = await fetch(`${API}/api/logs?perfil=${perfil}`);
+                 const data = await res.json();
+                 if (data.status === 'success') setAuditLogs(data.logs);
+                 else setErrorAudit(data.error || 'Error desconocido');
+               } catch (e) {
+                 setErrorAudit('Error de conexión');
+               }
                setLoadingAudit(false);
             }}
             disabled={loadingAudit}

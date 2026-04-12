@@ -150,7 +150,7 @@ def update_perfil_endpoint(nombre: str, data: PerfilUpdate):
         return {"status": "error", "error": str(e)}
 
 
-@app.get("/api/debug/audit")
+@app.get("/api/logs")
 def debug_audit(perfil: str):
     """Retorna los últimos 50 eventos para diagnóstico UX."""
     try:
