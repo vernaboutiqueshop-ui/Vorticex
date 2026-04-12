@@ -230,6 +230,13 @@ def estimar_nutricion_ollama(alimento):
     try: return json.loads(res)
     except: return None
 
+def estimar_calorias_ingrediente(ingrediente):
+    """Estima solo calorías para un ingrediente de la alacena."""
+    data = estimar_nutricion_ollama(ingrediente)
+    if data and 'calorias' in data:
+        return float(data['calorias'])
+    return 0
+
 def analizar_imagen_ollama(contents):
     return None
 
