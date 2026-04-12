@@ -543,10 +543,21 @@ def get_alacena(perfil: str):
 
 @app.post("/api/alacena")
 def add_alacena(req: AlacenaRequest):
-    from core.ai import estimar_calorias_ingrediente
-    cals = estimar_calorias_ingrediente(req.ingrediente)
-    guardar_en_alacena(req.perfil, req.ingrediente, req.cantidad, calorias=cals)
-    return {"status": "success", "calorias": cals}
+    try:
+        from core.ai import estimar_calorias_ingrediente
+        cals = estimar_calorias_ingrediente(req.ingrediente)
+        guardar_en_alacena(req.perfil, req.ingrediente, req.cantidad, calorias=cals)
+        # Auditoría manual
+        guardar_evento(req.perfil, "Audit", f"Alacena: Agregado {req.ingrediente}", "System", 0)
+        return {"status": "success", "calorias": cals}
+    except Exception as e:
+        print(f"[ERROR ALACENA] {e}")
+        # Intentar guardar sin IA si falla la IA
+        try:
+            guardar_en_alacena(req.perfil, req.ingrediente, req.cantidad, calorias=0)
+            return {"status": "success", "calorias": 0, "warning": "Cálculo IA falló"}
+        except:
+            return {"status": "error", "error": str(e)}
 
 @app.delete("/api/alacena/{item_id}")
 def delete_alacena(item_id: str, perfil: str):

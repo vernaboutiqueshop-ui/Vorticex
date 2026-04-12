@@ -15,6 +15,7 @@ export default function PerfilView({ perfil, onLogout }) {
 
   const [auditLogs, setAuditLogs] = useState([]);
   const [loadingAudit, setLoadingAudit] = useState(false);
+  const [errorAudit, setErrorAudit] = useState(null);
 
   const fetchPerfil = useCallback(async () => {
     setLoading(true);
@@ -169,15 +170,24 @@ export default function PerfilView({ perfil, onLogout }) {
             {loadingAudit ? <RefreshCw size={14} className="spin" /> : 'Refrescar Logs'}
           </button>
         </div>
-        <div style={{ maxHeight: '250px', overflowY: 'auto', fontSize: '0.75rem', background: 'rgba(0,0,0,0.1)', borderRadius: '8px', padding: '0.5rem' }}>
-          {auditLogs.length > 0 ? auditLogs.map((log, i) => (
-            <div key={i} style={{ padding: '0.4rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: '0.5rem' }}>
-              <span style={{ color: '#64748b', whiteSpace: 'nowrap' }}>[{log.timestamp?.split(' ')[1]}]</span>
-              <span style={{ color: '#10b981', fontWeight: 'bold' }}>{log.type}</span>
-              <span style={{ color: 'var(--text-primary)' }}>{log.description}</span>
+        <div style={{ maxHeight: '250px', overflowY: 'auto', fontSize: '0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '0.75rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+          {errorAudit && <p style={{ color: 'var(--danger-color)', textAlign: 'center', padding: '0.5rem' }}>{errorAudit}</p>}
+          {auditLogs && auditLogs.length > 0 ? auditLogs.map((log, i) => (
+            <div key={i} style={{ padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.03)', display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+              <span style={{ color: '#64748b', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', opacity: 0.8 }}>
+                [{log.timestamp ? (typeof log.timestamp === 'string' ? log.timestamp.split(' ')[1] : '...') : '---'}]
+              </span>
+              <span style={{ color: '#10b981', fontWeight: 700, minWidth: '60px', textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: '0.05em' }}>
+                {log.type}
+              </span>
+              <span style={{ color: 'var(--text-primary)', flex: 1, lineHeight: 1.4 }}>
+                {log.description}
+              </span>
             </div>
           )) : (
-            <p style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>Hacé click en refrescar para ver la actividad interna.</p>
+            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem', fontStyle: 'italic' }}>
+              {loadingAudit ? 'Cargando actividad...' : 'No hay actividad reciente. Hacé click en refrescar.'}
+            </p>
           )}
         </div>
       </div>
