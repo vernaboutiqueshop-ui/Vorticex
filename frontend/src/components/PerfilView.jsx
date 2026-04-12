@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { User, Save, RefreshCw, LogOut, ChevronRight, Zap } from 'lucide-react';
+import { User, Save, RefreshCw, LogOut, Zap } from 'lucide-react';
 import API from '../config';
 
 export default function PerfilView({ perfil, onLogout }) {
@@ -47,7 +47,7 @@ export default function PerfilView({ perfil, onLogout }) {
       });
       alert('Perfil actualizado con éxito');
     } catch (e) {
-      console.error(e);
+      console.error("Error saving perfil:", e);
     }
     setSaving(false);
   };
@@ -68,29 +68,32 @@ export default function PerfilView({ perfil, onLogout }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '2rem' }}>
       
-      {/* 1. Usuario Activo */}
-      <div className="card">
+      {/* 1. Usuario Activo + AUDITORÍA (v3.1) */}
+      <div className="card" style={{ borderLeft: '4px solid #10b981' }}>
         <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <User size={18} color="var(--accent-color)" /> Usuario Activo
         </h2>
+        
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(56,189,248,0.07)', borderRadius: '12px', padding: '0.85rem 1rem' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #0ea5e9, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: 'white', fontSize: '1.1rem' }}>
             {perfil.charAt(0).toUpperCase()}
           </div>
           <div>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{perfil}</div>
-            <h2 style={{ fontSize: '0.9rem', color: 'var(--accent-color)' }}>v3.1 Elite Edition</h2>
+            <div style={{ fontSize: '0.75rem', color: 'var(--accent-nutri)', fontWeight: 600 }}>v3.1 Elite Edition</div>
           </div>
           <span className="dot pulse" style={{ marginLeft: 'auto' }}></span>
         </div>
-        
-        {/* Auditoría dentro de la primera card para que no haya dudas */}
-        <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+
+        {/* Auditoría Interna - Integrada en la primera tarjeta */}
+        <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#10b981' }}>🔍 Auditoría v3.1</span>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              🔍 Sistema v3.1
+            </span>
             <button 
               className="btn" 
-              style={{ width: 'auto', marginBottom: 0, padding: '0.2rem 0.5rem', fontSize: '0.65rem' }}
+              style={{ width: 'auto', marginBottom: 0, padding: '0.2rem 0.6rem', fontSize: '0.7rem' }}
               onClick={async () => {
                  setLoadingAudit(true);
                  setErrorAudit(null);
@@ -98,9 +101,9 @@ export default function PerfilView({ perfil, onLogout }) {
                    const res = await fetch(`${API}/api/logs?perfil=${perfil}`);
                    const data = await res.json();
                    if (data.status === 'success') setAuditLogs(data.logs);
-                   else setErrorAudit(data.error || 'Error backend');
+                   else setErrorAudit(data.error || 'Err');
                  } catch (e) {
-                   setErrorAudit('Error conexión');
+                   setErrorAudit('Link Error');
                  }
                  setLoadingAudit(false);
               }}
@@ -109,86 +112,80 @@ export default function PerfilView({ perfil, onLogout }) {
               {loadingAudit ? '...' : 'Refrescar'}
             </button>
           </div>
-          <div style={{ maxHeight: '120px', overflowY: 'auto', fontSize: '0.65rem' }}>
+          <div style={{ maxHeight: '120px', overflowY: 'auto', fontSize: '0.7rem' }}>
             {auditLogs && auditLogs.length > 0 ? auditLogs.map((log, i) => (
-              <div key={i} style={{ padding: '0.2rem 0', borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                <span style={{ color: '#10b981' }}>{log.type}:</span> {log.description}
+              <div key={i} style={{ padding: '0.25rem 0', borderBottom: '1px solid rgba(255,255,255,0.02)', display: 'flex', gap: '0.5rem' }}>
+                <span style={{ color: '#10b981', fontWeight: 700 }}>{log.type}</span>
+                <span style={{ opacity: 0.9 }}>{log.description}</span>
               </div>
-            )) : <div style={{ opacity: 0.5, textAlign: 'center' }}>Hacé click en refrescar</div>}
+            )) : <div style={{ opacity: 0.5, textAlign: 'center', padding: '0.5rem' }}>Sin logs recientes.</div>}
+            {errorAudit && <div style={{ color: 'var(--danger-color)', textAlign: 'center' }}>{errorAudit}</div>}
           </div>
         </div>
       </div>
 
-
-      {/* 2. Configuración de IA y Perfil */}
+      {/* 2. Configuración de IA */}
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '1.1rem', color: '#38bdf8' }}>⚙️ Configuración Vórtice</h2>
+          <h2 style={{ fontSize: '1.1rem', color: '#38bdf8' }}>⚙️ Configuración</h2>
           <button className="btn btn-primary" onClick={handleSave} disabled={saving} style={{ width: 'auto', marginBottom: 0, padding: '0.5rem 1rem' }}>
-            {saving ? <RefreshCw size={16} className="spin" /> : <Save size={16} />} 
-            <span>{saving ? 'Guardando' : 'Guardar'}</span>
+            {saving ? '...' : <Save size={16} />} 
           </button>
         </div>
         
         <div className="form-group" style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Tu descripción corta</label>
           <input 
             className="chat-input"
             value={perfilData.descripcion}
             onChange={e => setPerfilData({...perfilData, descripcion: e.target.value})}
-            placeholder="Ej: Programador, 32 años, foco en hipertrofia"
-            style={{ width: '100%', fontFamily: 'inherit' }}
+            placeholder="Descripción corta..."
+            style={{ width: '100%' }}
           />
         </div>
 
         <div className="form-group" style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Detalle de Rutina actual</label>
           <textarea 
             className="chat-input"
-            style={{ width: '100%', height: '80px', paddingTop: '0.75rem', fontFamily: 'inherit', resize: 'vertical' }}
+            style={{ width: '100%', height: '60px', paddingTop: '0.75rem' }}
             value={perfilData.detalle}
             onChange={e => setPerfilData({...perfilData, detalle: e.target.value})}
-            placeholder="Ej: Empuje, Tracción, Pierna 3 veces por semana..."
+            placeholder="Detalle de rutina..."
           />
         </div>
 
         <div className="form-group">
-          <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>Consigna para la IA (Su personalidad contigo)</label>
           <textarea 
             className="chat-input"
-            style={{ width: '100%', height: '80px', border: '1px solid rgba(56, 189, 248, 0.2)', paddingTop: '0.75rem', fontFamily: 'inherit', resize: 'vertical' }}
+            style={{ width: '100%', height: '60px', border: '1px solid rgba(56, 189, 248, 0.2)', paddingTop: '0.75rem' }}
             value={perfilData.objetivo_ia}
             onChange={e => setPerfilData({...perfilData, objetivo_ia: e.target.value})}
-            placeholder="Ej: Sé muy exigente con mi nutrición, no me dejes pasar ni una. En el gym motiva al máximo."
+            placeholder="Consigna IA..."
           />
         </div>
       </div>
 
-      {/* 3. Memoria Viva (AI Narration) */}
-      <div className="card" style={{ borderLeft: '3px solid #38bdf8', background: 'linear-gradient(135deg, var(--bg-card), rgba(56, 189, 248, 0.05))' }}>
+      {/* 3. Memoria Viva */}
+      <div className="card" style={{ borderLeft: '3px solid #38bdf8' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
           <h2 style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Zap size={18} color="#38bdf8" /> Memoria Viva actual
+            <Zap size={18} color="#38bdf8" /> Memoria Viva
           </h2>
           <button 
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)' }}
             onClick={handleRefreshMemoria}
             disabled={refreshing}
           >
             <RefreshCw size={16} className={refreshing ? 'spin' : ''} />
           </button>
         </div>
-        <div style={{ fontSize: '0.92rem', lineHeight: '1.6', color: 'var(--text-primary)', fontStyle: 'italic', padding: '0.5rem 0' }}>
+        <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontStyle: 'italic' }}>
           "{perfilData.memoria_viva}"
-        </div>
-        <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-          Este párrafo es lo que la IA "sabe" de vos. Evoluciona con cada chat y cada entrenamiento.
         </div>
       </div>
 
       <button 
         className="btn" 
-        style={{ background: 'transparent', borderColor: 'var(--danger-color)', color: 'var(--danger-color)', marginTop: '1rem' }} 
+        style={{ background: 'transparent', borderColor: 'var(--danger-color)', color: 'var(--danger-color)', marginTop: '0.5rem' }} 
         onClick={onLogout}
       >
         <LogOut size={18} /> Cerrar Sesión

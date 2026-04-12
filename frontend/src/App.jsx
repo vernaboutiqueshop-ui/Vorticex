@@ -71,7 +71,7 @@ function App() {
         <div className="title-main">
           <Zap size={22} color="#38bdf8" />
           <span>Vórtice</span>
-          <span style={{fontWeight: 400, color: 'var(--text-secondary)', fontSize: '0.85rem', marginLeft: '0.25rem'}}>v3.1 Elite</span>
+          <span style={{fontWeight: 400, color: 'var(--text-secondary)', fontSize: '0.85rem', marginLeft: '0.25rem'}}>v3.1 Elite Edition</span>
           <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'0.5rem'}}>
             <div className="profile-active-tag">
               <span className="dot pulse"></span>
