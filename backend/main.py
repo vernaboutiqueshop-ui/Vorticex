@@ -342,26 +342,13 @@ def get_ejercicios_endpoint():
 
 @app.get("/api/exercises/search")
 def search_ejercicios_endpoint(q: str = ""):
-    if not q or len(q) < 3:
-        return {"status": "error", "error": "Query demasiado corta"}
     try:
-        from core.intelligence import get_chroma_client
-        client = get_chroma_client()
-        col = client.get_collection(name="exercises_v2")
-        results = col.query(query_texts=[q], n_results=10)
-        
-        # Obtener catálogo para armar respuesta
-        cat = obtener_catalogo_completo()
-        cat_map = { e['id_ejercicio']: e for e in cat }
-        
-        encontrados = []
-        if results and results['ids'] and len(results['ids']) > 0:
-            for ex_id in results['ids'][0]:
-                if ex_id in cat_map:
-                    encontrados.append(cat_map[ex_id])
-        return {"status": "success", "ejercicios": encontrados}
+        from core.intelligence import semantic_search_exercises
+        return semantic_search_exercises(q)
     except Exception as e:
-        return {"status": "error", "error": str(e)}
+        print(f"[SEARCH FALLBACK] Using textual search due to: {e}")
+        from core.database_sqlite import buscar_ejercicios_textual
+        return {"ids": [], "documents": [], "metadatas": [buscar_ejercicios_textual(q)]}
 
 @app.get("/view/exercises", response_class=HTMLResponse)
 def view_exercises_html():
@@ -373,8 +360,7 @@ def view_exercises_html():
             <title>Catálogo de Ejercicios - Vórtice Elite</title>
             <style>
                 body { font-family: system-ui, sans-serif; background: #0f172a; color: white; padding: 20px; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+                                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
                 th { background: #1e293b; color: #38bdf8; }
                 img { width: 80px; height: 80px; border-radius: 8px; background: white; object-fit: contain; }
                 .badges { display: flex; gap: 8px; }

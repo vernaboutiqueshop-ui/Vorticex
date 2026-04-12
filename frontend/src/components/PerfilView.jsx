@@ -79,9 +79,45 @@ export default function PerfilView({ perfil, onLogout }) {
           </div>
           <div>
             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{perfil}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Sesión activa</div>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Perfil v.Elite</h1>
           </div>
           <span className="dot pulse" style={{ marginLeft: 'auto' }}></span>
+        </div>
+      </div>
+
+      {/* 0. Auditoría Interna (Logs) - MOVIDO ARRIBA PARA VISIBILIDAD */}
+      <div className="card" style={{ borderLeft: '4px solid #10b981', background: 'rgba(16, 185, 129, 0.05)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+          <h2 style={{ fontSize: '1rem', color: '#10b981', margin: 0 }}>🔍 Auditoría del Sistema v2</h2>
+          <button 
+            className="btn" 
+            style={{ width: 'auto', marginBottom: 0, padding: '0.3rem 0.6rem', fontSize: '0.7rem' }}
+            onClick={async () => {
+               setLoadingAudit(true);
+               setErrorAudit(null);
+               try {
+                 const res = await fetch(`${API}/api/logs?perfil=${perfil}`);
+                 const data = await res.json();
+                 if (data.status === 'success') setAuditLogs(data.logs);
+                 else setErrorAudit(data.error || 'Error desconocido');
+               } catch (e) {
+                 setErrorAudit('Error de conexión');
+               }
+               setLoadingAudit(false);
+            }}
+            disabled={loadingAudit}
+          >
+            {loadingAudit ? <RefreshCw size={12} className="spin" /> : 'Refrescar'}
+          </button>
+        </div>
+        <div style={{ maxHeight: '180px', overflowY: 'auto', fontSize: '0.7rem', background: 'rgba(0,0,0,0.2)', borderRadius: '10px', padding: '0.5rem' }}>
+          {errorAudit && <p style={{ color: 'var(--danger-color)', textAlign: 'center' }}>{errorAudit}</p>}
+          {auditLogs && auditLogs.length > 0 ? auditLogs.map((log, i) => (
+            <div key={i} style={{ padding: '0.3rem 0', borderBottom: '1px solid rgba(255,255,255,0.03)', display: 'flex', gap: '0.4rem' }}>
+              <span style={{ color: '#10b981', fontWeight: 700, minWidth: '50px' }}>{log.type}</span>
+              <span style={{ color: 'var(--text-primary)', flex: 1 }}>{log.description}</span>
+            </div>
+          )) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', opacity: 0.6 }}>Sin logs recientes.</p>}
         </div>
       </div>
 
@@ -148,53 +184,6 @@ export default function PerfilView({ perfil, onLogout }) {
         </div>
         <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
           Este párrafo es lo que la IA "sabe" de vos. Evoluciona con cada chat y cada entrenamiento.
-        </div>
-      </div>
-
-      {/* 4. Auditoría Interna (Logs) */}
-      <div className="card" style={{ borderLeft: '3px solid #10b981' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ fontSize: '1.1rem', color: '#10b981' }}>🔍 Auditoría del Sistema v2</h2>
-          <button 
-            className="btn" 
-            style={{ width: 'auto', marginBottom: 0, padding: '0.4rem 0.8rem', fontSize: '0.75rem' }}
-            onClick={async () => {
-               setLoadingAudit(true);
-               setErrorAudit(null);
-               try {
-                 const res = await fetch(`${API}/api/logs?perfil=${perfil}`);
-                 const data = await res.json();
-                 if (data.status === 'success') setAuditLogs(data.logs);
-                 else setErrorAudit(data.error || 'Error desconocido');
-               } catch (e) {
-                 setErrorAudit('Error de conexión');
-               }
-               setLoadingAudit(false);
-            }}
-            disabled={loadingAudit}
-          >
-            {loadingAudit ? <RefreshCw size={14} className="spin" /> : 'Refrescar Logs'}
-          </button>
-        </div>
-        <div style={{ maxHeight: '250px', overflowY: 'auto', fontSize: '0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '0.75rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-          {errorAudit && <p style={{ color: 'var(--danger-color)', textAlign: 'center', padding: '0.5rem' }}>{errorAudit}</p>}
-          {auditLogs && auditLogs.length > 0 ? auditLogs.map((log, i) => (
-            <div key={i} style={{ padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.03)', display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-              <span style={{ color: '#64748b', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', opacity: 0.8 }}>
-                [{log.timestamp ? (typeof log.timestamp === 'string' ? log.timestamp.split(' ')[1] : '...') : '---'}]
-              </span>
-              <span style={{ color: '#10b981', fontWeight: 700, minWidth: '60px', textTransform: 'uppercase', fontSize: '0.65rem', letterSpacing: '0.05em' }}>
-                {log.type}
-              </span>
-              <span style={{ color: 'var(--text-primary)', flex: 1, lineHeight: 1.4 }}>
-                {log.description}
-              </span>
-            </div>
-          )) : (
-            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem', fontStyle: 'italic' }}>
-              {loadingAudit ? 'Cargando actividad...' : 'No hay actividad reciente. Hacé click en refrescar.'}
-            </p>
-          )}
         </div>
       </div>
 

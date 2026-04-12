@@ -114,6 +114,18 @@ def obtener_catalogo_completo():
             })
         return catalogo
 
+def buscar_ejercicios_textual(query: str):
+    """Búsqueda simple por texto en SQLite como respaldo a ChromaDB."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        q = f"%{query}%"
+        cur.execute("""
+            SELECT * FROM exercises 
+            WHERE name LIKE ? OR body_part LIKE ? OR target LIKE ?
+            LIMIT 20
+        """, (q, q, q))
+        return [dict(r) for r in cur.fetchall()]
+
 def buscar_ejercicio_por_id(id_ej: str):
     with get_conn() as conn:
         cur = conn.cursor()
