@@ -159,6 +159,17 @@ def buscar_ejercicios_por_ids(ids: list):
         return ejercicios
 
 def buscar_ejercicio_por_id(id_ej: str):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM exercises WHERE id = ?", (id_ej,))
+        row = cur.fetchone()
+        if row:
+            r = dict(row)
+            r["id_ejercicio"] = r["id"]
+            r["nombre_es"] = r["name"]
+            r["gif_url"] = f"/gifs/{r['id']}.gif"
+            return r
+    return None
 
 # --- CHAT / MENSAJES ---
 def guardar_mensaje(perfil: str, rol: str, contenido: str):
