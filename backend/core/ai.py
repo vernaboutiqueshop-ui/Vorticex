@@ -178,22 +178,21 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
         return {"tipo": "chat_normal", "respuesta": res_raw}
 
 def generar_rutina_inteligente(objetivo, perfil_info=""):
-    """Genera una rutina INSTANTÁNEA usando ChromaDB (Búsqueda Vectorial Semántica)."""
-    print(f"[VORTICE] Generando rutina VECTORIAL para: {objetivo}")
+    """Generar una rutina INSTANTÁNEA usando ChromaDB (Búsqueda Vectorial Semántica)."""
+    import time
+    start_time = time.time()
+    print(f"[VORTICE] >>>> Iniciando generación VECTORIAL para: {objetivo}")
     try:
         from core.intelligence import semantic_search_exercises
         from core.database_sqlite import obtener_catalogo_completo
         
-        ejercicios_todos = obtener_catalogo_completo()
-        if not ejercicios_todos:
-            return [], "Error: Catálogo vacío."
-        
         # Búsqueda semántica instantánea
-        limit = 6
-        if "full body" in objetivo.lower() or "completa" in objetivo.lower(): 
-            limit = 8
-            
-        res = semantic_search_exercises(f"{objetivo} {perfil_info}", limit=limit)
+        search_start = time.time()
+        res = semantic_search_exercises(f"{objetivo} {perfil_info}", limit=6)
+        search_duration = (time.time() - search_start) * 1000
+        print(f"[CHROMA] Búsqueda semántica completada en {search_duration:.2f}ms")
+        
+        ejercicios_todos = obtener_catalogo_completo()
         
         ids_encontrados = res['ids'][0] if res and res['ids'] and len(res['ids']) > 0 else []
         if not ids_encontrados:
@@ -214,8 +213,8 @@ def generar_rutina_inteligente(objetivo, perfil_info=""):
                     "sets": [{"reps": "12", "kg": "", "done": False} for _ in range(4)]
                 })
                 
-        if not rutina_final:
-            return [], "No se pudieron cargar los detalles de los ejercicios."
+        duration = (time.time() - start_time) * 1000
+        print(f"[VORTICE] >>>> Rutina GENERADA TOTAL en {duration:.2f}ms. Origen: VECTORIAL (ChromaDB)")
             
         return rutina_final, "¡Rutina vectorial lista en milisegundos! Dale sin miedo."
     except Exception as ex:

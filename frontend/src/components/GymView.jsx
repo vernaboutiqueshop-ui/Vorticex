@@ -150,8 +150,12 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
 
   const pedirRutinaIA = async (suggestion = null) => {
     const prompt = (suggestion || promptRutina).trim();
-    if (!prompt || prompt.length < 3 || loadingAi) return; // Zen: Validación y Bloqueo
+    if (!prompt || prompt.length < 3 || loadingAi) return;
     setLoadingAi(true);
+    
+    console.log(`[VORTICE] Pidiendo rutina IA (Vectores/Chroma)... Prompt: ${prompt}`);
+    const startTime = Date.now();
+    
     try {
       const res = await fetch(`${API}/api/rutinas/generar`, {
         method: 'POST',
@@ -159,6 +163,9 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
         body: JSON.stringify({ perfil, prompt })
       });
       const data = await res.json();
+      const duration = Date.now() - startTime;
+      console.log(`[VORTICE] Respuesta recibida en ${duration}ms`, data);
+      
       if (data.status === 'success' && data.rutina && data.rutina.length > 0) {
         setRutina(data.rutina.map(e => ({
           ...e,
