@@ -14,8 +14,8 @@ export default function GraficosView({ perfil }) {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${API}/api/graficos/entrenamientos?perfil=${perfil}`).then(r => r.json()),
-      fetch(`${API}/api/graficos/timeline?perfil=${perfil}`).then(r => r.json())
+      fetch(`${API}/api/graficos/entrenamientos?perfil=${perfil}`).then(r => r.ok ? r.json() : {}),
+      fetch(`${API}/api/graficos/timeline?perfil=${perfil}`).then(r => r.ok ? r.json() : {})
     ]).then(([train, time]) => {
       if (train.data) setTrainingData(train.data);
       if (time.eventos) setTimeline(time.eventos);
