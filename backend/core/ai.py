@@ -178,50 +178,48 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
         return {"tipo": "chat_normal", "respuesta": res_raw}
 
 def generar_rutina_inteligente(objetivo, perfil_info=""):
-    """Genera una rutina usando ÚNICAMENTE el catálogo local ya cosechado."""
-    print(f"[VORTICE] Generando rutina PRO para: {objetivo}")
+    """Genera una rutina INSTANTÁNEA usando ChromaDB (Búsqueda Vectorial Semántica)."""
+    print(f"[VORTICE] Generando rutina VECTORIAL para: {objetivo}")
     try:
+        from core.intelligence import semantic_search_exercises
         from core.database_sqlite import obtener_catalogo_completo
+        
         ejercicios_todos = obtener_catalogo_completo()
         if not ejercicios_todos:
             return [], "Error: Catálogo vacío."
+        
+        # Búsqueda semántica instantánea
+        limit = 6
+        if "full body" in objetivo.lower() or "completa" in objetivo.lower(): 
+            limit = 8
             
-        # Muestra representativa para el prompt
-        cat_str = "\n".join([f"{e['id_ejercicio']}|{e['nombre_es']}" for e in ejercicios_todos[:120]])
-
-        sys_prompt = (
-            "Eres Vórtice Instructor Elite. Crea una rutina JSON con ejercicios de la lista adjunta. "
-            "Responde EXACTAMENTE así: [{'id': 'ID_REAL', 'series': 4, 'reps': '12'}]. Usa el voseo argentino en tu charla."
-        )
+        res = semantic_search_exercises(f"{objetivo} {perfil_info}", limit=limit)
         
-        res_txt = consultar_gemini([
-            {"role": "system", "content": sys_prompt}, 
-            {"role": "user", "content": f"Objetivo: {objetivo}. Catálogo disponible:\n{cat_str}"}
-        ], formato_json=True)
-        
-        try:
-            ej_ia = json.loads(res_txt)
-            if isinstance(ej_ia, dict): ej_ia = ej_ia.get("ejercicios", [])
-        except:
-            return [], "Che, me dio un calambre mental. ¿Probamos de nuevo?"
-
+        ids_encontrados = res['ids'][0] if res and res['ids'] and len(res['ids']) > 0 else []
+        if not ids_encontrados:
+            return [], "Che, no encontré ejercicios para eso en mi catálogo."
+            
         rutina_final = []
-        for e in ej_ia[:8]:
-            orig = next((x for x in ejercicios_todos if x['id_ejercicio'] == e.get('id')), None)
+        for eid in ids_encontrados:
+            orig = next((x for x in ejercicios_todos if str(x.get('id_ejercicio')) == str(eid) or str(x.get('id')) == str(eid)), None)
             if orig:
-                sc = int(e.get("series", 4))
+                target_norm = orig.get('target', '')
                 rutina_final.append({
-                    "id_ejercicio": orig['id_ejercicio'], 
-                    "nombre_es": orig['nombre_es'].capitalize(),
-                    "target": orig['target'], 
-                    "body_part": UI_MUSCULO_ES.get(orig['target'], orig['target'].capitalize() if orig['target'] else "General"), 
-                    "gif_url": orig['gif_url'],
-                    "series": sc, 
-                    "sets": [{"reps": str(e.get("reps", "12")), "kg": "", "done": False} for _ in range(sc)]
+                    "id_ejercicio": orig.get('id_ejercicio', orig.get('id')), 
+                    "nombre_es": str(orig.get('nombre_es', '')).capitalize(),
+                    "target": target_norm, 
+                    "body_part": UI_MUSCULO_ES.get(target_norm, target_norm.capitalize() if target_norm else "General"), 
+                    "gif_url": orig.get('gif_url', ''),
+                    "series": 4, 
+                    "sets": [{"reps": "12", "kg": "", "done": False} for _ in range(4)]
                 })
-        return rutina_final, "¡Rutina lista, fiera! Dale sin miedo."
+                
+        if not rutina_final:
+            return [], "No se pudieron cargar los detalles de los ejercicios."
+            
+        return rutina_final, "¡Rutina vectorial lista en milisegundos! Dale sin miedo."
     except Exception as ex:
-        print(f"Error rutina: {ex}")
+        print(f"Error rutina instantanea: {ex}")
         return [], "Error generando rutina."
 
 def estimar_nutricion_ollama(alimento):

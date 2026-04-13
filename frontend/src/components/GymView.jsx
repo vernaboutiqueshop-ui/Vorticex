@@ -165,8 +165,13 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
           sets: e.sets && e.sets.length > 0 ? e.sets : [{reps:'12',kg:'',done:false},{reps:'12',kg:'',done:false},{reps:'12',kg:'',done:false}]
         })));
         setPromptRutina('');
+      } else {
+         alert("Error: " + (data.error || data.detail || "La IA no generó una rutina válida."));
       }
-    } catch(e) { console.error(e); }
+    } catch(e) { 
+        console.error("Error al pedir Rutina IA:", e); 
+        alert("¡Hubo un problema de conexión (Timeout o Servidor Dormido)! El servidor puede tardar ~50s en arrancar. Por favor, esperá un minuto y volvé a intentarlo.");
+    }
     setLoadingAi(false);
   };
 

@@ -26,7 +26,7 @@ def init_collections():
 def index_exercises(exercises: List[Dict]):
     """Indexa el catálogo de ejercicios en ChromaDB para búsqueda semántica."""
     client = get_chroma_client()
-    col = client.get_collection(name="exercises_v2")
+    col = client.get_or_create_collection(name="exercises_v2")
     
     ids = []
     documents = []

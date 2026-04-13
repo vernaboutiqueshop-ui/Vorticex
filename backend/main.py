@@ -348,11 +348,30 @@ def get_ejercicios_endpoint():
 def search_ejercicios_endpoint(q: str = ""):
     try:
         from core.intelligence import semantic_search_exercises
-        return semantic_search_exercises(q)
+        from core.database_sqlite import obtener_catalogo_completo
+        res = semantic_search_exercises(q, limit=10)
+        ids = res['ids'][0] if res and res['ids'] and len(res['ids']) > 0 else []
+        
+        ejercicios_todos = obtener_catalogo_completo()
+        ejercicios = []
+        for eid in ids:
+            orig = next((x for x in ejercicios_todos if str(x['id_ejercicio']) == str(eid)), None)
+            if orig:
+                ejercicios.append({
+                    "id_ejercicio": orig['id_ejercicio'], 
+                    "nombre_es": orig['nombre_es'], 
+                    "nombre_en": orig.get('nombre_en', ""), 
+                    "body_part": orig.get('body_part'), 
+                    "target": orig.get('target'), 
+                    "gif_url": orig.get('gif_url'),
+                    "equipment": orig.get('equipment', ""),
+                    "instrucciones_es": orig.get('instrucciones_es', [])
+                })
+        return {"status": "success", "ejercicios": ejercicios}
     except Exception as e:
         print(f"[SEARCH FALLBACK] Using textual search due to: {e}")
         from core.database_sqlite import buscar_ejercicios_textual
-        return {"ids": [], "documents": [], "metadatas": [buscar_ejercicios_textual(q)]}
+        return {"status": "success", "ejercicios": buscar_ejercicios_textual(q)}
 
 @app.get("/view/exercises", response_class=HTMLResponse)
 def view_exercises_html():
