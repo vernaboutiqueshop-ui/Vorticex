@@ -8,8 +8,6 @@ python-dotenv
 pandas
 deep-translator
 google-generativeai
-chromadb
-fastembed
 python-multipart
 python-jose[cryptography]
 watchfiles

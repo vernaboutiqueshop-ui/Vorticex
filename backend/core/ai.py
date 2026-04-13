@@ -189,15 +189,16 @@ def generar_rutina_inteligente(objetivo, perfil_info=""):
         # Búsqueda semántica instantánea
         search_start = time.time()
         res = semantic_search_exercises(f"{objetivo} {perfil_info}", limit=6)
+        ids_encontrados = res['ids'][0] if res and res['ids'] and len(res['ids']) > 0 else []
         search_duration = (time.time() - search_start) * 1000
-        print(f"[CHROMA] Búsqueda semántica completada en {search_duration:.2f}ms")
+        print(f"[INTEL] Búsqueda completada en {search_duration:.2f}ms")
         
-        # BUSQUEDA OPTIMIZADA: Solo traer los 6 ejercicios que necesitamos
+        # BUSQUEDA OPTIMIZADA: Solo traer los ejercicios que necesitamos
         from core.database_sqlite import buscar_ejercicios_por_ids
         db_start = time.time()
         ejercicios_finales = buscar_ejercicios_por_ids(ids_encontrados)
         db_duration = (time.time() - db_start) * 1000
-        print(f"[SQLITE] Datos de ejercicios recuperados en {db_duration:.2f}ms")
+        print(f"[SQLITE] Datos recuperados en {db_duration:.2f}ms")
             
         rutina_final = []
         for orig in ejercicios_finales:
@@ -213,7 +214,7 @@ def generar_rutina_inteligente(objetivo, perfil_info=""):
             })
                 
         duration = (time.time() - start_time) * 1000
-        print(f"[VORTICE] >>>> Rutina GENERADA TOTAL en {duration:.2f}ms. Origen: VECTORIAL (ChromaDB)")
+        print(f"[VORTICE] >>>> Rutina GENERADA TOTAL en {duration:.2f}ms.")
             
         return rutina_final, "¡Rutina vectorial lista en milisegundos! Dale sin miedo."
     except Exception as ex:

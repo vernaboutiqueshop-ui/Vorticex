@@ -1,92 +1,81 @@
 # c:\Users\Gonzalo\entrenador-ia\backend\core\intelligence.py
 import os
-import json
-from fastembed import TextEmbedding
-import chromadb
+import re
 from typing import List, Dict
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
-CHROMA_PATH = os.path.join(DATA_DIR, "chroma_db")
+# MAPA DE INTENCIONES (Instantáneo y sin consumo de RAM)
+KEYWORD_MAP = {
+    "pecho": ["pectorals", "chest"],
+    "pectoral": ["pectorals", "chest"],
+    "espalda": ["back", "lats", "traps", "rhomboids"],
+    "hombro": ["delts", "shoulders"],
+    "brazo": ["biceps", "triceps"],
+    "bicep": ["biceps"],
+    "tricep": ["triceps"],
+    "pierna": ["quads", "hamstrings", "glutes", "calves"],
+    "gluteo": ["glutes"],
+    "cuadricep": ["quads"],
+    "femor": ["hamstrings"],
+    "abdo": ["abs", "core"],
+    "cardio": ["cardiovascular system"],
+    "nuca": ["neck"]
+}
 
-# Inicializar motor de embeddings local (BAJO CONSUMO)
-# La primera vez descargará el modelo (~100MB)
-embed_model = TextEmbedding(model_name="BAAI/bge-small-en-v1.5")
+def detect_muscle_keys(query: str) -> List[str]:
+    """Detecta grupos musculares técnicos a partir de lenguaje natural."""
+    found = []
+    q_norm = query.lower()
+    for key, targets in KEYWORD_MAP.items():
+        if key in q_norm:
+            found.extend(targets)
+    return list(set(found))
 
-def get_chroma_client():
-    return chromadb.PersistentClient(path=CHROMA_PATH)
+def semantic_search_exercises(query: str, limit: int = 6):
+    """
+    Buscador 'Híbrido' optimizado para Vórtice.
+    1. Detecta palabras clave (Instantáneo).
+    2. Si no hay claves, hace una búsqueda inteligente por texto en SQLite.
+    """
+    from core.database_sqlite import obtener_catalogo_completo
+    
+    targets = detect_muscle_keys(query)
+    all_ej = obtener_catalogo_completo()
+    
+    if targets:
+        print(f"[INTEL] Claves detectadas: {targets}. Filtrando catálogo...")
+        # Filtrar los que coincidan con los targets técnicos
+        filtrados = [e for e in all_ej if e.get('target', '').lower() in targets]
+        # Si no hay suficientes, rellenar con búsqueda por texto
+        ids = [e['id_ejercicio'] for e in filtrados[:limit]]
+        return {"ids": [ids]}
+    
+    # Si no hay palabras clave, buscar por coincidencia de texto simple en nombre o body_part
+    print(f"[INTEL] Sin claves claras. Usando búsqueda por texto para: {query}")
+    query_parts = query.lower().split()
+    results = []
+    for e in all_ej:
+        match_score = 0
+        text_to_search = f"{e['nombre_es']} {e['body_part']} {e['target']}".lower()
+        for part in query_parts:
+            if len(part) > 2 and part in text_to_search:
+                match_score += 1
+        if match_score > 0:
+            results.append((match_score, e['id_ejercicio']))
+    
+    # Ordenar por relevancia y devolver IDs
+    results.sort(key=lambda x: x[0], reverse=True)
+    ids = [r[1] for r in results[:limit]]
+    return {"ids": [ids]}
 
+# Mantenemos las firmas por compatibilidad pero vacías de IA pesada
 def init_collections():
-    client = get_chroma_client()
-    # Colección para Ejercicios
-    client.get_or_create_collection(name="exercises_v2")
-    # Colección para Conocimiento Nutricional
-    client.get_or_create_collection(name="nutrition_knowledge")
-    print("[INTEL] Colecciones de ChromaDB listas.")
+    print("[INTEL] Modo LITE activado. Sin procesos de IA pesada en RAM.")
 
 def index_exercises(exercises: List[Dict]):
-    """Indexa el catálogo de ejercicios en ChromaDB para búsqueda semántica."""
-    client = get_chroma_client()
-    col = client.get_or_create_collection(name="exercises_v2")
-    
-    ids = []
-    documents = []
-    metadatas = []
-    
-    for ex in exercises:
-        ids.append(ex['id_ejercicio'])
-        # El documento es lo que se usa para buscar el significado
-        doc_text = f"Ejercicio: {ex['nombre_es']}. Zona: {ex['body_part']}. Objetivo: {ex['target']}."
-        documents.append(doc_text)
-        metadatas.append({
-            "name": ex['nombre_es'],
-            "target": ex['target'],
-            "bp": ex['body_part']
-        })
-    
-    # FastEmbed genera los vectores y Chroma los guarda
-    col.add(
-        ids=ids,
-        documents=documents,
-        metadatas=metadatas
-    )
-    print(f"[INTEL] {len(ids)} ejercicios indexados semánticamente.")
-
-def semantic_search_exercises(query: str, limit: int = 5):
-    client = get_chroma_client()
-    col = client.get_collection(name="exercises_v2")
-    results = col.query(
-        query_texts=[query],
-        n_results=limit
-    )
-    return results
+    print(f"[INTEL] Catálogo de {len(exercises)} listo para búsqueda por palabras clave.")
 
 def learn_nutrition(query: str, nutrition_data: Dict):
-    """Guarda un nuevo aprendizaje nutricional en el mapa vectorial."""
-    client = get_chroma_client()
-    col = client.get_collection(name="nutrition_knowledge")
-    
-    col.add(
-        ids=[query], # El texto original es el ID
-        documents=[query],
-        metadatas=[{
-            "calories": nutrition_data.get("cal", 0),
-            "proteins": nutrition_data.get("prot", 0),
-            "carbs": nutrition_data.get("carb", 0),
-            "fats": nutrition_data.get("gras", 0),
-            "food_name": nutrition_data.get("alimento", "")
-        }]
-    )
+    pass
 
 def recall_nutrition(query: str, threshold: float = 0.85):
-    """Busca si el sistema ya sabe algo sobre esta comida."""
-    client = get_chroma_client()
-    col = client.get_collection(name="nutrition_knowledge")
-    
-    results = col.query(
-        query_texts=[query],
-        n_results=1
-    )
-    
-    if results['ids'] and results['ids'][0] and results['distances'] and results['distances'][0] and results['distances'][0][0] < (1 - threshold):
-        return results['metadatas'][0][0]
     return None
