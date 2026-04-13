@@ -192,26 +192,25 @@ def generar_rutina_inteligente(objetivo, perfil_info=""):
         search_duration = (time.time() - search_start) * 1000
         print(f"[CHROMA] Búsqueda semántica completada en {search_duration:.2f}ms")
         
-        ejercicios_todos = obtener_catalogo_completo()
-        
-        ids_encontrados = res['ids'][0] if res and res['ids'] and len(res['ids']) > 0 else []
-        if not ids_encontrados:
-            return [], "Che, no encontré ejercicios para eso en mi catálogo."
+        # BUSQUEDA OPTIMIZADA: Solo traer los 6 ejercicios que necesitamos
+        from core.database_sqlite import buscar_ejercicios_por_ids
+        db_start = time.time()
+        ejercicios_finales = buscar_ejercicios_por_ids(ids_encontrados)
+        db_duration = (time.time() - db_start) * 1000
+        print(f"[SQLITE] Datos de ejercicios recuperados en {db_duration:.2f}ms")
             
         rutina_final = []
-        for eid in ids_encontrados:
-            orig = next((x for x in ejercicios_todos if str(x.get('id_ejercicio')) == str(eid) or str(x.get('id')) == str(eid)), None)
-            if orig:
-                target_norm = orig.get('target', '')
-                rutina_final.append({
-                    "id_ejercicio": orig.get('id_ejercicio', orig.get('id')), 
-                    "nombre_es": str(orig.get('nombre_es', '')).capitalize(),
-                    "target": target_norm, 
-                    "body_part": UI_MUSCULO_ES.get(target_norm, target_norm.capitalize() if target_norm else "General"), 
-                    "gif_url": orig.get('gif_url', ''),
-                    "series": 4, 
-                    "sets": [{"reps": "12", "kg": "", "done": False} for _ in range(4)]
-                })
+        for orig in ejercicios_finales:
+            target_norm = orig.get('target', '')
+            rutina_final.append({
+                "id_ejercicio": orig.get('id_ejercicio', orig.get('id')), 
+                "nombre_es": str(orig.get('nombre_es', '')).capitalize(),
+                "target": target_norm, 
+                "body_part": UI_MUSCULO_ES.get(target_norm, target_norm.capitalize() if target_norm else "General"), 
+                "gif_url": orig.get('gif_url', ''),
+                "series": 4, 
+                "sets": [{"reps": "12", "kg": "", "done": False} for _ in range(4)]
+            })
                 
         duration = (time.time() - start_time) * 1000
         print(f"[VORTICE] >>>> Rutina GENERADA TOTAL en {duration:.2f}ms. Origen: VECTORIAL (ChromaDB)")

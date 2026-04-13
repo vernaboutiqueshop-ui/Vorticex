@@ -126,18 +126,39 @@ def buscar_ejercicios_textual(query: str):
         """, (q, q, q))
         return [dict(r) for r in cur.fetchall()]
 
-def buscar_ejercicio_por_id(id_ej: str):
+def buscar_ejercicios_por_ids(ids: list):
+    """Busca varios ejercicios por ID de forma eficiente."""
+    if not ids: return []
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT * FROM exercises WHERE id = ?", (id_ej,))
-        row = cur.fetchone()
-        if row:
-            r = dict(row)
-            r["id_ejercicio"] = r["id"]
-            r["nombre_es"] = r["name"]
-            r["gif_url"] = f"/gifs/{r['id']}.gif"
-            return r
-    return None
+        placeholders = ', '.join(['?'] * len(ids))
+        cur.execute(f"SELECT * FROM exercises WHERE id IN ({placeholders})", ids)
+        rows = cur.fetchall()
+        
+        ejercicios = []
+        for r in rows:
+            mapped_body_part = NORM_MAP.get(r['body_part'], r['body_part'])
+            if r['target'] == 'Biceps' or r['target'] == 'Triceps':
+                mapped_body_part = 'Brazos'
+            
+            inst_str = r['instructions'] if r['instructions'] else '[]'
+            try:
+                inst_list = json.loads(inst_str)
+            except:
+                inst_list = [inst_str] if inst_str and inst_str != '[]' else []
+
+            ejercicios.append({
+                "id_ejercicio": r['id'],
+                "nombre_es": r['name'],
+                "body_part": mapped_body_part,
+                "target": r['target'],
+                "equipment": r['equipment'],
+                "instrucciones_es": inst_list,
+                "gif_url": f"/gifs/{r['id']}.gif"
+            })
+        return ejercicios
+
+def buscar_ejercicio_por_id(id_ej: str):
 
 # --- CHAT / MENSAJES ---
 def guardar_mensaje(perfil: str, rol: str, contenido: str):
