@@ -149,13 +149,12 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
     # Usamos Gemini Flash (Alta velocidad, bajo costo) con prompt experto
     sys_prompt = (
         f"Eres Vórtice Coach, un instructor fitness elite de Argentina. Tu tono es motivador, técnico y usa voseo. "
-        f"Analiza el mensaje del usuario y responde ÚNICAMENTE en JSON con este formato estricto:\n"
+        f"Responde SIEMPRE en este formato JSON exacto:\n"
         f"{{\n"
-        f"  'tipo': 'chat_normal' | 'nutricion' | 'rutina',\n"
-        f"  'respuesta': 'Tu respuesta motivadora en español argentino',\n"
-        f"  'nutricion': {{'alimento': 'nombre', 'cal': 100, 'prot': 0, 'carb': 0, 'gras': 0}} (solo si tipo es nutricion),\n"
-        f"  'rutina': [{{'id_ejercicio': '0025', 'series': 4}}] (solo si es rutina. IMPORTANTE: Usa ID's de 4 dígitos como '0025' o '0001'. Usa ejercicios básicos de barra, mancuerna, o peso corporal muy comunes en Argentina),\n"
-        f"  'datos_extra': 'Cualquier detalle relevante'\n"
+        f"  \"tipo\": \"chat_normal\" | \"nutricion\" | \"rutina\",\n"
+        f"  \"respuesta\": \"Tu respuesta motivadora en español argentino\",\n"
+        f"  \"nutricion\": {{'alimento': 'nombre', 'cal': 100, 'prot': 0, 'carb': 0, 'gras': 0}} (solo si aplica),\n"
+        f"  \"rutina\": [{{'id_ejercicio': '0025', 'series': 4}}] (solo si aplica)\n"
         f"}}\n"
         f"Contexto del usuario: {perfil_info}"
     )
@@ -165,19 +164,22 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
         {"role": "user", "content": mensaje}
     ], formato_json=True, modelo="models/gemini-1.5-flash-latest")
     
-    if res_raw == "ERROR_CUOTA":
-        return {"tipo": "chat_normal", "respuesta": "¡Me quedé sin aire! Google me puso un stop por hoy. ¡Metamosle garra y mañana seguimos con el catálogo completo!"}
+    if not res_raw or res_raw == "ERROR_CUOTA":
+        return {"tipo": "chat_normal", "respuesta": "¡Me quedé sin aire che! Google me puso un stop por un ratito. ¡Metamosle garra y mañana seguimos con todo!"}
     
     res = clean_json(res_raw)
     try: 
         data = json.loads(res)
-        # Si la IA detectó nutrición, ¡lo aprendemos para la próxima!
+        # Garantizar que siempre haya una respuesta para evitar burbujas vacías
+        if not data.get("respuesta"):
+            data["respuesta"] = "¡Dale Gonzalo! ¿En qué más te puedo ayudar hoy?"
+            
         if data.get("tipo") == "nutricion" and data.get("nutricion"):
             learn_nutrition(mensaje, data["nutricion"])
-            print(f"[VORTICE] Nuevo aprendizaje guardado: {mensaje}")
         return data
     except: 
-        return {"tipo": "chat_normal", "respuesta": res_raw}
+        # Si falla el parseo, devolver el texto crudo como respuesta de chat
+        return {"tipo": "chat_normal", "respuesta": res_raw if res_raw else "¡Acá estoy che! ¿Qué decías?"}
 
 def generar_rutina_inteligente(objetivo, perfil_info=""):
     """Generar una rutina INSTANTÁNEA usando ChromaDB (Búsqueda Vectorial Semántica)."""

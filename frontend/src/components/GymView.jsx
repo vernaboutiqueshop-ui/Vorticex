@@ -390,8 +390,6 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
         </div>
       )}
 
-      )}
-
       {/* 3. LISTA DE EJERCICIOS */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '-0.5rem', padding: '0 0.5rem' }}>
         <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8' }}>Plan de Trabajo</h3>

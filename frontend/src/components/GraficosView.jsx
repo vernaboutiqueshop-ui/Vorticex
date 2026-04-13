@@ -71,8 +71,8 @@ export default function GraficosView({ perfil }) {
         {/* 2. Distribución Muscular */}
         <div className="card">
           <h2 style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Músculos</h2>
-          <div style={{ height: '140px' }}>
-            <ResponsiveContainer width="100%" height="100%">
+          <div style={{ height: '140px', width: '100%' }}>
+            <ResponsiveContainer width="99%" height="100%">
               <PieChart>
                 <Pie 
                   data={trainingData.por_musculo} 
