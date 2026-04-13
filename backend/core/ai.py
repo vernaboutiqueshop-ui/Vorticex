@@ -17,7 +17,7 @@ load_dotenv()
 from core.intelligence import recall_nutrition, learn_nutrition
 
 # --- CONFIGURACIÓN DE MODELOS ---
-MODELO_PRINCIPAL = "models/gemini-flash-latest"
+MODELO_PRINCIPAL = "models/gemini-1.5-pro-latest"
 api_key = os.getenv("GEMINI_API_KEY", "AIzaSyBuh-W_reEPT0H90xDqBZr_VXEuGNjDCNs")
 # Si es la de Gonzalo o la genérica, igual la cargamos
 print(f"[VORTICE] API KEY conectada ({api_key[:4]}...{api_key[-4:]})")
@@ -146,13 +146,15 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
                 }
             }
 
+    # Usamos Gemini Pro para asegurar la mejor calidad de la rutina
     sys_prompt = (
         f"Eres Vórtice Coach, un instructor fitness elite de Argentina. Tu tono es motivador, técnico y usa voseo. "
-        f"Analiza el mensaje del usuario y responde ÚNICAMENTE en JSON con este formato:\n"
+        f"Analiza el mensaje del usuario y responde ÚNICAMENTE en JSON con este formato estricto:\n"
         f"{{\n"
         f"  'tipo': 'chat_normal' | 'nutricion' | 'rutina',\n"
         f"  'respuesta': 'Tu respuesta motivadora en español argentino',\n"
         f"  'nutricion': {{'alimento': 'nombre', 'cal': 100, 'prot': 0, 'carb': 0, 'gras': 0}} (solo si tipo es nutricion),\n"
+        f"  'rutina': [{{'id_ejercicio': '0025', 'series': 4}}] (solo si es rutina. IMPORTANTE: Usa ID's de 4 dígitos como '0025' o '0001'. Usa ejercicios básicos de barra, mancuerna, o peso corporal muy comunes en Argentina),\n"
         f"  'datos_extra': 'Cualquier detalle relevante'\n"
         f"}}\n"
         f"Contexto del usuario: {perfil_info}"
@@ -161,7 +163,7 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
     res_raw = consultar_gemini([
         {"role": "system", "content": sys_prompt},
         {"role": "user", "content": mensaje}
-    ], formato_json=True)
+    ], formato_json=True, modelo="models/gemini-1.5-pro-latest")
     
     if res_raw == "ERROR_CUOTA":
         return {"tipo": "chat_normal", "respuesta": "¡Me quedé sin aire! Google me puso un stop por hoy. ¡Metamosle garra y mañana seguimos con el catálogo completo!"}

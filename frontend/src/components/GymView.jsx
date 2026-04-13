@@ -104,11 +104,22 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   
   // Ejercicios colapsados
   const [collapsedExercises, setCollapsedExercises] = useState(new Set());
+  const [allCollapsed, setAllCollapsed] = useState(false);
+  
   const toggleCollapse = (idx) => setCollapsedExercises(prev => {
     const next = new Set(prev);
     if (next.has(idx)) next.delete(idx); else next.add(idx);
     return next;
   });
+
+  const toggleCollapseAll = () => {
+    if (allCollapsed) {
+      setCollapsedExercises(new Set()); // Expandir
+    } else {
+      setCollapsedExercises(new Set(rutina.map((_, i) => i))); // Colapsar
+    }
+    setAllCollapsed(!allCollapsed);
+  };
 
   // El catálogo ahora es estático para máxima fluidez. 
   // Podríamos sincronizar con Firestore en segundo plano si fuera necesario.
@@ -379,7 +390,21 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
         </div>
       )}
 
+      )}
+
       {/* 3. LISTA DE EJERCICIOS */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '-0.5rem', padding: '0 0.5rem' }}>
+        <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8' }}>Plan de Trabajo</h3>
+        {rutina.length > 0 && (
+          <button 
+            onClick={toggleCollapseAll}
+            style={{ background: 'transparent', border: 'none', color: 'var(--accent-gym)', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600 }}
+          >
+            {allCollapsed ? 'Expandir Todo' : 'Colapsar Todo'}
+          </button>
+        )}
+      </div>
+        
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {rutina.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px dashed rgba(255,255,255,0.1)' }}>
@@ -431,28 +456,55 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                   {ej.sets.map((s, sIdx) => (
                     <div key={sIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
                       <div style={{ width: '30px', textAlign: 'center', fontSize: '0.9rem', fontWeight: 800, color: s.done ? 'var(--accent-gym)' : '#334155' }}>{sIdx + 1}</div>
-                      <input 
-                        type="number" 
-                        value={s.kg} 
-                        placeholder="0"
-                        onChange={(e) => {
+                      {/* STEPPER DE PESO */}
+                      <div style={{ display: 'flex', flex: 1, alignItems: 'center', background: '#1e293b', borderRadius: '10px' }}>
+                        <button onClick={() => {
                           const nw = [...rutina];
-                          nw[eIdx].sets[sIdx].kg = e.target.value;
+                          nw[eIdx].sets[sIdx].kg = Math.max(0, (parseFloat(s.kg||0) - 2.5)).toString();
                           setRutina(nw);
-                        }}
-                        style={{ flex: 1, background: '#1e293b', border: 'none', borderRadius: '10px', padding: '0.6rem', color: 'white', textAlign: 'center', fontWeight: 700 }}
-                      />
-                      <input 
-                        type="number" 
-                        value={s.reps} 
-                        placeholder="12"
-                        onChange={(e) => {
+                        }} style={{ padding: '0.6rem 0.5rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>-</button>
+                        <input 
+                          type="number" 
+                          value={s.kg} 
+                          placeholder="0"
+                          onChange={(e) => {
+                            const nw = [...rutina];
+                            nw[eIdx].sets[sIdx].kg = e.target.value;
+                            setRutina(nw);
+                          }}
+                          style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', textAlign: 'center', fontWeight: 700, padding: '0', width: '30px' }}
+                        />
+                        <button onClick={() => {
                           const nw = [...rutina];
-                          nw[eIdx].sets[sIdx].reps = e.target.value;
+                          nw[eIdx].sets[sIdx].kg = (parseFloat(s.kg||0) + 2.5).toString();
                           setRutina(nw);
-                        }}
-                        style={{ flex: 1, background: '#1e293b', border: 'none', borderRadius: '10px', padding: '0.6rem', color: 'white', textAlign: 'center', fontWeight: 700 }}
-                      />
+                        }} style={{ padding: '0.6rem 0.5rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>+</button>
+                      </div>
+
+                      {/* STEPPER DE REPS */}
+                      <div style={{ display: 'flex', flex: 1, alignItems: 'center', background: '#1e293b', borderRadius: '10px' }}>
+                        <button onClick={() => {
+                          const nw = [...rutina];
+                          nw[eIdx].sets[sIdx].reps = Math.max(1, (parseInt(s.reps||0) - 1)).toString();
+                          setRutina(nw);
+                        }} style={{ padding: '0.6rem 0.5rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>-</button>
+                        <input 
+                          type="number" 
+                          value={s.reps} 
+                          placeholder="12"
+                          onChange={(e) => {
+                            const nw = [...rutina];
+                            nw[eIdx].sets[sIdx].reps = e.target.value;
+                            setRutina(nw);
+                          }}
+                          style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', textAlign: 'center', fontWeight: 700, padding: '0', width: '30px' }}
+                        />
+                        <button onClick={() => {
+                          const nw = [...rutina];
+                          nw[eIdx].sets[sIdx].reps = (parseInt(s.reps||0) + 1).toString();
+                          setRutina(nw);
+                        }} style={{ padding: '0.6rem 0.5rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>+</button>
+                      </div>
                       <button 
                         onClick={() => toggleSet(eIdx, sIdx)}
                         style={{ 
