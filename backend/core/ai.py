@@ -187,18 +187,17 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
         # Si falla el parseo, devolver el texto crudo como respuesta de chat
         return {"tipo": "chat_normal", "respuesta": res_raw if res_raw else "¡Acá estoy che! ¿Qué decías?"}
 
-def generar_rutina_inteligente(objetivo, perfil_info=""):
+def generar_rutina_inteligente(objetivo, perfil_nombre, perfil_info=""):
     """Generar una rutina INSTANTÁNEA usando ChromaDB con esquemas de reps inteligentes."""
     import time
     start_time = time.time()
-    print(f"[VORTICE] >>>> Iniciando generación VECTORIAL para: {objetivo}")
+    print(f"[VORTICE] >>>> Iniciando generación VECTORIAL para: {objetivo} (User: {perfil_nombre})")
     try:
         from core.intelligence import semantic_search_exercises
         from core.database_sqlite import obtener_catalogo_completo, obtener_eventos_timeline
         
-        # 1. Recuperar contexto de fatiga/periodización (últimos entrenos)
-        nombre_user = perfil_info.split(',')[0] if perfil_info else "Gonzalo"
-        reciente = obtener_eventos_timeline(nombre_user, limit=5)
+        # 1. Recuperar contexto de fatiga/periodización (últimos entrenos) usando el nombre real
+        reciente = obtener_eventos_timeline(perfil_nombre, limit=5)
         hubo_mucho_gym = len([e for e in reciente if e['type'] == 'Gym']) >= 4
         
         # Búsqueda semántica instantánea

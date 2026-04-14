@@ -580,69 +580,6 @@ def generar_receta(req: RecetaRequest):
     return {"status": "success", "receta": receta}
 
 
-# ============================================================
-# ESTADÍSTICAS Y GRÁFICOS (Solución de Crash UX)
-# ============================================================
-
-@app.get("/api/graficos/entrenamientos")
-def graficos_entrenamientos(perfil: str):
-    """Devuelve volumen semanal y distribución de músculos para la pestaña Stats."""
-    try:
-        from core.database_sqlite import obtener_eventos_timeline
-        # Obtenemos los últimos 100 eventos (por performance)
-        eventos = obtener_eventos_timeline(perfil, 100)
-        
-        # Filtramos solo eventos de Gym
-        gym_events = [e for e in eventos if e['type'] == 'Gym']
-        
-        # Armar data por día
-        por_dia = []
-        import datetime
-        for i in range(7):
-            dt = datetime.datetime.now() - datetime.timedelta(days=i)
-            fecha_str = dt.strftime("%Y-%m-%d")
-            # Buscar en eventos 
-            ev_dia = [e for e in gym_events if e['timestamp'].startswith(fecha_str)]
-            
-            por_dia.append({
-                "fecha": fecha_str,
-                "volumen": len(ev_dia) * 1200, # Fake metrico estimado
-                "series": len(ev_dia) * 12,
-                "ejercicios": len(ev_dia) * 4
-            })
-            
-        por_musculo = [
-            {"name": "Pecho", "sets": 25},
-            {"name": "Espalda", "sets": 30},
-            {"name": "Piernas", "sets": 40},
-            {"name": "Brazos", "sets": 20},
-            {"name": "Hombros", "sets": 15}
-        ]
-        
-        return {"status": "success", "data": {"por_dia": por_dia, "por_musculo": por_musculo}}
-    except Exception as e:
-        print(f"[ERROR STATS] {e}")
-        return {"status": "error", "error": str(e)}
-
-@app.get("/api/graficos/timeline")
-def graficos_timeline(perfil: str):
-    try:
-        from core.database_sqlite import obtener_eventos_timeline
-        eventos = obtener_eventos_timeline(perfil, 30)
-        
-        timeline = []
-        for e in eventos:
-            timeline.append({
-                "tipo": e['type'],
-                "descripcion": e['description'],
-                "timestamp": e['timestamp'],
-                "calorias": e['calories'],
-                "proteinas": e['proteins']
-            })
-        return {"status": "success", "eventos": timeline}
-    except Exception as e:
-        print(f"[ERROR TIMELINE] {e}")
-        return {"status": "error", "error": str(e)}
 
 
 
@@ -660,6 +597,7 @@ def generar_rutina_endpoint(req: RutinaIARequest):
         perfil_info = obtener_perfil(req.perfil) or {}
         rutina_generada, explicacion = generar_rutina_inteligente(
             req.prompt,
+            req.perfil,
             perfil_info.get("descripcion", "")
         )
         return {"status": "success", "rutina": rutina_generada, "explicacion": explicacion}

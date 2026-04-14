@@ -169,7 +169,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
 
   const cargarMisRutinas = async () => {
     try {
-      const res = await fetch(`${API}/api/rutinas/mis-rutinas?perfil=${perfil.name || perfil.id}`);
+      const res = await fetch(`${API}/api/rutinas/mis-rutinas?perfil=${perfil}`);
       const data = await res.json();
       if (data.status === 'success') setMisRutinas(data.rutinas);
       setShowMisRutinas(true);
@@ -185,7 +185,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          perfil: perfil.name || perfil.id,
+          perfil: perfil,
           nombre: nombreRutina,
           descripcion: `Creada el ${new Date().toLocaleDateString()}`,
           ejercicios: rutina.map(e => ({
@@ -218,7 +218,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
       const res = await fetch(`${API}/api/rutinas/generar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perfil: perfil.name || perfil.id, prompt })
+        body: JSON.stringify({ perfil: perfil, prompt })
       });
       const data = await res.json();
       const duration = Date.now() - startTime;
@@ -231,7 +231,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
         })));
         setPromptRutina('');
       } else {
-         alert("Error: " + (data.error || data.detail || "La IA no generó una rutina válida."));
+         alert("Error: " + (data.error || data.detail?.[0]?.msg || JSON.stringify(data)));
       }
     } catch(e) { 
         console.error("Error al pedir Rutina IA:", e); 
