@@ -695,7 +695,17 @@ def delete_evento_nutricion(evento_id: str, perfil: str):
 
 @app.get("/api/graficos/entrenamientos")
 def get_graficos_entrenamientos(perfil: str, dias: int = 30):
-    data = obtener_entrenamientos_resumen(perfil, dias)
+    data_raw = obtener_entrenamientos_resumen(perfil, dias)
+    # Adaptar al formato que espera GraficosView.jsx
+    data = {
+        "por_dia": data_raw,
+        "por_musculo": [
+            {"name": "Pecho", "sets": 10},
+            {"name": "Espalda", "sets": 8},
+            {"name": "Piernas", "sets": 12},
+            {"name": "Brazos", "sets": 5}
+        ] # Por ahora mock para evitar crash hasta refact de DB
+    }
     return {"status": "success", "data": data}
 
 @app.get("/api/graficos/timeline")
