@@ -106,11 +106,19 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   const [collapsedExercises, setCollapsedExercises] = useState(new Set());
   const [allCollapsed, setAllCollapsed] = useState(false);
   
-  const toggleCollapse = (idx) => setCollapsedExercises(prev => {
-    const next = new Set(prev);
-    if (next.has(idx)) next.delete(idx); else next.add(idx);
-    return next;
-  });
+  const toggleCollapse = (idx) => {
+    setCollapsedExercises(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+
+    // UX: Scroll al centro cuando se expande
+    setTimeout(() => {
+      const el = document.getElementById(`ex-card-${idx}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  };
 
   const toggleCollapseAll = () => {
     if (allCollapsed) {
@@ -159,6 +167,45 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
     return `${mins}:${s < 10 ? '0' : ''}${s}`;
   };
 
+  const cargarMisRutinas = async () => {
+    try {
+      const res = await fetch(`${API}/api/rutinas/mis-rutinas?perfil=${perfil.name || perfil.id}`);
+      const data = await res.json();
+      if (data.status === 'success') setMisRutinas(data.rutinas);
+      setShowMisRutinas(true);
+    } catch (e) {
+      console.error("Error al cargar mis rutinas", e);
+    }
+  };
+
+  const guardarRutinaActual = async () => {
+    if (!nombreRutina.trim()) return alert("Poné un nombre a la rutina, che.");
+    try {
+      const res = await fetch(`${API}/api/rutinas/guardar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          perfil: perfil.name || perfil.id,
+          nombre: nombreRutina,
+          descripcion: `Creada el ${new Date().toLocaleDateString()}`,
+          ejercicios: rutina.map(e => ({
+            id_ejercicio: e.id_ejercicio || e.id,
+            series: e.sets.length,
+            reps: e.sets[0].reps
+          }))
+        })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        alert("¡Rutina guardada! Ya la tenés disponible.");
+        setShowGuardarModal(false);
+        setNombreRutina('');
+      }
+    } catch (e) {
+      console.error("Error al guardar rutina", e);
+    }
+  };
+
   const pedirRutinaIA = async (suggestion = null) => {
     const prompt = (suggestion || promptRutina).trim();
     if (!prompt || prompt.length < 3 || loadingAi) return;
@@ -171,7 +218,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
       const res = await fetch(`${API}/api/rutinas/generar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perfil, prompt })
+        body: JSON.stringify({ perfil: perfil.name || perfil.id, prompt })
       });
       const data = await res.json();
       const duration = Date.now() - startTime;
@@ -180,7 +227,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
       if (data.status === 'success' && data.rutina && data.rutina.length > 0) {
         setRutina(data.rutina.map(e => ({
           ...e,
-          sets: e.sets && e.sets.length > 0 ? e.sets : [{reps:'12',kg:'',done:false},{reps:'12',kg:'',done:false},{reps:'12',kg:'',done:false}]
+          sets: e.sets && e.sets.length > 0 ? e.sets.map(s => ({...s, done: false})) : [{reps:'12',kg:'',done:false},{reps:'12',kg:'',done:false},{reps:'12',kg:'',done:false}]
         })));
         setPromptRutina('');
       } else {
@@ -188,7 +235,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
       }
     } catch(e) { 
         console.error("Error al pedir Rutina IA:", e); 
-        alert("¡Hubo un problema de conexión (Timeout o Servidor Dormido)! El servidor puede tardar ~50s en arrancar. Por favor, esperá un minuto y volvé a intentarlo.");
+        alert("¡Error de conexión! El servidor puede tardar en despertar.");
     }
     setLoadingAi(false);
   };
@@ -314,51 +361,78 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
           </div>
         </div>
 
-        <button 
-          className="btn-premium" 
-          onClick={() => sessionActive ? setShowFeedbackModal(true) : setSessionActive(true)}
-          style={{ 
-            background: sessionActive ? 'var(--danger-color)' : 'var(--accent-gym)',
-            color: sessionActive ? 'white' : 'black',
-            boxShadow: sessionActive ? '0 4px 20px rgba(244, 63, 94, 0.4)' : '0 10px 25px rgba(99, 102, 241, 0.4)',
-          }}
-        >
-          {sessionActive ? 'Terminar Sesión' : 'Iniciar Entrenamiento'}
-        </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button 
+            className="btn-premium" 
+            onClick={() => sessionActive ? setShowFeedbackModal(true) : setSessionActive(true)}
+            style={{ 
+              flex: 1,
+              background: sessionActive ? 'var(--danger-color)' : 'var(--accent-gym)',
+              color: sessionActive ? 'white' : 'black',
+              boxShadow: sessionActive ? '0 4px 20px rgba(244, 63, 94, 0.4)' : '0 10px 25px rgba(99, 102, 241, 0.4)',
+            }}
+          >
+            {sessionActive ? 'Terminar Sesión' : 'Iniciar Entrenamiento'}
+          </button>
+          
+          {rutina.length > 0 && !sessionActive && (
+            <button 
+              onClick={() => setShowGuardarModal(true)}
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', borderRadius: '16px', padding: '0 1rem' }}
+            >
+              <Plus size={20}/>
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* 2. ACCESOS RÁPIDOS (PRESETS) - RESTORED */}
-      {!sessionActive && (
-        <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', padding: '0.2rem', scrollbarWidth: 'none' }}>
-           {[
-             { n: 'Pecho y Tríceps', p: 'Rutina de pecho y triceps con hipertrofia' },
-             { n: 'Espalda y Bíceps', p: 'Rutina de espalda y biceps pesado' },
-             { n: 'Piernas', p: 'Rutina de piernas con sentadilla y prensa' },
-             { n: 'Full Body', p: 'Rutina full body funcional' }
-           ].map(pr => (
-             <button 
-                key={pr.n}
-                onClick={() => { setPromptRutina(pr.p); pedirRutinaIA(pr.p); }}
-                style={{ 
-                  background: 'rgba(255,255,255,0.05)', 
-                  border: '1px solid rgba(255,255,255,0.1)', 
-                  padding: '0.75rem 1.2rem', 
-                  borderRadius: '14px', 
-                  color: 'white', 
-                  fontSize: '0.8rem', 
-                  fontWeight: 700, 
-                  whiteSpace: 'nowrap',
-                  cursor: 'pointer',
-                  transition: 'background 0.2s'
-                }}
-                onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-             >
-               {pr.n}
-             </button>
-           ))}
-        </div>
-      )}
+      {/* 2. ACCESOS RÁPIDOS Y MIS RUTINAS */}
+      <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', padding: '0.2rem', scrollbarWidth: 'none' }}>
+         <button 
+            onClick={cargarMisRutinas}
+            style={{ 
+              background: 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)', 
+              border: 'none',
+              padding: '0.75rem 1.2rem', 
+              borderRadius: '14px', 
+              color: 'black', 
+              fontSize: '0.8rem', 
+              fontWeight: 800, 
+              whiteSpace: 'nowrap',
+              cursor: 'pointer',
+              boxShadow: '0 4px 15px rgba(234, 179, 8, 0.3)'
+            }}
+         >
+           🌟 MIS RUTINAS
+         </button>
+         {[
+           { n: 'Pecho y Tríceps', p: 'Rutina de pecho y triceps con hipertrofia' },
+           { n: 'Espalda y Bíceps', p: 'Rutina de espalda y biceps pesado' },
+           { n: 'Piernas', p: 'Rutina de piernas con sentadilla y prensa' },
+           { n: 'Full Body', p: 'Rutina full body funcional' }
+         ].map(pr => (
+           <button 
+              key={pr.n}
+              onClick={() => { setPromptRutina(pr.p); pedirRutinaIA(pr.p); }}
+              style={{ 
+                background: 'rgba(255,255,255,0.05)', 
+                border: '1px solid rgba(255,255,255,0.1)', 
+                padding: '0.75rem 1.2rem', 
+                borderRadius: '14px', 
+                color: 'white', 
+                fontSize: '0.8rem', 
+                fontWeight: 700, 
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+                transition: 'background 0.2s'
+              }}
+              onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+              onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+           >
+             {pr.n}
+           </button>
+         ))}
+      </div>
 
       {/* 2. REEST TIMER LIVE (Sticky-ish) */}
       {isResting && (
@@ -417,11 +491,12 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
           </div>
         ) : (
           rutina.map((ej, eIdx) => (
-            <div key={eIdx} className="glass-card animate-in" style={{ 
+            <div key={eIdx} id={`ex-card-${eIdx}`} className="glass-card animate-in" style={{ 
               animationDelay: `${eIdx * 0.1}s`,
               background: 'rgba(15, 23, 42, 0.8)', 
               borderRadius: '20px', 
               overflow: 'hidden',
+              border: collapsedExercises.has(eIdx) ? '1px solid rgba(255,255,255,0.02)' : '1px solid rgba(56,189,248,0.2)'
             }}>
               {/* Card Header */}
               <div style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderBottom: collapsedExercises.has(eIdx) ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
@@ -609,7 +684,22 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{e.target}</div>
                         </div>
                     </div>
-                    <button onClick={(event) => { event.stopPropagation(); setRutina([...rutina, { ...e, sets:[{reps:'12',kg:'',done:false}] }]); setShowCatalogModal(false); }} style={{ background: 'var(--accent-gym)', borderRadius: '8px', padding: '0.4rem', border: 'none', cursor: 'pointer' }}><Plus size={18}/></button>
+                    <button onClick={(event) => { 
+                      event.stopPropagation(); 
+                      setRutina([...rutina, { ...e, sets:[{reps:'12',kg:'',done:false}, {reps:'12',kg:'',done:false}, {reps:'12',kg:'',done:false}] }]);
+                      // Feedback visual simple (opcional: podrías añadir un toast o estado efímero)
+                    }} style={{ 
+                      background: 'var(--accent-gym)', 
+                      borderRadius: '8px', 
+                      padding: '0.4rem', 
+                      border: 'none', 
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Plus size={18}/>
+                    </button>
                  </div>
                ))}
             </div>
@@ -634,6 +724,61 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
               </div>
               <button onClick={() => { setSessionActive(false); setRutina([]); setShowFeedbackModal(false); setTimer(0); }} style={{ width: '100%', padding: '1rem', background: 'var(--accent-gym)', color: 'black', border: 'none', borderRadius: '14px', fontWeight: 900 }}>GUARDAR SESIÓN</button>
            </div>
+        </div>
+      )}
+
+      {/* MODAL MIS RUTINAS */}
+      {showMisRutinas && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ background: '#0f172a', width: '100%', maxWidth: '500px', margin: '0 auto', height: '100%', borderRadius: '24px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ color: 'white', margin: 0 }}>Mis Rutinas</h2>
+              <button onClick={() => setShowMisRutinas(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '10px' }}><X size={20}/></button>
+            </div>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
+              {misRutinas.length === 0 ? (
+                <p style={{ color: '#64748b', textAlign: 'center' }}>No tenés rutinas guardadas todavía.</p>
+              ) : (
+                misRutinas.map(r => (
+                  <div key={r.id} onClick={async () => {
+                    // Cargar ejercicios de esta rutina
+                    const ids = r.ejercicios.map(ex => ex.exercise_id);
+                    const res = await fetch(`${API}/api/exercises/search?q=${ids.join(',')}`); // El search con IDs sirve
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                       setRutina(data.ejercicios.map(ex => ({
+                         ...ex,
+                         sets: [{reps: '12', kg: '', done: false}, {reps: '12', kg: '', done: false}, {reps: '12', kg: '', done: false}]
+                       })));
+                       setShowMisRutinas(false);
+                    }
+                  }} style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '16px', marginBottom: '0.75rem', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ color: 'white', fontWeight: 800 }}>{r.nombre}</div>
+                    <div style={{ color: '#64748b', fontSize: '0.8rem' }}>{r.descripcion}</div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL GUARDAR */}
+      {showGuardarModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 1001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: '#0f172a', padding: '2rem', borderRadius: '24px', width: '100%', maxWidth: '380px', border: '1px solid var(--accent-gym)' }}>
+            <h3 style={{ color: 'white', marginTop: 0 }}>Guardar Rutina</h3>
+            <input 
+              value={nombreRutina} 
+              onChange={e => setNombreRutina(e.target.value)} 
+              placeholder="Nombre (ej: Pecho Explosivo)" 
+              style={{ width: '100%', background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem', borderRadius: '12px', color: 'white', marginBottom: '1.5rem', boxSizing: 'border-box' }}
+            />
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button onClick={() => setShowGuardarModal(false)} style={{ flex: 1, padding: '1rem', background: 'transparent', color: 'white', border: 'none' }}>Cancelar</button>
+              <button onClick={guardarRutinaActual} style={{ flex: 1, padding: '1rem', background: 'var(--accent-gym)', color: 'black', border: 'none', borderRadius: '12px', fontWeight: 800 }}>GUARDAR</button>
+            </div>
+          </div>
         </div>
       )}
 

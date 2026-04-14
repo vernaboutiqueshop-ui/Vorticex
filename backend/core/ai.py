@@ -149,14 +149,20 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
     # Usamos Gemini Flash (Alta velocidad, bajo costo) con prompt experto
     sys_prompt = (
         f"Eres Vórtice Coach, un instructor fitness elite de Argentina. Tu tono es motivador, técnico y usa voseo. "
+        f"Tu objetivo es prescribir rutinas PERSONALIZADAS basadas en el contexto del usuario.\n\n"
+        f"REGLAS DE REPETICIONES:\n"
+        f"- Si el objetivo es FUERZA: Usa rangos bajos (3-6 reps) con descansos largos.\n"
+        f"- Si el objetivo es HIPERTROFIA: Usa rangos medios (8-12 reps).\n"
+        f"- Si el objetivo es RESISTENCIA/QUEMA: Usa rangos altos (15-20 reps).\n"
+        f"- No seas robótico. Varía los esquemas (ej: '4x8', '12-10-8', 'AMRAP').\n\n"
         f"Responde SIEMPRE en este formato JSON exacto:\n"
         f"{{\n"
         f"  \"tipo\": \"chat_normal\" | \"nutricion\" | \"rutina\",\n"
         f"  \"respuesta\": \"Tu respuesta motivadora en español argentino\",\n"
         f"  \"nutricion\": {{'alimento': 'nombre', 'cal': 100, 'prot': 0, 'carb': 0, 'gras': 0}} (solo si aplica),\n"
-        f"  \"rutina\": [{{'id_ejercicio': '0025', 'series': 4}}] (solo si aplica)\n"
+        f"  \"rutina\": [{{'id_ejercicio': '0025', 'series': 4, 'reps': '8-10'}}] (solo si aplica)\n"
         f"}}\n"
-        f"Contexto del usuario: {perfil_info}"
+        f"Contexto del usuario: {perfil_info}. {contexto_vectorial}"
     )
     
     res_raw = consultar_gemini([
@@ -182,13 +188,18 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
         return {"tipo": "chat_normal", "respuesta": res_raw if res_raw else "¡Acá estoy che! ¿Qué decías?"}
 
 def generar_rutina_inteligente(objetivo, perfil_info=""):
-    """Generar una rutina INSTANTÁNEA usando ChromaDB (Búsqueda Vectorial Semántica)."""
+    """Generar una rutina INSTANTÁNEA usando ChromaDB con esquemas de reps inteligentes."""
     import time
     start_time = time.time()
     print(f"[VORTICE] >>>> Iniciando generación VECTORIAL para: {objetivo}")
     try:
         from core.intelligence import semantic_search_exercises
-        from core.database_sqlite import obtener_catalogo_completo
+        from core.database_sqlite import obtener_catalogo_completo, obtener_eventos_timeline
+        
+        # 1. Recuperar contexto de fatiga/periodización (últimos entrenos)
+        nombre_user = perfil_info.split(',')[0] if perfil_info else "Gonzalo"
+        reciente = obtener_eventos_timeline(nombre_user, limit=5)
+        hubo_mucho_gym = len([e for e in reciente if e['type'] == 'Gym']) >= 4
         
         # Búsqueda semántica instantánea
         search_start = time.time()
@@ -197,24 +208,39 @@ def generar_rutina_inteligente(objetivo, perfil_info=""):
         search_duration = (time.time() - search_start) * 1000
         print(f"[INTEL] Búsqueda completada en {search_duration:.2f}ms")
         
-        # BUSQUEDA OPTIMIZADA: Solo traer los ejercicios que necesitamos
+        # BUSQUEDA OPTIMIZADA
         from core.database_sqlite import buscar_ejercicios_por_ids
         db_start = time.time()
         ejercicios_finales = buscar_ejercicios_por_ids(ids_encontrados)
         db_duration = (time.time() - db_start) * 1000
         print(f"[SQLITE] Datos recuperados en {db_duration:.2f}ms")
             
+        # Lógica de Repeticiones Inteligente
+        es_fuerza = any(kw in objetivo.lower() for kw in ["fuerza", "pesado", "power", "bajo"])
+        es_quema = any(kw in objetivo.lower() for kw in ["quema", "cardio", "descarga", "resistencia"])
+        
         rutina_final = []
         for orig in ejercicios_finales:
             target_norm = orig.get('target', '')
+            
+            # Definir esquema según objetivo
+            if es_fuerza:
+                 series, reps = 5, "5"
+            elif es_quema:
+                 series, reps = 3, "15-20"
+            elif hubo_mucho_gym: # Semana de descarga automática si entrenó mucho
+                 series, reps = 2, "12 (Suave)"
+            else:
+                 series, reps = 4, "10-12"
+
             rutina_final.append({
                 "id_ejercicio": orig.get('id_ejercicio', orig.get('id')), 
                 "nombre_es": str(orig.get('nombre_es', '')).capitalize(),
                 "target": target_norm, 
                 "body_part": UI_MUSCULO_ES.get(target_norm, target_norm.capitalize() if target_norm else "General"), 
                 "gif_url": orig.get('gif_url', ''),
-                "series": 4, 
-                "sets": [{"reps": "12", "kg": "", "done": False} for _ in range(4)]
+                "series": series, 
+                "sets": [{"reps": reps, "kg": "", "done": False} for _ in range(series)]
             })
                 
         duration = (time.time() - start_time) * 1000

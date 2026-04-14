@@ -231,7 +231,7 @@ def send_chat(req: ChatRequest):
                         "target": orig.get('target', ''),
                         "body_part": UI_MUSCULO_ES.get(str(orig.get('target','')).lower(), str(orig.get('target','')).capitalize() or "General"),
                         "gif_url": orig.get('gif_url', f"/gifs/{orig['id_ejercicio']}.gif"),
-                        "sets": r.get("sets") or [{"reps": "12", "kg": "", "done": False} for _ in range(r.get("series", 3))]
+                        "sets": [{"reps": r.get("reps", "12"), "kg": "", "done": False} for _ in range(r.get("series", 3))]
                     })
             
         elif tipo == "alacena":
