@@ -10,14 +10,19 @@ KEYWORD_MAP = {
     "espalda": ["back", "lats", "traps", "rhomboids"],
     "hombro": ["delts", "shoulders"],
     "brazo": ["biceps", "triceps"],
+    "brazos": ["biceps", "triceps"],
     "bicep": ["biceps"],
     "tricep": ["triceps"],
     "pierna": ["quads", "hamstrings", "glutes", "calves"],
+    "piernas": ["quads", "hamstrings", "glutes", "calves"],
     "gluteo": ["glutes"],
+    "culo": ["glutes"],
     "cuadricep": ["quads"],
     "femor": ["hamstrings"],
     "abdo": ["abs", "core"],
+    "panza": ["abs", "core"],
     "cardio": ["cardiovascular system"],
+    "cinta": ["cardiovascular system"],
     "nuca": ["neck"]
 }
 
@@ -29,6 +34,30 @@ def detect_muscle_keys(query: str) -> List[str]:
         if key in q_norm:
             found.extend(targets)
     return list(set(found))
+
+def score_exercise(e: Dict) -> int:
+    score = 0
+    equipment = e.get('equipment', '').lower()
+    name = str(e.get('nombre_en', '')).lower() + ' ' + str(e.get('nombre_es', '')).lower()
+    
+    # Priority defaults
+    if 'body weight' in equipment or 'dumbbell' in equipment or 'band' in equipment:
+        score += 50
+    elif 'barbell' in equipment or 'cable' in equipment:
+        score += 20
+        
+    # Boost simple basics (push-up, squat, crunch, curl)
+    basics = ['push-up', 'push up', 'squat', 'crunch', 'curl', 'plank', 'lunge']
+    for b in basics:
+        if b in name:
+            score += 15
+            break
+            
+    # Penalize strange assisted or specific niche machines
+    if 'assisted' in name or 'machine' in name or 'sled' in equipment:
+        score -= 20
+        
+    return score
 
 def semantic_search_exercises(query: str, limit: int = 6):
     """
@@ -45,7 +74,11 @@ def semantic_search_exercises(query: str, limit: int = 6):
         print(f"[INTEL] Claves detectadas: {targets}. Filtrando catálogo...")
         # Filtrar los que coincidan con los targets técnicos
         filtrados = [e for e in all_ej if e.get('target', '').lower() in targets]
-        # Si no hay suficientes, rellenar con búsqueda por texto
+        
+        # ORDENAR POR SIMPLICIDAD / ACCESIBILIDAD 
+        filtrados.sort(key=score_exercise, reverse=True)
+        
+        # Si no hay suficientes, rellenar con búsqueda por texto (se quitó ese comment porque no aplicaba al código original directamente)
         ids = [e['id_ejercicio'] for e in filtrados[:limit]]
         return {"ids": [ids]}
     
@@ -55,11 +88,12 @@ def semantic_search_exercises(query: str, limit: int = 6):
     results = []
     for e in all_ej:
         match_score = 0
-        text_to_search = f"{e['nombre_es']} {e['body_part']} {e['target']}".lower()
+        text_to_search = f"{e.get('nombre_es', '')} {e.get('body_part', '')} {e.get('target', '')}".lower()
         for part in query_parts:
             if len(part) > 2 and part in text_to_search:
-                match_score += 1
+                match_score += 100
         if match_score > 0:
+            match_score += score_exercise(e)
             results.append((match_score, e['id_ejercicio']))
     
     # Ordenar por relevancia y devolver IDs
