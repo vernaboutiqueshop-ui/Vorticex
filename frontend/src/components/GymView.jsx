@@ -77,6 +77,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   
   // Planner / Session State
   const [rutina, setRutina] = useState([]); 
+  const [ultimosPesos, setUltimosPesos] = useState({});
   const [sessionActive, setSessionActive] = useState(false);
   const [timer, setTimer] = useState(0);
   
@@ -90,6 +91,41 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
       if (onRutinaLoaded) onRutinaLoaded();
     }
   }, [pendingRutina, onRutinaLoaded]);
+
+  // Consultar últimos pesos cuando la rutina cambia
+  useEffect(() => {
+    const fetchUltimosPesos = async () => {
+      const nuevosPesos = { ...ultimosPesos };
+      let huboCambios = false;
+
+      for (const ej of rutina) {
+        const id = ej.id_ejercicio || ej.id;
+        if (id && nuevosPesos[id] === undefined) {
+          huboCambios = true;
+          try {
+            const res = await fetch(`${API}/api/rutinas/ultimo-peso?perfil=${perfil}&id_ejercicio=${id}`);
+            const data = await res.json();
+            if (data.status === 'success' && data.peso !== null) {
+              nuevosPesos[id] = data.peso;
+            } else {
+              nuevosPesos[id] = 0; // Marcar como consultado sin peso
+            }
+          } catch (e) {
+            console.error(e);
+            nuevosPesos[id] = 0;
+          }
+        }
+      }
+
+      if (huboCambios) {
+        setUltimosPesos(nuevosPesos);
+      }
+    };
+
+    if (rutina.length > 0) {
+      fetchUltimosPesos();
+    }
+  }, [rutina, perfil, ultimosPesos]);
   
   // Feedback post-entrenamiento
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -537,9 +573,10 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                           setRutina(nw);
                         }} style={{ padding: '0.6rem 0.5rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>-</button>
                         <input 
-                          type="number" 
+                          type="text" 
+                          inputMode="decimal"
                           value={s.kg} 
-                          placeholder="0"
+                          placeholder={ultimosPesos[ej.id_ejercicio || ej.id] > 0 ? `Ult: ${ultimosPesos[ej.id_ejercicio || ej.id]}` : "0"}
                           onChange={(e) => {
                             const nw = [...rutina];
                             nw[eIdx].sets[sIdx].kg = e.target.value;
@@ -562,7 +599,8 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                           setRutina(nw);
                         }} style={{ padding: '0.6rem 0.5rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>-</button>
                         <input 
-                          type="number" 
+                          type="text" 
+                          inputMode="text"
                           value={s.reps} 
                           placeholder="12"
                           onChange={(e) => {

@@ -314,6 +314,18 @@ def guardar_log_set(perfil: str, id_ejercicio: str, set_num: int, peso: float, r
         """, (u_id, f"Set {set_num} de {id_ejercicio}", peso, reps, id_ejercicio))
         conn.commit()
 
+def obtener_ultimo_peso(perfil: str, id_ejercicio: str):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT val1 FROM activity_logs 
+            WHERE user_id = (SELECT id FROM users WHERE name = ?)
+            AND type = 'GymSet' AND ref_id = ? 
+            ORDER BY timestamp DESC LIMIT 1
+        """, (perfil, id_ejercicio))
+        res = cur.fetchone()
+        return res['val1'] if res else None
+
 def obtener_alacena(perfil: str):
     with get_conn() as conn:
         cur = conn.cursor()

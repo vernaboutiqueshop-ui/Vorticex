@@ -641,8 +641,21 @@ def reemplazar_rutina_ia(req: ReemplazoIARequest):
 
 
 # ============================================================
-# RUTINAS GUARDADAS
+# RUTINAS GUARDADAS Y PESOS
 # ============================================================
+
+@app.get("/api/rutinas/ultimo-peso")
+def ultimo_peso_endpoint(perfil: str, id_ejercicio: str):
+    try:
+        from core.database_sqlite import obtener_ultimo_peso
+        peso = obtener_ultimo_peso(perfil, id_ejercicio)
+        # Si no hay peso, devolvemos 0 para mantener la estructura pero indicando que no hay historial
+        return {"status": "success", "peso": peso if peso is not None else 0}
+    except Exception as e:
+        print(f"[ERROR ULTIMO PESO] {e}")
+        return {"status": "error", "error": str(e)}
+
+
 
 class GuardarRutinaRequest(BaseModel):
     perfil: str
