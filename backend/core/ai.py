@@ -17,7 +17,7 @@ load_dotenv()
 from core.intelligence import recall_nutrition, learn_nutrition
 
 # --- CONFIGURACIÓN DE MODELOS ---
-MODELO_PRINCIPAL = "models/gemini-1.5-flash-latest"
+MODELO_PRINCIPAL = "gemini-1.5-flash"
 api_key = os.getenv("GEMINI_API_KEY", "AIzaSyBuh-W_reEPT0H90xDqBZr_VXEuGNjDCNs")
 # Si es la de Gonzalo o la genérica, igual la cargamos
 print(f"[VORTICE] API KEY conectada ({api_key[:4]}...{api_key[-4:]})")
@@ -159,7 +159,7 @@ def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_v
     res_raw = consultar_gemini([
         {"role": "system", "content": sys_prompt},
         {"role": "user", "content": mensaje}
-    ], formato_json=True, modelo="models/gemini-1.5-flash-latest")
+    ], formato_json=True, modelo="gemini-1.5-flash")
     
     if not res_raw or res_raw == "ERROR_CUOTA":
         return {"tipo": "chat_normal", "respuesta": "¡Me quedé sin aire che! Google me puso un stop por un ratito. ¡Metamosle garra y mañana seguimos con todo!"}
