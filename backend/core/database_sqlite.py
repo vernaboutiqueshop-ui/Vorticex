@@ -69,19 +69,28 @@ def listar_perfiles():
         cur = conn.cursor()
         cur.execute("SELECT name FROM users")
         return {row['name']: {"id": row['name']} for row in cur.fetchall()}
-# MAPEO DE NORMALIZACIÓN PARA FRONTEND
+# MAPEO DE NORMALIZACIÓN PARA FRONTEND (Todo a minúsculas)
 NORM_MAP = {
-    'Cintura': 'Abs',
-    'Brazos (Sup)': 'Brazos',
-    'Pantorrillas': 'Piernas',
-    'Cardio': 'Cardio',
-    'Hombros': 'Hombros',
-    'Antebrazos (Inf)': 'Brazos',
-    'Piernas (Sup)': 'Piernas',
-    'Cuello': 'Espalda',
-    'Pecho': 'Pecho',
-    'Espalda': 'Espalda',
-    'back': 'Espalda'
+    'cintura': 'Abdominales',
+    'waist': 'Abdominales',
+    'abs': 'Abdominales',
+    'back': 'Espalda',
+    'espalda': 'Espalda',
+    'chest': 'Pecho',
+    'pecho': 'Pecho',
+    'pectorals': 'Pecho',
+    'lower arms': 'Brazos',
+    'upper arms': 'Brazos',
+    'brazos (sup)': 'Brazos',
+    'antebrazos (inf)': 'Brazos',
+    'lower legs': 'Piernas',
+    'upper legs': 'Piernas',
+    'piernas (sup)': 'Piernas',
+    'pantorrillas': 'Piernas',
+    'cardio': 'Cardio',
+    'shoulders': 'Hombros',
+    'hombros': 'Hombros',
+    'neck': 'Espalda'
 }
 
 # --- CATALOGO ---
@@ -93,11 +102,24 @@ def obtener_catalogo_completo():
         print(f"[SQLITE] Catálogo consultado. Registros encontrados: {len(rows)}")
         
         catalogo = []
-        for r in rows:
-            mapped_body_part = NORM_MAP.get(r['body_part'], r['body_part'])
-            if r['target'] == 'Biceps' or r['target'] == 'Triceps':
+        for r_raw in rows:
+            # Convertimos a diccionario real para evitar errores de 'sqlite3.Row'
+            r = dict(r_raw)
+            
+            # Normalización robusta (todo a minúsculas antes de buscar en mapa)
+            raw_bp = str(r.get('body_part', '')).lower()
+            mapped_body_part = NORM_MAP.get(raw_bp, r.get('body_part', 'General'))
+            
+            # Forzar 'Brazos' o 'Piernas' si el target es muy específico
+            raw_target = str(r.get('target', '')).lower()
+            if raw_target in ["biceps", "triceps", "forearms", "brachialis"]:
                 mapped_body_part = 'Brazos'
-            inst_str = r['instructions'] if r['instructions'] else '[]'
+            elif raw_target in ["quads", "hamstrings", "glutes", "calves", "adductors", "abductors"]:
+                mapped_body_part = 'Piernas'
+            elif raw_target in ["abs", "core"]:
+                mapped_body_part = 'Abdominales'
+                
+            inst_str = r.get('instructions', '[]')
             try:
                 inst_list = json.loads(inst_str)
             except:
@@ -109,8 +131,9 @@ def obtener_catalogo_completo():
                 "body_part": mapped_body_part,
                 "target": r['target'],
                 "equipment": r['equipment'],
+                "difficulty_level": r.get('difficulty_level', 'Medium'),
                 "instrucciones_es": inst_list,
-                "gif_url": f"/gifs/{r['id']}.gif"
+                "gif_url": f"/exercises/gifs/{r['id']}.gif"
             })
         return catalogo
 
@@ -154,7 +177,7 @@ def buscar_ejercicios_por_ids(ids: list):
                 "target": r['target'],
                 "equipment": r['equipment'],
                 "instrucciones_es": inst_list,
-                "gif_url": f"/gifs/{r['id']}.gif"
+                "gif_url": f"/exercises/gifs/{r['id']}.gif"
             })
         return ejercicios
 
@@ -167,7 +190,7 @@ def buscar_ejercicio_por_id(id_ej: str):
             r = dict(row)
             r["id_ejercicio"] = r["id"]
             r["nombre_es"] = r["name"]
-            r["gif_url"] = f"/gifs/{r['id']}.gif"
+            r["gif_url"] = f"/exercises/gifs/{r['id']}.gif"
             return r
     return None
 
@@ -411,3 +434,41 @@ def eliminar_evento_perfil(perfil: str, evento_id: str):
         cur = conn.cursor()
         cur.execute("DELETE FROM activity_logs WHERE id = ?", (evento_id,))
         conn.commit()
+
+def obtener_memoria_perfil(nombre: str):
+    """Retorna el contexto narrativo guardado en la tabla users."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT memoria_viva FROM users WHERE name = ?", (nombre,))
+        res = cur.fetchone()
+        return {"contexto_narrativo": res['memoria_viva']} if res else {"contexto_narrativo": "Sin contexto generado aún."}
+
+def obtener_macros_hoy(perfil: str):
+    """Calcula la suma de macros consumidos hoy."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT SUM(val1) as cal, SUM(val2) as prot, SUM(val3) as carb, SUM(val4) as gras
+            FROM activity_logs
+            WHERE user_id = (SELECT id FROM users WHERE name = ?) 
+            AND type = 'Nutricion' 
+            AND date(timestamp) = date('now')
+        """, (perfil,))
+        res = cur.fetchone()
+        if res and res['cal'] is not None:
+             return dict(res)
+        return {"cal": 0, "prot": 0, "carb": 0, "gras": 0}
+
+def obtener_comidas_hoy(perfil: str):
+    """Retorna la lista de eventos de nutrición del día."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, description as alimento, val1 as cal, val2 as prot, val3 as carb, val4 as gras, timestamp
+            FROM activity_logs
+            WHERE user_id = (SELECT id FROM users WHERE name = ?) 
+            AND type = 'Nutricion' 
+            AND date(timestamp) = date('now')
+            ORDER BY timestamp DESC
+        """, (perfil,))
+        return [dict(r) for r in cur.fetchall()]

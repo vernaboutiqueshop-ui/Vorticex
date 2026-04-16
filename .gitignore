@@ -23,3 +23,6 @@ api_out.json
 # DB (Opcional, pero para esta app queremos que el seed suba)
 # !backend/data/vortice_elite.db
 # !backend/data/exercises/gifs/
+# Sensitive Keys
+backend/serviceAccountKey.json
+.env

@@ -21,8 +21,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar TODO el código del backend a la raíz /app
 COPY backend/ .
 
-# Exponer el puerto (Render usará la variable ENV PORT)
+# Exponer el puerto
 EXPOSE 8000
 
-# Comando para iniciar la aplicación (ahora main.py está en la raíz del contenedor /app)
+# Variables de entorno por defecto para modo local
+ENV DATABASE_MODE=local
+
+# Comando para iniciar la aplicación
 CMD ["python", "main.py"]

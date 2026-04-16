@@ -540,7 +540,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                   onClick={() => setGifModal(ej)}
                   style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'white', flexShrink: 0, cursor: 'pointer', overflow: 'hidden' }}
                 >
-                  <img src={ej.gif_url?.startsWith('http') ? ej.gif_url : `${API}${ej.gif_url}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={ej.gif_url?.startsWith('http') || ej.gif_url?.startsWith('/exercises') ? ej.gif_url : `${API}${ej.gif_url}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }} onClick={() => toggleCollapse(eIdx)}>
                   <div style={{ fontWeight: 800, fontSize: '1rem', color: 'white', marginBottom: '0.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ej.nombre_es}</div>
@@ -716,7 +716,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                   .map(e => (
                  <div key={e.id_ejercicio} style={{ padding: '0.75rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <div onClick={() => setGifModal(e)} style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, cursor: 'pointer' }}>
-                        <img src={e.gif_url?.startsWith('http') ? e.gif_url : `${API}${e.gif_url}`} style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'white' }} />
+                        <img src={e.gif_url?.startsWith('http') || e.gif_url?.startsWith('/exercises') ? e.gif_url : `${API}${e.gif_url}`} style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'white' }} />
                         <div>
                            <div style={{ fontWeight: 700, color: 'white', fontSize: '0.85rem' }}>{e.nombre_es}</div>
                            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{e.target}</div>
@@ -835,7 +835,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
            }}>
               {/* Media Section */}
               <div style={{ position: 'relative', width: '100%', height: '250px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 <img src={gifModal.gif_url?.startsWith('http') ? gifModal.gif_url : `${API}${gifModal.gif_url}`} alt={gifModal.nombre_es} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                 <img src={gifModal.gif_url?.startsWith('http') || gifModal.gif_url?.startsWith('/exercises') ? gifModal.gif_url : `${API}${gifModal.gif_url}`} alt={gifModal.nombre_es} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                  <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
                     <button onClick={() => setGifModal(null)} style={{ background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer' }}><X size={20}/></button>
                  </div>

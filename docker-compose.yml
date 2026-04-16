@@ -1,0 +1,18 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  vortice-backend:
+    build: .
+    container_name: vortice-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/data:/app/data
+    environment:
+      - DATABASE_MODE=local
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    restart: always
+
+# Nota: El frontend se sirve desde GitHub/Vercel, 
+# por lo que no es necesario dockerizarlo para la Mini PC.

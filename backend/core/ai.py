@@ -32,15 +32,6 @@ def clean_json(text):
         return match.group(0)
     return text.strip()
 
-def clean_json(text):
-    """Limpia backticks de Markdown y extrae solo el bloque JSON."""
-    if not text: return ""
-    # Buscar el primer '{' y el último '}' para ignorar texto extra
-    match = re.search(r'(\{.*\}|\[.*\])', text, re.DOTALL)
-    if match:
-        return match.group(0)
-    return text.strip()
-
 # --- MOTOR DE IA (Gemini) ---
 def consultar_gemini(mensajes, formato_json=False, modelo=MODELO_PRINCIPAL):
     try:

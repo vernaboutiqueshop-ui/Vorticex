@@ -14,7 +14,8 @@ from datetime import timedelta
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from core.database_sqlite import (
+# Datos dinámicos (Persistencia en Nube o Local según DATABASE_MODE)
+from core.database import (
     obtener_historial_chat, guardar_mensaje, borrar_historial_chat,
     consultar_datos, guardar_log_set, guardar_evento,
     obtener_alacena, guardar_en_alacena, eliminar_de_alacena_perfil,
@@ -22,8 +23,13 @@ from core.database_sqlite import (
     obtener_ayuno, actualizar_ayuno,
     guardar_rutina, obtener_rutinas, eliminar_rutina_perfil,
     obtener_comidas_hoy, eliminar_evento_perfil,
-    obtener_perfil, guardar_perfil, listar_perfiles, obtener_memoria_perfil,
-    buscar_ejercicio_por_id, obtener_catalogo_completo
+    obtener_perfil, guardar_perfil, listar_perfiles, obtener_memoria_perfil
+)
+
+# Catálogo estático (Siempre local para máximo rendimiento)
+from core.database_sqlite import (
+    buscar_ejercicio_por_id, obtener_catalogo_completo,
+    buscar_ejercicios_por_ids, buscar_ejercicios_textual
 )
 
 from core.ai import (
@@ -62,9 +68,13 @@ app.add_middleware(
 )
 
 # Montar GIFs estáticos para consumo ultra-rápido local
-gifs_path = os.path.join(os.path.dirname(__file__), "data", "exercises", "gifs")
+# Usamos abspath para que no haya dudas de la ubicación
+base_path = os.path.dirname(os.path.abspath(__file__))
+gifs_path = os.path.join(base_path, "data", "exercises", "gifs")
+
 if os.path.exists(gifs_path):
     app.mount("/gifs", StaticFiles(directory=gifs_path), name="gifs")
+    app.mount("/exercises/gifs", StaticFiles(directory=gifs_path), name="exercises_gifs")
 else:
     print(f"[VORTICE] ADVERTENCIA: Carpeta de GIFs no encontrada en {gifs_path}")
 
@@ -368,31 +378,158 @@ def view_exercises_html():
         <head>
             <title>Catálogo de Ejercicios - Vórtice Elite</title>
             <style>
-                body { font-family: system-ui, sans-serif; background: #0f172a; color: white; padding: 20px; }
-                                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
-                th { background: #1e293b; color: #38bdf8; }
+                body { 
+                    font-family: system-ui, sans-serif; background: #0f172a; color: white; 
+                    margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+                }
+                
+                .app-header { 
+                    flex: 0 0 auto; background: #0f172a; padding: 20px;
+                    border-bottom: 2px solid #1e293b; z-index: 100;
+                }
+                
+                .table-container { 
+                    flex: 1 1 auto; overflow-y: auto; padding: 0 20px;
+                }
+                
+                table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 50px; }
+                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; word-wrap: break-word; }
+                
+                /* Anchos fijos premium */
+                th:nth-child(1), td:nth-child(1) { width: 100px; } 
+                th:nth-child(2), td:nth-child(2) { width: 60px; }  
+                th:nth-child(3), td:nth-child(3) { width: 220px; } 
+                th:nth-child(4), td:nth-child(4) { width: 180px; } 
+                th:nth-child(5), td:nth-child(5) { width: 100px; } 
+                th:nth-child(6), td:nth-child(6) { width: auto; }  
+
+                th { 
+                    background: #1e293b; color: #38bdf8; position: sticky; top: 0;
+                    z-index: 90; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                }
                 img { width: 80px; height: 80px; border-radius: 8px; background: white; object-fit: contain; }
                 .badges { display: flex; gap: 8px; }
                 .badge { background: #38bdf8; color: black; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
                 .badge-eq { background: #475569; color: white; }
+                .difficulty { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; text-align: center; display: inline-block; width: 60px; }
+                .diff-easy { background: #22c55e; color: white; }
+                .diff-medium { background: #eab308; color: black; }
+                .diff-hard { background: #ef4444; color: white; }
+                
+                .filters { margin: 15px 0 0 0; display: flex; gap: 10px; flex-wrap: wrap; }
+                .filter-btn { 
+                    background: #334155; color: #94a3b8; border: none; padding: 8px 16px; 
+                    border-radius: 20px; cursor: pointer; transition: 0.2s; font-weight: 600; 
+                }
+                .filter-btn:hover { background: #475569; color: white; }
+                .filter-btn.active { background: #38bdf8; color: #0f172a; }
             </style>
+            <script>
+                function filterBy(muscle, btn) {
+                    const rows = document.querySelectorAll('tr.exercise-row');
+                    const btns = document.querySelectorAll('.filter-btn');
+                    const counterSpan = document.getElementById('res-count');
+                    
+                    btns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const muscleLower = muscle.toLowerCase();
+                    let count = 0;
+                    
+                    rows.forEach(row => {
+                        if (muscle === 'all') {
+                            row.style.display = '';
+                            count++;
+                        } else {
+                            const bodyPart = (row.getAttribute('data-muscle') || '').toLowerCase();
+                            const target = (row.getAttribute('data-target') || '').toLowerCase();
+                            
+                            // Búsqueda flexible ultra-mejorada
+                            const isMatch = bodyPart.includes(muscleLower) || 
+                                          target.includes(muscleLower) ||
+                                          (muscleLower === 'brazos' && (target.includes('bicep') || target.includes('tricep') || target.includes('arm'))) ||
+                                          (muscleLower === 'piernas' && (target.includes('quad') || target.includes('hamstring') || target.includes('glute') || target.includes('calf') || target.includes('calve') || target.includes('adductor') || target.includes('abductor'))) ||
+                                          (muscleLower === 'pecho' && target.includes('pectoral')) ||
+                                          (muscleLower === 'abdominales' && (target.includes('abs') || target.includes('core')));
+                            
+                            if (isMatch) {
+                                row.style.display = '';
+                                count++;
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        }
+                    });
+                    counterSpan.innerText = count;
+                }
+
+                function sortTable(n) {
+                    const table = document.getElementById("exerciseTable");
+                    const tbody = table.querySelector("tbody");
+                    const rows = Array.from(tbody.querySelectorAll("tr"));
+                    const header = table.querySelectorAll("th")[n];
+                    const isAsc = !header.classList.contains("asc");
+                    
+                    // Resetear clases de orden en otros encabezados
+                    table.querySelectorAll("th").forEach(th => th.classList.remove("asc", "desc"));
+                    header.classList.add(isAsc ? "asc" : "desc");
+
+                    const weights = { "easy": 1, "medium": 2, "hard": 3 };
+                    
+                    rows.sort((rowA, rowB) => {
+                        let valA = rowA.cells[n].innerText.trim().toLowerCase();
+                        let valB = rowB.cells[n].innerText.trim().toLowerCase();
+                        
+                        // Si es la columna de dificultad (col 4), usamos pesos
+                        if (n === 4) {
+                            valA = weights[valA] || 0;
+                            valB = weights[valB] || 0;
+                        }
+
+                        if (valA < valB) return isAsc ? -1 : 1;
+                        if (valA > valB) return isAsc ? 1 : -1;
+                        return 0;
+                    });
+                    
+                    // Re-insertar filas ordenadas
+                    rows.forEach(row => tbody.appendChild(row));
+                }
+            </script>
         </head>
         <body>
-            <h1>💪 Catálogo de Ejercicios Offline <span>(Total: {count})</span></h1>
-            <table>
-                <tr>
-                    <th>GIF</th>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Músculo / Tipo</th>
-                    <th>Instrucciones</th>
-                </tr>
+            <div class="app-header">
+                <h1 style="margin:0">💪 Vórtice Admin <span>(Mostrando: <span id="res-count">{count}</span>)</span></h1>
+                
+                <div class="filters">
+                    <button class="filter-btn active" onclick="filterBy('all', this)">Todos</button>
+                    <button class="filter-btn" onclick="filterBy('pecho', this)">Pecho</button>
+                    <button class="filter-btn" onclick="filterBy('espalda', this)">Espalda</button>
+                    <button class="filter-btn" onclick="filterBy('brazos', this)">Brazos</button>
+                    <button class="filter-btn" onclick="filterBy('piernas', this)">Piernas</button>
+                    <button class="filter-btn" onclick="filterBy('abdominales', this)">Abdominales</button>
+                    <button class="filter-btn" onclick="filterBy('hombros', this)">Hombros</button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table id="exerciseTable">
+                    <thead>
+                        <tr>
+                            <th>GIF</th>
+                            <th onclick="sortTable(1)" style="cursor:pointer">ID ↕</th>
+                            <th onclick="sortTable(2)" style="cursor:pointer">Nombre ↕</th>
+                            <th onclick="sortTable(3)" style="cursor:pointer">Músculo ↕</th>
+                            <th onclick="sortTable(4)" style="cursor:pointer">Dificultad ↕</th>
+                            <th>Instrucciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
         """.replace("{count}", str(len(rows)))
         
         for r in rows:
             insts = "<br>".join([f"- {i}" for i in r.get('instrucciones_es', [])[:2]])
             html_content += f"""
-                <tr>
+                <tr class="exercise-row" data-muscle="{r.get('body_part')}" data-target="{r.get('target')}">
                     <td><img src="{r.get('gif_url')}" alt="GIF"/></td>
                     <td><small>#{r['id_ejercicio']}</small></td>
                     <td><strong>{r['nombre_es']}</strong></td>
@@ -402,14 +539,21 @@ def view_exercises_html():
                             <span class="badge badge-eq">{r.get('target')}</span>
                         </div>
                     </td>
+                    <td>
+                        <span class="difficulty diff-{r.get('difficulty_level', 'Medium').lower()}">
+                            {r.get('difficulty_level', 'Medium')}
+                        </span>
+                    </td>
                     <td><small>{insts}...</small></td>
                 </tr>
             """
             
-        html_content += "</table></body></html>"
+        html_content += "</tbody></table></div></body></html>"
         return html_content
     except Exception as e:
-        return f"<html><body><h1>Error al cargar</h1><p>{str(e)}</p></body></html>"
+        import traceback
+        print(f"[ERROR] {traceback.format_exc()}")
+        return f"<html><body><h1>Error al cargar</h1><pre>{str(e)}</pre></body></html>"
 
 
 @app.post("/api/gym/guardar")
@@ -745,4 +889,6 @@ if __name__ == "__main__":
     import uvicorn
     # En producción Render establece la variable de entorno PORT
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+    # Activamos reload=True para que el servidor se reinicie solo al detectar cambios
+    print(f"[VORTICE] Iniciando en puerto {port} con AUTO-RELOAD activado...")
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
