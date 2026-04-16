@@ -1,7 +1,7 @@
 {
   "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/exercises/(.*)", "dest": "/exercises/$1" },
+    { "src": "/api/(.*)", "dest": "https://ratings-llp-domain-trusted.trycloudflare.com/api/$1" },
+    { "src": "/exercises/(.*)", "dest": "https://ratings-llp-domain-trusted.trycloudflare.com/exercises/$1" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
