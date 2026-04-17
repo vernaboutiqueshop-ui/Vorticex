@@ -24,5 +24,7 @@ api_out.json
 # !backend/data/vortice_elite.db
 # !backend/data/exercises/gifs/
 # Sensitive Keys
-backend/serviceAccountKey.json
+backend/*.json
+!backend/captured_exercises.json
+!backend/raw_catalog.json
 .env

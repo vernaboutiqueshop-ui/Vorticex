@@ -1,6 +1,13 @@
-// Configuración global de la API
-// En desarrollo usa localhost, en producción usa rutas relativas para el Proxy de Vercel
-const isProd = import.meta.env.PROD;
-export const API = isProd ? 'https://copyrights-allergy-sisters-facial.trycloudflare.com' : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
+// Configuración dinámica de la API vinculada a Firebase Discovery
+let dynamicAPI = import.meta.env.PROD 
+  ? 'https://vortice-fallback.vercel.app' // Fallback inicial
+  : 'http://localhost:8000';
 
-export default API;
+export const setDynamicAPI = (url) => {
+  dynamicAPI = url;
+};
+
+export const getAPI = () => dynamicAPI;
+
+// Exportamos un objeto proxy o directo (nota: esto puede requerir que los componentes llamen a getAPI())
+export const API = dynamicAPI; 

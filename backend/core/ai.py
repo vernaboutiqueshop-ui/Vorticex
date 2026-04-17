@@ -1,83 +1,123 @@
 """
-ai.py - El Cerebro de Vórtice Health
-Optimizado para Gemini 1.5 Flash.
+ai.py - El Cerebro de Vórtice Health (Versión Unificada v2.0)
+Optimizado para google-genai (Soporte total para Vertex AI y AI Studio).
 """
 import os
 import json
 import re
 import warnings
-import google.generativeai as genai
+from google import genai
+from google.genai import types
+from google.oauth2 import service_account
 from dotenv import load_dotenv
 
-# Ocultar ruidos de deprecación de Google para tener una consola limpia
+# Ocultar ruidos de deprecación de Google
 warnings.filterwarnings("ignore", category=FutureWarning)
-# Use a default encoding for print if needed, but removing emojis is safer
 load_dotenv()
 
 from core.intelligence import recall_nutrition, learn_nutrition
 
-# --- CONFIGURACIÓN DE MODELOS ---
+# --- CONFIGURACIÓN DE MOTORES ---
 MODELO_PRINCIPAL = "gemini-1.5-flash"
-api_key = os.getenv("GEMINI_API_KEY", "AIzaSyBuh-W_reEPT0H90xDqBZr_VXEuGNjDCNs")
-# Si es la de Gonzalo o la genérica, igual la cargamos
-print(f"[VORTICE] API KEY conectada ({api_key[:4]}...{api_key[-4:]})")
-genai.configure(api_key=api_key)
+api_key = os.getenv("GEMINI_API_KEY")
+# Buscar archivo JSON de cuenta de servicio (probamos varios nombres posibles)
+JSON_POSIBLES = [
+    os.path.join(os.path.dirname(__file__), "..", "serviceAccountKey_gemini.json"),
+    os.path.join(os.path.dirname(__file__), "..", "_serviceAccountKey_gemini.json"),
+    os.path.join(os.path.dirname(__file__), "..", "serviceAccountKey.json")
+]
+JSON_KEY_PATH = next((p for p in JSON_POSIBLES if os.path.exists(p)), None)
+
+# Inicialización inteligente del Cliente
+client = None
+MODO_ACTIVO = "NINGUNO"
+
+def inicializar_cliente():
+    global client, MODO_ACTIVO
+    # Intento 1: Modo Enterprise (Vertex AI vía JSON)
+    if JSON_KEY_PATH:
+        try:
+            creds = service_account.Credentials.from_service_account_file(
+                JSON_KEY_PATH,
+                scopes=['https://www.googleapis.com/auth/cloud-platform']
+            )
+            with open(JSON_KEY_PATH, 'r') as f:
+                project_data = json.load(f)
+                project_id = project_data.get("project_id")
+            
+            client = genai.Client(
+                vertexai=True,
+                project=project_id,
+                location="us-central1",
+                credentials=creds
+            )
+            MODO_ACTIVO = "ENTERPRISE (Vertex AI)"
+            print(f"[VORTICE] Modo {MODO_ACTIVO} Activado - Proyecto: {project_id}")
+            return
+        except Exception as e:
+            print(f"[VORTICE] Error en Modo Enterprise: {e}. Reintentando modo Standard...")
+
+    # Intento 2: Modo Standard (AI Studio vía API Key)
+    if api_key:
+        try:
+            client = genai.Client(api_key=api_key)
+            MODO_ACTIVO = f"STANDARD (GenAI Key: {api_key[:4]}...)"
+            print(f"[VORTICE] Modo {MODO_ACTIVO} Activado")
+            return
+        except Exception as e:
+            print(f"[VORTICE] Error en Modo Standard: {e}")
+
+    print("[VORTICE WARNING] No se pudo inicializar ningún motor de IA. Revisa tu .env o JSON.")
+
+# Ejecutar inicialización al importar
+inicializar_cliente()
 
 def clean_json(text):
     """Limpia backticks de Markdown y extrae solo el bloque JSON."""
     if not text: return ""
-    # Buscar el primer '{' y el último '}' para ignorar texto extra
     match = re.search(r'(\{.*\}|\[.*\])', text, re.DOTALL)
-    if match:
-        return match.group(0)
+    if match: return match.group(0)
     return text.strip()
 
-# --- MOTOR DE IA (Gemini) ---
+# --- MOTOR DE IA ---
 def consultar_gemini(mensajes, formato_json=False, modelo=MODELO_PRINCIPAL):
     try:
-        if not api_key or "AIzaSy" not in api_key:
-             print("[VORTICE] Falta la GEMINI_API_KEY en el .env")
-             return "ERROR_CONFIG"
+        if not client:
+            inicializar_cliente()
+            if not client: return "ERROR_CONFIG"
 
-        print(f"[GEMINI] Consultando {modelo}...")
+        print(f"[IA] Consultando {modelo} ({MODO_ACTIVO})...")
+        
+        # Traducir mensajes al formato de google-genai
         system_instruction = ""
-        user_history = []
+        contents = []
         for msg in mensajes:
             role = msg.get("role", "user")
-            content = msg.get("content", "")
+            content = str(msg.get("content", ""))
             if role == "system":
-                system_instruction += str(content) + "\n\n"
+                system_instruction += content + "\n\n"
             else:
-                user_history.append({"role": "user" if role == "user" else "model", "parts": [{"text": str(content)}]})
+                contents.append(content)
 
-        gen_model = genai.GenerativeModel(
-            model_name=modelo, 
+        # Configuración de generación
+        config = types.GenerateContentConfig(
             system_instruction=system_instruction if system_instruction else None,
-            safety_settings={
-                "HATE": "BLOCK_NONE",
-                "HARASSMENT": "BLOCK_NONE",
-                "SEXUAL": "BLOCK_NONE",
-                "DANGEROUS": "BLOCK_NONE"
-            }
+            temperature=0.4,
+            response_mime_type="application/json" if formato_json else "text/plain"
         )
-        generation_config = genai.GenerationConfig(
-            response_mime_type="application/json" if formato_json else "text/plain", 
-            temperature=0.4
+
+        response = client.models.generate_content(
+            model=modelo,
+            contents=contents,
+            config=config
         )
-        res = gen_model.generate_content(user_history, generation_config=generation_config)
         
-        print(f"[DEBUG IA] Respuesta cruda: {res.text[:100]}...")
-        if not res.text:
-            print("[DEBUG IA] La respuesta vino VACIA. Verificando candidatos...")
-            if res.candidates:
-                 print(f"[DEBUG IA] Candidatos encontrados: {len(res.candidates)}")
-        
-        return res.text
+        return response.text
     except Exception as e:
         err_msg = str(e).lower()
-        print(f"[GEMINI ERROR]: {e}")
+        print(f"[IA ERROR]: {e}")
         if "429" in err_msg or "quota" in err_msg: return "ERROR_CUOTA"
-        if "401" in err_msg or "api_key" in err_msg: return "ERROR_KEY"
+        if "401" in err_msg or "403" in err_msg: return "ERROR_AUTENTICACION"
         return None
 
 def consultar_ollama(mensajes, formato_json=False):
@@ -91,176 +131,74 @@ UI_MUSCULO_ES = {
     "shoulders": "Hombros", "glutes": "Glúteos", "traps": "Trapecios", "forearms": "Antebrazo"
 }
 
-# --- FUNCIONES CORE PARA main.py ---
-
-def procesar_mensaje_local(mensaje):
-    """Detecta mensajes simples (saludos, despedidas, gracias) para responder localmente y ahorrar API calls."""
-    if not mensaje: return None
-    m = mensaje.lower().strip()
-    
-    # Saludos
-    if any(s in m for s in ["hola", "buen dia", "buenas noches", "que tal", "como va", "buen día"]):
-        return {"tipo": "chat_normal", "respuesta": "¡Hola, che! ¿Todo bien? Acá estoy para lo que necesites, ya sea una rutina, planear una comida o simplemente charlar. ¿Qué tenemos para hoy?"}
-    
-    # Despedidas
-    if any(d in m for d in ["chau", "nos vemos", "hasta luego", "adios", "adiós", "mañana seguimos"]):
-        return {"tipo": "chat_normal", "respuesta": "Dale, che. ¡Cuidate! Metele garra y cualquier cosa me chiflás. ¡Abrazo!"}
-    
-    # Agradecimientos
-    if any(g in m for g in ["gracias", "genio", "capo", "buenisimo", "perfecto", "entendido", "buenísimo"]):
-        return {"tipo": "chat_normal", "respuesta": "¡De nada! Un placer darte una mano. Si necesitás algo más, ya sabés dónde encontrarme. ¡A darle con todo!"}
-    
-    # Estado / Quien sos
-    if any(q in m for q in ["quien sos", "que haces", "como estas", "cómo estás"]):
-        return {"tipo": "chat_normal", "respuesta": "¡Todo tranqui por acá! Soy Vórtice Coach, tu asistente de salud argento. Te ayudo con las comidas, los entrenos y a que no aflojes nunca. ¿Vos cómo venís?"}
-
-    return None
-
+# --- FUNCIONES CORE ---
 def cerebro_vortice_unificado(mensaje, perfil_info, historial_previo, contexto_vectorial=""):
-    """Detección de intención y respuesta en un solo paso optimizado."""
-    
-    # --- CAPA DE APRENDIZAJE LOCAL (NUTRICHORE) ---
-    es_nutricion = any(kw in mensaje.lower() for kw in ["comí", "comer", "cena", "almuerzo", "desayuno", "nutricion", "calorías"])
-    if es_nutricion:
-        memoria_fresca = recall_nutrition(mensaje)
-        if memoria_fresca:
-            print(f"[VORTICE] ¡Aprendizaje detectado! Usando memoria local para: {mensaje}")
+    """Respuesta unificada con detección de intención."""
+    # Capa de Nutrición
+    if any(kw in mensaje.lower() for kw in ["comí", "comer", "cena", "almuerzo", "desayuno"]):
+        memoria = recall_nutrition(mensaje)
+        if memoria:
             return {
                 "tipo": "nutricion",
-                "respuesta": f"¡Ya me acordaba de esto! Para {memoria_fresca['food_name']}, son unas {memoria_fresca['calories']} kcal. ¿Lo anoto?",
-                "nutricion": {
-                    "alimento": memoria_fresca['food_name'],
-                    "cal": memoria_fresca['calories'],
-                    "prot": memoria_fresca['proteins'],
-                    "carb": memoria_fresca['carbs'],
-                    "gras": memoria_fresca['fats']
-                }
+                "respuesta": f"¡Ya me acordaba! Para {memoria['food_name']} son unas {memoria['calories']} kcal. ¿Anoto?",
+                "nutricion": {"alimento": memoria['food_name'], "cal": memoria['calories'], "prot": memoria['proteins'], "carb": memoria['carbs'], "gras": memoria['fats']}
             }
 
-    # Usamos Gemini Flash (Alta velocidad, bajo costo) con prompt experto
     sys_prompt = (
-        f"Eres Vórtice Coach, un instructor fitness elite de Argentina. Tu tono es motivador, técnico y usa voseo. "
-        f"Tu objetivo es prescribir rutinas PERSONALIZADAS basadas en el contexto del usuario.\n\n"
-        f"REGLAS DE REPETICIONES:\n"
-        f"- Si el objetivo es FUERZA: Usa rangos bajos (3-6 reps) con descansos largos.\n"
-        f"- Si el objetivo es HIPERTROFIA: Usa rangos medios (8-12 reps).\n"
-        f"- Si el objetivo es RESISTENCIA/QUEMA: Usa rangos altos (15-20 reps).\n"
-        f"- No seas robótico. Varía los esquemas (ej: '4x8', '12-10-8', 'AMRAP').\n\n"
-        f"Responde SIEMPRE en este formato JSON exacto:\n"
-        f"{{\n"
-        f"  \"tipo\": \"chat_normal\" | \"nutricion\" | \"rutina\",\n"
-        f"  \"respuesta\": \"Tu respuesta motivadora en español argentino\",\n"
-        f"  \"nutricion\": {{'alimento': 'nombre', 'cal': 100, 'prot': 0, 'carb': 0, 'gras': 0}} (solo si aplica),\n"
-        f"  \"rutina\": [{{'id_ejercicio': '0025', 'series': 4, 'reps': '8-10'}}] (solo si aplica)\n"
-        f"}}\n"
-        f"Contexto del usuario: {perfil_info}. {contexto_vectorial}"
+        f"Eres Vórtice Coach, asistente fitness elite de Argentina. Usa voseo y tono motivador.\n"
+        f"Responde SIEMPRE en este formato JSON:\n"
+        f"{{\"tipo\": \"chat_normal\" | \"nutricion\" | \"rutina\", \"respuesta\": \"...\", \"nutricion\": {{...}}, \"rutina\": [...]}}\n"
+        f"Contexto: {perfil_info}. {contexto_vectorial}"
     )
     
     res_raw = consultar_gemini([
         {"role": "system", "content": sys_prompt},
         {"role": "user", "content": mensaje}
-    ], formato_json=True, modelo="gemini-1.5-flash")
+    ], formato_json=True)
     
-    if not res_raw or res_raw == "ERROR_CUOTA":
-        return {"tipo": "chat_normal", "respuesta": "¡Me quedé sin aire che! Google me puso un stop por un ratito. ¡Metamosle garra y mañana seguimos con todo!"}
+    if not res_raw or "ERROR" in res_raw:
+        return {"tipo": "chat_normal", "respuesta": "¡Me quedé sin aire che! Google dio un error de conexión. ¡Proba en un ratito!"}
     
-    res = clean_json(res_raw)
-    try: 
-        data = json.loads(res)
-        # Garantizar que siempre haya una respuesta para evitar burbujas vacías
-        if not data.get("respuesta"):
-            data["respuesta"] = "¡Dale Gonzalo! ¿En qué más te puedo ayudar hoy?"
-            
+    try:
+        data = json.loads(clean_json(res_raw))
         if data.get("tipo") == "nutricion" and data.get("nutricion"):
             learn_nutrition(mensaje, data["nutricion"])
         return data
-    except: 
-        # Si falla el parseo, devolver el texto crudo como respuesta de chat
-        return {"tipo": "chat_normal", "respuesta": res_raw if res_raw else "¡Acá estoy che! ¿Qué decías?"}
+    except:
+        return {"tipo": "chat_normal", "respuesta": res_raw}
 
 def generar_rutina_inteligente(objetivo, perfil_nombre, perfil_info=""):
-    """Generar una rutina INSTANTÁNEA usando ChromaDB con esquemas de reps inteligentes."""
-    import time
-    start_time = time.time()
-    print(f"[VORTICE] >>>> Iniciando generación VECTORIAL para: {objetivo} (User: {perfil_nombre})")
+    """Generar rutina usando ChromaDB (Legacy Code Support)."""
     try:
         from core.intelligence import semantic_search_exercises
-        from core.database_sqlite import obtener_catalogo_completo, obtener_eventos_timeline
-        
-        # 1. Recuperar contexto de fatiga/periodización (últimos entrenos) usando el nombre real
-        reciente = obtener_eventos_timeline(perfil_nombre, limit=5)
-        hubo_mucho_gym = len([e for e in reciente if e['type'] == 'Gym']) >= 4
-        
-        # Búsqueda semántica instantánea
-        search_start = time.time()
-        res = semantic_search_exercises(f"{objetivo} {perfil_info}", limit=6)
-        ids_encontrados = res['ids'][0] if res and res['ids'] and len(res['ids']) > 0 else []
-        search_duration = (time.time() - search_start) * 1000
-        print(f"[INTEL] Búsqueda completada en {search_duration:.2f}ms")
-        
-        # BUSQUEDA OPTIMIZADA
         from core.database_sqlite import buscar_ejercicios_por_ids
-        db_start = time.time()
-        ejercicios_finales = buscar_ejercicios_por_ids(ids_encontrados)
-        db_duration = (time.time() - db_start) * 1000
-        print(f"[SQLITE] Datos recuperados en {db_duration:.2f}ms")
-            
-        # Lógica de Repeticiones Inteligente
-        es_fuerza = any(kw in objetivo.lower() for kw in ["fuerza", "pesado", "power", "bajo"])
-        es_quema = any(kw in objetivo.lower() for kw in ["quema", "cardio", "descarga", "resistencia"])
+        res = semantic_search_exercises(f"{objetivo} {perfil_info}", limit=6)
+        ids = res['ids'][0] if res and res['ids'] else []
+        ejercicios = buscar_ejercicios_por_ids(ids)
         
-        rutina_final = []
-        for orig in ejercicios_finales:
-            target_norm = orig.get('target', '')
-            
-            # Definir esquema según objetivo
-            if es_fuerza:
-                 series, reps = 5, "5"
-            elif es_quema:
-                 series, reps = 3, "15-20"
-            elif hubo_mucho_gym: # Semana de descarga automática si entrenó mucho
-                 series, reps = 2, "12 (Suave)"
-            else:
-                 series, reps = 4, "10-12"
-
-            rutina_final.append({
-                "id_ejercicio": orig.get('id_ejercicio', orig.get('id')), 
-                "nombre_es": str(orig.get('nombre_es', '')).capitalize(),
-                "target": target_norm, 
-                "body_part": UI_MUSCULO_ES.get(target_norm, target_norm.capitalize() if target_norm else "General"), 
-                "gif_url": orig.get('gif_url', ''),
-                "series": series, 
-                "sets": [{"reps": reps, "kg": "", "done": False} for _ in range(series)]
+        rutina = []
+        for ex in ejercicios:
+            rutina.append({
+                "id_ejercicio": ex.get('id_ejercicio'), 
+                "nombre_es": str(ex.get('nombre_es', '')).capitalize(),
+                "body_part": UI_MUSCULO_ES.get(ex.get('target', ''), 'General'),
+                "gif_url": ex.get('gif_url', ''),
+                "series": 4, "sets": [{"reps": "10-12", "kg": "", "done": False} for _ in range(4)]
             })
-                
-        duration = (time.time() - start_time) * 1000
-        print(f"[VORTICE] >>>> Rutina GENERADA TOTAL en {duration:.2f}ms.")
-            
-        return rutina_final, "¡Rutina vectorial lista en milisegundos! Dale sin miedo."
-    except Exception as ex:
-        print(f"Error rutina instantanea: {ex}")
+        return rutina, "¡Rutina lista! Dale con todo."
+    except Exception as e:
+        print(f"Error rutina: {e}")
         return [], "Error generando rutina."
 
 def estimar_nutricion_ollama(alimento):
     prompt = f"Sé un nutricionista argento. Estima calorías y macros para: {alimento}. Responde ÚNICAMENTE JSON: {{'alimento': '...', 'calorias': 0, 'proteinas': 0, 'carbos': 0, 'grasas': 0, 'descripcion': '...'}}"
     res = consultar_gemini([{"role": "user", "content": prompt}], formato_json=True)
-    try: return json.loads(res)
+    try: return json.loads(clean_json(res))
     except: return None
 
-def estimar_calorias_ingrediente(ingrediente):
-    """Estima solo calorías para un ingrediente de la alacena."""
-    data = estimar_nutricion_ollama(ingrediente)
-    if data and 'calorias' in data:
-        return float(data['calorias'])
-    return 0
-
 def analizar_imagen_ollama(contents):
-    return None
+    return "Analizador de imágenes no disponible en esta versión."
 
 def generar_receta_alacena(perfil, ings):
     prompt = f"Con estos ingredientes: {ings}, sugiere una receta rápida argentina con toda la onda."
     return consultar_gemini([{"role": "user", "content": prompt}])
-
-def sugerir_reemplazo_ia(ejercicio_actual, target, motivo=""):
-    """Próxima mejora: Reemplazos usando el catálogo local."""
-    return None

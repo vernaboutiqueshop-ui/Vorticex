@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageSquare, Apple, Activity, BarChart2, User, Zap } from 'lucide-react';
 import AgentView from './components/AgentView';
 import GymView from './components/GymView';
@@ -6,11 +6,23 @@ import NutricionView from './components/NutricionView';
 import GraficosView from './components/GraficosView';
 import PerfilView from './components/PerfilView';
 import LoginView from './components/LoginView';
+import { subscribeToApiUrl } from './discovery';
+import { setDynamicAPI } from './config';
 import './index.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState('agente');
   const [pendingRutina, setPendingRutina] = useState(null);
+  const [isApiReady, setIsApiReady] = useState(false);
+
+  // Suscripción al Servicio de Descubrimiento de Firebase
+  useEffect(() => {
+    const unsubscribe = subscribeToApiUrl((newUrl) => {
+      setDynamicAPI(newUrl);
+      setIsApiReady(true);
+    });
+    return () => unsubscribe(); // Limpiar suscripción al desmontar
+  }, []);
 
   // AUTH STATE — persiste en localStorage
   const [authUser, setAuthUser] = useState(() => localStorage.getItem('vortice_user') || null);

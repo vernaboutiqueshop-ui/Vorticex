@@ -1,7 +1,7 @@
 {
   "routes": [
-    { "src": "/api/(.*)", "dest": "https://copyrights-allergy-sisters-facial.trycloudflare.com/api/$1" },
-    { "src": "/exercises/(.*)", "dest": "https://copyrights-allergy-sisters-facial.trycloudflare.com/exercises/$1" },
+    { "src": "/api/(.*)", "dest": "https://chubby-endorsed-adsl-into.trycloudflare.com/api/$1" },
+    { "src": "/exercises/(.*)", "dest": "https://chubby-endorsed-adsl-into.trycloudflare.com/exercises/$1" },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
