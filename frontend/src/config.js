@@ -1,25 +1,30 @@
 // Configuración dinámica de la API vinculada a Firebase Discovery
-let dynamicAPI = import.meta.env.PROD 
-  ? 'https://vortice-fallback.vercel.app' // Fallback inicial
+// Usamos una variable global para asegurar que el cambio sea detectado
+let currentAPI = import.meta.env.PROD 
+  ? 'https://vortice-fallback.vercel.app' 
   : 'http://localhost:8000';
 
+// Exportamos un objeto que permite cambiar y obtener la URL
+// Pero los componentes necesitan la URL final.
 export const setDynamicAPI = (url) => {
   if (url && url.startsWith('http')) {
-    console.log('[VORTICE] Actualizando dirección de la API:', url);
-    dynamicAPI = url;
+    console.log('[VORTICE] Discovery: Nueva URL detectada ->', url);
+    currentAPI = url;
+    // Forzamos actualización en el objeto exportado si fuera necesario
+    API.url = url; 
   }
 };
 
-export const getAPI = () => dynamicAPI;
+export const getAPI = () => currentAPI;
 
-/**
- * Exportamos API como un objeto que siempre resuelve a la URL actual.
- * Esto corrige el bug donde los componentes se quedaban con la URL vieja.
- */
+// Exportamos un objeto 'Proxy' que se comporta como un string
+// Esta es la forma más robusta de que `${API}/ruta` funcione siempre.
 export const API = {
-  toString: () => dynamicAPI,
-  valueOf: () => dynamicAPI
+  toString: () => currentAPI,
+  get url() { return currentAPI; }
 };
 
-// Para usar en strings directamente: `${API}/ruta`
-// Nota: En algunos lugares se usa `${API}`, JS llamará a toString() automáticamente.
+// Para debugging
+if (typeof window !== 'undefined') {
+  window.VORTICE_API = API;
+}
