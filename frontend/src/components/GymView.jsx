@@ -9,7 +9,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   const [ejerciciosMasterLive, setEjerciciosMasterLive] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [semanticResults, setSemanticResults] = useState([]);
-  const [activeInternalTab, setActiveInternalTab] = useState('entrenar');
+  const [activeInternalTab, setActiveInternalTab] = useState('train');
   const [rutinasGuardadas, setRutinasGuardadas] = useState([]);
   const [selectedMuscle, setSelectedMuscle] = useState('Todos');
   const [nombreRutinaNueva, setNombreRutinaNueva] = useState('');
@@ -106,7 +106,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
      
      setRutina(routineWithHistory);
      setSessionActive(true);
-     setActiveInternalTab('entrenar');
+     setActiveInternalTab('train');
   };
 
   useEffect(() => {
@@ -154,7 +154,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
       setSessionActive(true);
     }
     setSelectedExerciseDetails(null);
-    setActiveInternalTab('entrenar');
+    setActiveInternalTab('train');
   };
 
   const finishSession = async () => {
@@ -180,7 +180,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
       
       {/* TABS PRINCIPALES */}
       <div style={{ display: 'flex', gap: '0.75rem', padding: '0.5rem', background: 'var(--bg-card)', borderRadius: '24px', border: '1px solid var(--border-color)' }}>
-        {['entrenar', 'explorar', 'historial'].map(tKey => (
+        {['train', 'explore', 'history'].map(tKey => (
           <button
             key={tKey}
             onClick={() => { setActiveInternalTab(tKey); setIsCreatingRoutine(false); }}
@@ -203,7 +203,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
       )}
 
       <div>
-        {activeInternalTab === 'entrenar' && (
+        {activeInternalTab === 'train' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minHeight: '60vh' }}>
             {isCreatingRoutine ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="animate-in">
@@ -251,7 +251,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                      <button onClick={() => { const nw = [...rutina]; const lastReps = ej.sets && ej.sets.length > 0 ? ej.sets[ej.sets.length-1].reps : '12'; nw[index].sets = [...(ej.sets || []), {reps: lastReps, kg: '', done:false}]; setRutina(nw); }} className="hevy-btn" style={{ marginTop: '1rem', width: '100%', border: '1px dashed var(--border-color)', background: 'transparent' }}>+ Agregar Serie</button>
                    </div>
                  ))}
-                <button onClick={() => setActiveInternalTab('explorar')} className="hevy-btn" style={{ padding: '1.2rem', border: '1px dashed var(--border-color)' }}>
+                <button onClick={() => setActiveInternalTab('explore')} className="hevy-btn" style={{ padding: '1.2rem', border: '1px dashed var(--border-color)' }}>
                    <Plus size={20} /> {t('add_exercise')}
                 </button>
               </div>
@@ -281,7 +281,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                     <button onClick={() => { const nw = [...rutina]; nw[index].sets.push({reps: ej.sets[ej.sets.length-1]?.reps || '12', kg: ej.sets[ej.sets.length-1]?.kg || '', done:false}); setRutina(nw); }} className="hevy-btn" style={{ marginTop: '0.5rem' }}>+ Agregar Serie</button>
                   </div>
                 ))}
-                <button onClick={() => setActiveInternalTab('explorar')} className="hevy-btn" style={{ padding: '1.2rem', border: '1px dashed var(--border-color)' }}>+ Añadir más ejercicios</button>
+                <button onClick={() => setActiveInternalTab('explore')} className="hevy-btn" style={{ padding: '1.2rem', border: '1px dashed var(--border-color)' }}>+ Añadir más ejercicios</button>
                 <button onClick={finishSession} className="hevy-btn hevy-btn-primary" style={{ padding: '1.2rem', fontSize: '1.1rem' }}>{t('finish_workout')}</button>
               </div>
             ) : (
@@ -357,7 +357,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
           </div>
         )}
 
-        {activeInternalTab === 'explorar' && (
+        {activeInternalTab === 'explore' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minHeight: '60vh' }} className="animate-in">
              <div style={{ position: 'relative' }}>
                 <Search style={{ position: 'absolute', left: '1.2rem', top: '1.2rem', color: '#64748b' }} size={20} />
@@ -383,7 +383,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                           const newEj = { ...ej, sets: [{ reps: '12', kg: '', done: false }, { reps: '12', kg: '', done: false }, { reps: '12', kg: '', done: false }] };
                           if (isCreatingRoutine || sessionActive) { setRutina(prev => [...prev, newEj]); if(!isCreatingRoutine) setSessionActive(true); } 
                           else { setRutina([newEj]); setSessionActive(true); }
-                          setActiveInternalTab('entrenar');
+                          setActiveInternalTab('train');
                       }} className="hevy-btn" style={{ background: 'rgba(255,255,255,0.05)', padding: '0.6rem', borderRadius: '12px', zIndex: 10 }}>
                           <Plus size={24} color="var(--accent-gym)" />
                       </button>
@@ -395,7 +395,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
       </div>
 
       {/* PESTAÑA HISTORIAL */}
-      {activeInternalTab === 'historial' && (
+      {activeInternalTab === 'history' && (
          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '60vh' }} className="animate-in">
             <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem 0' }}>
                <History size={22} color="var(--accent-gym)"/> Historial de Sesiones
