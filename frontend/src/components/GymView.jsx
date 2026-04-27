@@ -24,6 +24,20 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   // Estados para CRUD de Rutinas
   const [editingRoutineId, setEditingRoutineId] = useState(null);
   const [activeMenuId, setActiveMenuId] = useState(null);
+  const [timelineHistory, setTimelineHistory] = useState([]);
+
+  useEffect(() => {
+    if (activeInternalTab === 'history') {
+      fetch(`${API}/api/graficos/timeline?perfil=${perfil}&limit=1000`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                const sessions = data.eventos.filter(ev => ev.type === 'GymSession');
+                setTimelineHistory(sessions);
+            }
+        }).catch(err => console.error(err));
+    }
+  }, [activeInternalTab, perfil]);
 
   useEffect(() => {
     const handleClickOutside = () => setActiveMenuId(null);
@@ -400,19 +414,22 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
             <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem 0' }}>
                <History size={22} color="var(--accent-gym)"/> Historial de Sesiones
             </h3>
-            {/* Como GymView no precarga la línea de tiempo completa por defecto, mostramos un resumen estético que invite a ver Estadísticas */}
-            <div className="hevy-card" style={{ textAlign: 'center', padding: '3rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-               <div style={{ background: 'rgba(56, 189, 248, 0.1)', padding: '1.5rem', borderRadius: '50%' }}>
-                  <History size={48} color="#38bdf8" />
+            
+            {timelineHistory.length > 0 ? timelineHistory.map(session => (
+               <div key={session.id} className="hevy-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem' }}>
+                  <div>
+                     <h4 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '1.1rem' }}>{session.description || 'Entrenamiento'}</h4>
+                     <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '0.4rem', fontWeight: 600 }}>
+                        {new Date(session.timestamp).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })} • ⏱️ {Math.floor(session.val1 / 60)} min
+                     </div>
+                  </div>
+                  <div style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '0.5rem 1rem', borderRadius: '12px', fontWeight: 900, fontSize: '0.8rem' }}>
+                     Completado
+                  </div>
                </div>
-               <h4 style={{ color: 'white', margin: 0, fontSize: '1.2rem', fontWeight: 900 }}>Tus entrenamientos</h4>
-               <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                  Todo el registro de tus sesiones, volúmenes de carga y el calendario de constancia (Heatmap) se han unificado en la nueva vista de <strong>Estadísticas Élite</strong>.
-               </p>
-               <button onClick={() => window.location.reload()} className="hevy-btn hevy-btn-primary" style={{ marginTop: '1rem', padding: '0.8rem 1.5rem' }}>
-                  Ir a Estadísticas
-               </button>
-            </div>
+            )) : (
+               <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>Cargando sesiones o sin historial...</div>
+            )}
          </div>
       )}
 
