@@ -309,14 +309,14 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
   };
 
   const MUSCLE_GROUPS = {
-    'Todos': [],
-    'Pecho': ['chest', 'pectorals', 'pecho'],
-    'Espalda': ['back', 'lats', 'upper back', 'espalda'],
-    'Piernas': ['upper legs', 'lower legs', 'quads', 'hamstrings', 'calves', 'glutes', 'piernas'],
-    'Brazos': ['upper arms', 'lower arms', 'biceps', 'triceps', 'forearms', 'brazos'],
-    'Hombros': ['shoulders', 'delts', 'hombros'],
-    'Abs': ['waist', 'abs', 'abdominals', 'cintura', 'core'],
-    'Cardio': ['cardio', 'cardiovascular system']
+    'Todos': { icon: <Dumbbell size={14}/>, tags: [] },
+    'Pecho': { icon: '🔘', tags: ['chest', 'pectorals', 'pecho'] },
+    'Espalda': { icon: '📐', tags: ['back', 'lats', 'upper back', 'espalda'] },
+    'Piernas': { icon: '🦵', tags: ['upper legs', 'lower legs', 'quads', 'hamstrings', 'calves', 'glutes', 'piernas'] },
+    'Brazos': { icon: '💪', tags: ['upper arms', 'lower arms', 'biceps', 'triceps', 'forearms', 'brazos'] },
+    'Hombros': { icon: '🛡️', tags: ['shoulders', 'delts', 'hombros'] },
+    'Abs': { icon: '🧱', tags: ['waist', 'abs', 'abdominals', 'cintura', 'core'] },
+    'Cardio': { icon: '🫀', tags: ['cardio', 'cardiovascular system'] }
   };
 
   const totalSetsDone = rutina.reduce((acc, curr) => acc + (curr.sets || []).filter(s => s.done).length, 0);
@@ -335,11 +335,10 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
     // 2. Filtro de músculo
     if (selectedMuscle === 'Todos') return searchMatch;
     
-    const allowed = MUSCLE_GROUPS[selectedMuscle] || [];
+    const allowed = MUSCLE_GROUPS[selectedMuscle]?.tags || [];
     const bPart = (e.body_part || '').toLowerCase();
     const target = (e.target || '').toLowerCase();
     
-    // El filtro ahora busca coincidencias exactas o parciales en los términos normalizados
     const muscleMatch = allowed.some(a => 
       bPart === a || target === a || bPart.includes(a) || target.includes(a)
     );
@@ -642,6 +641,30 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
             </div>
           ))
         )}
+        
+        {rutina.length > 0 && (
+          <button 
+            onClick={() => setShowCatalogModal(true)}
+            style={{ 
+              width: '100%', 
+              padding: '1.25rem', 
+              borderRadius: '20px', 
+              background: 'rgba(56,189,248,0.1)', 
+              border: '2px dashed rgba(56,189,248,0.3)', 
+              color: 'var(--accent-gym)', 
+              fontWeight: 800, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '0.75rem',
+              cursor: 'pointer',
+              marginTop: '0.5rem',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Plus size={20} /> AÑADIR OTRO EJERCICIO
+          </button>
+        )}
       </div>
 
       {/* 4. MAGIC AI GENERATOR BOX */}
@@ -678,7 +701,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
       </div>
 
       {/* FAB (Añadir manual) */}
-      <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 100 }}>
+      <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 1000 }}>
          <button 
            onClick={() => setShowCatalogModal(true)}
            style={{ width: '56px', height: '56px', borderRadius: '28px', background: 'var(--accent-gym)', border: 'none', color: 'black', boxShadow: '0 8px 30px rgba(56, 189, 248, 0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -703,9 +726,28 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                   <Search size={18} color="#475569" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
                   <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscador..." style={{ width: '100%', background: '#1e293b', border: 'none', padding: '0.8rem 0.8rem 0.8rem 2.5rem', borderRadius: '12px', color: 'white', boxSizing: 'border-box' }}/>
                </div>
-               <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-                  {Object.keys(MUSCLE_GROUPS).map(m => (
-                    <button key={m} onClick={() => setSelectedMuscle(m)} style={{ padding: '0.4rem 1rem', borderRadius: '10px', background: selectedMuscle === m ? 'var(--accent-gym)' : '#1e293b', color: selectedMuscle === m ? 'black' : 'white', border: 'none', whiteSpace: 'nowrap', fontWeight: 700, fontSize: '0.8rem' }}>{m}</button>
+               <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
+                  {Object.entries(MUSCLE_GROUPS).map(([name, data]) => (
+                    <button 
+                      key={name} 
+                      onClick={() => setSelectedMuscle(name)} 
+                      style={{ 
+                        padding: '0.6rem 1rem', 
+                        borderRadius: '12px', 
+                        background: selectedMuscle === name ? 'var(--accent-gym)' : 'rgba(255,255,255,0.05)', 
+                        color: selectedMuscle === name ? 'black' : 'white', 
+                        border: 'none', 
+                        whiteSpace: 'nowrap', 
+                        fontWeight: 800, 
+                        fontSize: '0.75rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      {data.icon} {name.toUpperCase()}
+                    </button>
                   ))}
                </div>
             </div>

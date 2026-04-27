@@ -28,12 +28,36 @@ def update_cloud_url(url):
     except Exception as e:
         print(f"[DISCOVERY ERROR] Fallo al actualizar Firestore: {e}")
 
+def find_cloudflared():
+    """Busca el ejecutable de cloudflared en rutas comunes si no está en el PATH."""
+    # 1. Intentar comando directo
+    try:
+        subprocess.run(["cloudflared", "--version"], capture_output=True, check=True)
+        return "cloudflared"
+    except:
+        pass
+    
+    # 2. Rutas conocidas (npm cache/_npx)
+    user_home = os.path.expanduser("~")
+    npx_path = os.path.join(user_home, "AppData", "Local", "npm-cache", "_npx")
+    if os.path.exists(npx_path):
+        for root, dirs, files in os.walk(npx_path):
+            if "cloudflared.exe" in files:
+                return os.path.join(root, "cloudflared.exe")
+    
+    return None
+
 def run_tunnel():
     """Inicia cloudflared y captura la URL generada."""
-    print("[DISCOVERY] Iniciando túnel de Cloudflare...")
+    path = find_cloudflared()
+    if not path:
+        print("[DISCOVERY ERROR] No se encontró 'cloudflared.exe'. Por favor, instálalo o asegúrate de que esté disponible.")
+        return
+
+    print(f"[DISCOVERY] Iniciando túnel usando: {path}")
     
     # Comando para el túnel gratuito
-    cmd = ["cloudflared", "tunnel", "--url", "http://localhost:8000"]
+    cmd = [path, "tunnel", "--url", "http://localhost:8000"]
     
     # Iniciamos el proceso capturando stderr (donde cloudflared tira los logs)
     process = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True, bufsize=1)
