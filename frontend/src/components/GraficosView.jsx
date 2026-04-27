@@ -14,7 +14,7 @@ export default function GraficosView({ perfil }) {
     setLoading(true);
     Promise.all([
       fetch(`${API}/api/perfil/${perfil}`).then(r => r.ok ? r.json() : {}),
-      fetch(`${API}/api/graficos/timeline?perfil=${perfil}&limit=100`).then(r => r.ok ? r.json() : {})
+      fetch(`${API}/api/graficos/timeline?perfil=${perfil}&limit=1000`).then(r => r.ok ? r.json() : {})
     ]).then(([profile, time]) => {
       if (profile.perfil) setUserData(profile.perfil);
       if (time.eventos) setTimeline(time.eventos);
@@ -53,7 +53,7 @@ export default function GraficosView({ perfil }) {
     const dateStr = d.toISOString().split('T')[0];
     
     // Contar eventos GymSession o Gym para ese día
-    const eventosDia = timeline.filter(ev => ev.timestamp && ev.timestamp.startsWith(dateStr) && (ev.tipo === 'GymSession' || ev.tipo === 'Gym'));
+    const eventosDia = timeline.filter(ev => ev.timestamp && ev.timestamp.startsWith(dateStr) && (ev.type === 'GymSession' || ev.type === 'Gym'));
     heatMapDays.push({
       date: dateStr,
       diaSemana: d.getDay(),
@@ -147,7 +147,7 @@ export default function GraficosView({ perfil }) {
           <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', marginBottom: '0.5rem' }}>
             <Activity size={40} color="#38bdf8" />
           </div>
-          <h4 style={{ color: 'white', margin: '0', fontSize: '1rem', fontWeight: 900 }}>{timeline.filter(e => e.tipo==='GymSession').length} Sesiones</h4>
+          <h4 style={{ color: 'white', margin: '0', fontSize: '1rem', fontWeight: 900 }}>{timeline.filter(e => e.type === 'GymSession').length} Sesiones</h4>
           <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>Últimos 30 días</span>
         </div>
       </div>

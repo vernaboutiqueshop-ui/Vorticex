@@ -394,6 +394,28 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
         )}
       </div>
 
+      {/* PESTAÑA HISTORIAL */}
+      {activeInternalTab === 'historial' && (
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} className="animate-in">
+            <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem 0' }}>
+               <History size={22} color="var(--accent-gym)"/> Historial de Sesiones
+            </h3>
+            {/* Como GymView no precarga la línea de tiempo completa por defecto, mostramos un resumen estético que invite a ver Estadísticas */}
+            <div className="hevy-card" style={{ textAlign: 'center', padding: '3rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+               <div style={{ background: 'rgba(56, 189, 248, 0.1)', padding: '1.5rem', borderRadius: '50%' }}>
+                  <History size={48} color="#38bdf8" />
+               </div>
+               <h4 style={{ color: 'white', margin: 0, fontSize: '1.2rem', fontWeight: 900 }}>Tus entrenamientos</h4>
+               <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                  Todo el registro de tus sesiones, volúmenes de carga y el calendario de constancia (Heatmap) se han unificado en la nueva vista de <strong>Estadísticas Élite</strong>.
+               </p>
+               <button onClick={() => window.location.reload()} className="hevy-btn hevy-btn-primary" style={{ marginTop: '1rem', padding: '0.8rem 1.5rem' }}>
+                  Ir a Estadísticas
+               </button>
+            </div>
+         </div>
+      )}
+
       {/* MODAL DE DETALLES DE EJERCICIO */}
       {selectedExerciseDetails && (
          <div className="modal-overlay" onClick={() => setSelectedExerciseDetails(null)}>
