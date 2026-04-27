@@ -472,3 +472,131 @@ def obtener_comidas_hoy(perfil: str):
             ORDER BY timestamp DESC
         """, (perfil,))
         return [dict(r) for r in cur.fetchall()]
+
+def guardar_rutina_template(perfil: str, nombre: str, ejercicios: list):
+    import uuid
+    rid = str(uuid.uuid4())[:8]
+    with get_conn() as conn:
+        cur = conn.cursor()
+        # Obtener user_id
+        cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
+        u = cur.fetchone()
+        uid = u['id'] if u else 1
+        
+        cur.execute("INSERT INTO routines (id, user_id, name) VALUES (?, ?, ?)", (rid, uid, nombre))
+        for ej in ejercicios:
+            eid = ej.get('id_ejercicio')
+            sets = ej.get('sets_count', 3)
+            reps = ej.get('reps_default', '12')
+            cur.execute("INSERT INTO routine_exercises (routine_id, exercise_id, sets_count, reps_default) VALUES (?, ?, ?, ?)", (rid, eid, sets, reps))
+        conn.commit()
+    return rid
+
+def obtener_rutinas_templates(perfil: str):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT routines.* FROM routines 
+            JOIN users ON users.id = routines.user_id 
+            WHERE users.name = ?
+        """, (perfil,))
+        rutinas = [dict(r) for r in cur.fetchall()]
+        for r in rutinas:
+            cur.execute("""
+                SELECT exercise_id, sets_count, reps_default, name as nombre_es, target, gif_url 
+                FROM routine_exercises 
+                JOIN exercises ON exercises.id = routine_exercises.exercise_id
+                WHERE routine_id = ?
+            """, (r['id'],))
+            r['ejercicios'] = [dict(e) for e in cur.fetchall()]
+        return rutinas
+
+def actualizar_perfil_elite(perfil: str, age: int, weight: float, height: float, language: str):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE users 
+            SET age = ?, weight = ?, height = ?, language = ?
+            WHERE name = ?
+        """, (age, weight, height, language, perfil))
+        conn.commit()
+
+def guardar_feedback(perfil: str, message: str):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
+        u = cur.fetchone()
+        uid = u['id'] if u else 1
+        cur.execute("INSERT INTO feedback (user_id, message) VALUES (?, ?)", (uid, message))
+        conn.commit()
+
+def obtener_intensidad_muscular(perfil: str):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        # Buscamos logs de Gym de la última semana
+        cur.execute("""
+            SELECT val2 as target, COUNT(*) as series
+            FROM activity_logs
+            WHERE user_id = (SELECT id FROM users WHERE name = ?)
+            AND type = 'Gym'
+            AND date(timestamp) >= date('now', '-7 days')
+            GROUP BY val2
+        """, (perfil,))
+        return [dict(r) for r in cur.fetchall()]
+
+def obtener_ultimos_pesos(perfil: str, exercise_ids: list):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        res = {}
+        cur.execute("""
+            SELECT val1 FROM activity_logs 
+            WHERE user_id = (SELECT id FROM users WHERE name = ?) 
+            AND type = 'Gym' 
+            ORDER BY timestamp DESC LIMIT 300
+        """, (perfil,))
+        for row in cur.fetchall():
+            parts = str(row['val1']).split('|')
+            if len(parts) == 3:
+                eid, kg, reps = parts
+                if eid in [str(i) for i in exercise_ids] and eid not in res:
+                    res[eid] = {"kg": kg, "reps": reps}
+        return res
+
+def guardar_sesion_gym(perfil: str, rutina_data: list):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id, exp, level FROM users WHERE name = ?", (perfil,))
+        user = cur.fetchone()
+        if not user: return {"status": "error"}
+        
+        uid = user['id']
+        exp_actual = user['exp'] if user['exp'] else 0
+        nivel_actual = user['level'] if user['level'] else 1
+        volumen_total = 0
+        
+        for ej in rutina_data:
+            eid = ej.get('id_ejercicio', ej.get('id', ''))
+            target = ej.get('target', '')
+            for s in ej.get('sets', []):
+                if s.get('done'):
+                    try:
+                        kg = float(s.get('kg') or 0)
+                        reps = int(s.get('reps') or 0)
+                    except:
+                        kg, reps = 0, 0
+                    volumen_total += (kg * reps)
+                    val1 = f"{eid}|{kg}|{reps}"
+                    cur.execute("INSERT INTO activity_logs (user_id, type, val1, val2) VALUES (?, 'Gym', ?, ?)", (uid, val1, target))
+                    
+        # 10kg = 1 EXP
+        exp_ganada = int(volumen_total / 10) 
+        if exp_ganada == 0 and volumen_total > 0: exp_ganada = 10
+        
+        nueva_exp = exp_actual + exp_ganada
+        nuevo_nivel = nivel_actual
+        if nueva_exp >= (nuevo_nivel * 1000):
+            nuevo_nivel += 1
+            
+        cur.execute("UPDATE users SET exp = ?, level = ? WHERE id = ?", (nueva_exp, nuevo_nivel, uid))
+        conn.commit()
+        return {"status": "success", "exp_ganada": exp_ganada, "nuevo_nivel": nuevo_nivel, "volumen": volumen_total}

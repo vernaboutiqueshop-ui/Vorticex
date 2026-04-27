@@ -8,23 +8,15 @@ import PerfilView from './components/PerfilView';
 import LoginView from './components/LoginView';
 import { subscribeToApiUrl } from './discovery';
 import { setDynamicAPI } from './config';
+import { LanguageProvider, useLanguage } from './LanguageContext';
 import './index.css';
 
-function App() {
+function AppContent() {
   const [activeTab, setActiveTab] = useState('agente');
   const [pendingRutina, setPendingRutina] = useState(null);
-  const [isApiReady, setIsApiReady] = useState(false);
+  const { t } = useLanguage();
 
-  // Suscripción al Servicio de Descubrimiento de Firebase
-  useEffect(() => {
-    const unsubscribe = subscribeToApiUrl((newUrl) => {
-      setDynamicAPI(newUrl);
-      setIsApiReady(true);
-    });
-    return () => unsubscribe(); // Limpiar suscripción al desmontar
-  }, []);
-
-  // AUTH STATE — persiste en localStorage
+  // AUTH STATE
   const [authUser, setAuthUser] = useState(() => localStorage.getItem('vortice_user') || null);
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('vortice_token') || null);
 
@@ -45,7 +37,6 @@ function App() {
     setActiveTab('gym');
   };
 
-  // Si no está autenticado, mostrar login
   if (!authUser || !authToken) {
     return <LoginView onLogin={handleLogin} />;
   }
@@ -54,36 +45,30 @@ function App() {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'agente':
-        return <AgentView perfil={perfil} onLoadRutina={handleLoadRutina} />;
-      case 'nutricion':
-        return <NutricionView perfil={perfil} />;
-      case 'gym':
-        return <GymView perfil={perfil} pendingRutina={pendingRutina} onRutinaLoaded={() => setPendingRutina(null)} />;
-      case 'graficos':
-        return <GraficosView perfil={perfil} />;
-      case 'perfil':
-        return <PerfilView perfil={perfil} onLogout={handleLogout} />;
-      default:
-        return <div>Seleccioná una pestaña</div>;
+      case 'agente': return <AgentView perfil={perfil} onLoadRutina={handleLoadRutina} />;
+      case 'nutricion': return <NutricionView perfil={perfil} />;
+      case 'gym': return <GymView perfil={perfil} pendingRutina={pendingRutina} onRutinaLoaded={() => setPendingRutina(null)} />;
+      case 'graficos': return <GraficosView perfil={perfil} />;
+      case 'perfil': return <PerfilView perfil={perfil} onLogout={handleLogout} />;
+      default: return <div>Select a tab</div>;
     }
   };
 
   const tabs = [
-    { id: 'agente',    icon: MessageSquare, label: 'Coach'    },
-    { id: 'nutricion', icon: Apple,         label: 'Nutrición'},
-    { id: 'gym',       icon: Activity,      label: 'Gym'      },
-    { id: 'graficos',  icon: BarChart2,     label: 'Stats'    },
-    { id: 'perfil',    icon: User,          label: 'Perfil'   },
+    { id: 'agente',    icon: MessageSquare, label: 'Coach' },
+    { id: 'nutricion', icon: Apple,         label: t('nutrition') },
+    { id: 'gym',       icon: Activity,      label: t('gym') },
+    { id: 'graficos',  icon: BarChart2,     label: t('stats') },
+    { id: 'perfil',    icon: User,          label: t('profile') },
   ];
 
   return (
     <>
       <header className="top-header">
         <div className="title-main">
-          <Zap size={22} color="#38bdf8" />
+          <Zap size={22} color="var(--accent-gym)" />
           <span>Vórtice</span>
-          <span style={{fontWeight: 400, color: 'var(--text-secondary)', fontSize: '0.85rem', marginLeft: '0.25rem'}}>v3.1 Elite Edition</span>
+          <span style={{fontWeight: 400, color: 'var(--text-secondary)', fontSize: '0.85rem', marginLeft: '0.25rem'}}>v3.2 Elite</span>
           <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'0.5rem'}}>
             <div className="profile-active-tag">
               <span className="dot pulse"></span>
@@ -105,9 +90,6 @@ function App() {
             >
               <Icon size={19} />
               <span>{tab.label}</span>
-              {tab.id === 'gym' && pendingRutina && (
-                <span className="tab-badge">!</span>
-              )}
             </button>
           );
         })}
@@ -120,4 +102,10 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
+  );
+}

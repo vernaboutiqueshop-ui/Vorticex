@@ -334,7 +334,69 @@ def delete_chat_history(perfil: str):
     guardar_evento(perfil, "Limpieza", "Se eliminó el historial de chat", "Neutro", 0)
     return {"status": "success"}
 
+class UserStatsUpdate(BaseModel):
+    name: str
+    age: Optional[int] = None
+    weight: Optional[float] = None
+    height: Optional[float] = None
+    language: Optional[str] = 'es'
 
+class FeedbackRequest(BaseModel):
+    perfil: str
+    message: str
+
+@app.post("/api/perfil/{perfil}/update_stats")
+def update_user_stats(perfil: str, req: UserStatsUpdate):
+    try:
+        from core.database_sqlite import actualizar_perfil_elite
+        actualizar_perfil_elite(perfil, req.age, req.weight, req.height, req.language)
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.post("/api/feedback")
+def save_feedback(req: FeedbackRequest):
+    try:
+        from core.database_sqlite import guardar_feedback
+        guardar_feedback(req.perfil, req.message)
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.get("/api/gym/intensidad")
+def get_muscle_intensity(perfil: str):
+    try:
+        from core.database_sqlite import obtener_intensidad_muscular
+        intensidad = obtener_intensidad_muscular(perfil)
+        return {"status": "success", "intensidad": intensidad}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+class SesionGuardarRequest(BaseModel):
+    perfil: str
+    rutina: list
+
+class HistorialPesosRequest(BaseModel):
+    perfil: str
+    exercise_ids: list
+
+@app.post("/api/gym/sesion/guardar")
+def api_guardar_sesion(req: SesionGuardarRequest):
+    try:
+        from core.database_sqlite import guardar_sesion_gym
+        resultado = guardar_sesion_gym(req.perfil, req.rutina)
+        return resultado
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.post("/api/gym/historial/pesos")
+def api_historial_pesos(req: HistorialPesosRequest):
+    try:
+        from core.database_sqlite import obtener_ultimos_pesos
+        pesos = obtener_ultimos_pesos(req.perfil, req.exercise_ids)
+        return {"status": "success", "pesos": pesos}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 # ============================================================
 # GYM / ENTRENAMIENTOS
@@ -593,6 +655,29 @@ def guardar_sesion(req: RutinaSaveRequest):
             guardar_evento(req.perfil, "Gym", f"Sesión terminada: {ejercicios_completados} series. Volumen total: {tot_kg:.0f}kg", "Sólido", 300)
             
         return {"status": "success", "series": ejercicios_completados, "volumen": tot_kg}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+class RutinaTemplateRequest(BaseModel):
+    perfil: str
+    nombre: str
+    ejercicios: List[dict] # [{id_ejercicio, sets_count, reps_default}]
+
+@app.post("/api/gym/rutina/nueva")
+def crear_rutina_template(req: RutinaTemplateRequest):
+    try:
+        from core.database_sqlite import guardar_rutina_template
+        rid = guardar_rutina_template(req.perfil, req.nombre, req.ejercicios)
+        return {"status": "success", "id": rid}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.get("/api/gym/rutinas")
+def listar_rutinas_template(perfil: str):
+    try:
+        from core.database_sqlite import obtener_rutinas_templates
+        rutinas = obtener_rutinas_templates(perfil)
+        return {"status": "success", "rutinas": rutinas}
     except Exception as e:
         return {"status": "error", "error": str(e)}
 

@@ -1,202 +1,116 @@
-// Vórtice Health - GymView v3.1.2 (Force Refresh)
 import { useState, useEffect, useCallback } from 'react';
-import { Play, Plus, Search, Dumbbell, Brain, X, CheckCircle2, Clock, RotateCcw, Image as ImageIcon, ChevronDown, ChevronUp, Timer } from 'lucide-react';
+import { Play, Plus, Search, X, Check, Trash2, ChevronRight, Info, TrendingUp, Trophy } from 'lucide-react';
+import MuscleMap from './MuscleMap';
 import { API } from '../config';
+import { useLanguage } from '../LanguageContext';
 
-/**
- * GymView — Catálogo de Ejercicios e Instructor Pro.
- * Rediseñado para UX Premium, Localización Argentina y Simplicidad.
- */
 export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
+  const { t, lang } = useLanguage();
   const [ejerciciosMasterLive, setEjerciciosMasterLive] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [semanticResults, setSemanticResults] = useState([]);
-  const [isSearchingSemantic, setIsSearchingSemantic] = useState(false);
-  const [showCatalogModal, setShowCatalogModal] = useState(false);
+  const [activeInternalTab, setActiveInternalTab] = useState('entrenar');
+  const [rutinasGuardadas, setRutinasGuardadas] = useState([]);
   const [selectedMuscle, setSelectedMuscle] = useState('Todos');
+  const [nombreRutinaNueva, setNombreRutinaNueva] = useState('');
+  const [isCreatingRoutine, setIsCreatingRoutine] = useState(false);
   
-  // Sincronización Inteligente: Buscamos en el Catálogo Público y en Firestore
+  // Nuevo estado para el Modal de Ejercicio
+  const [selectedExerciseDetails, setSelectedExerciseDetails] = useState(null);
+  
+  // Estado para recompensa
+  const [rewardMsg, setRewardMsg] = useState(null);
+
+  const MUSCLE_MAP = {
+    'Pecho': ['chest', 'pectorals', 'pecho'],
+    'Espalda': ['back', 'lats', 'espalda', 'upper back'],
+    'Piernas': ['quads', 'hamstrings', 'calves', 'glutes', 'legs', 'piernas'],
+    'Hombros': ['shoulders', 'delts', 'hombros'],
+    'Brazos': ['biceps', 'triceps', 'forearms', 'arms', 'brazos'],
+    'Abs': ['abs', 'waist', 'core', 'abdominals']
+  };
+
+  const loadRoutines = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/api/gym/rutinas?perfil=${perfil}`);
+      const data = await res.json();
+      if (data.status === 'success') setRutinasGuardadas(data.rutinas);
+    } catch (err) { console.error(err); }
+  }, [perfil]);
+
+  useEffect(() => { loadRoutines(); }, [loadRoutines]);
+
   useEffect(() => {
     const syncCatalog = async () => {
       try {
-        // 1. Intentamos cargar el catálogo local público (rápido y seguro)
         const localRes = await fetch('/ejercicios.json');
-        if (localRes.ok) {
-          const localData = await localRes.json();
-          setEjerciciosMasterLive(localData);
-          console.log('[VORTICE] Catálogo local cargado');
-        }
-
-        // 2. Intentamos refrescar desde el Backend/Firestore por si hay algo nuevo
+        if (localRes.ok) setEjerciciosMasterLive(await localRes.json());
         const cloudRes = await fetch(`${API}/api/exercises`);
         if (cloudRes.ok) {
           const cloudData = await cloudRes.json();
-          if (cloudData.status === "success" && cloudData.ejercicios) {
-            console.log('[VORTICE] Catálogo sincronizado desde la nube');
-            setEjerciciosMasterLive(cloudData.ejercicios);
-          }
+          if (cloudData.status === "success") setEjerciciosMasterLive(cloudData.ejercicios);
         }
-      } catch (err) {
-        console.warn('[VORTICE] Usando datos disponibles o lista vacía');
-      }
+      } catch (err) { console.warn(err); }
     };
     syncCatalog();
   }, []);
 
-  // Búsqueda Semántica en tiempo real
   useEffect(() => {
-    if (searchTerm.length < 3) {
-      setSemanticResults([]);
-      return;
-    }
+    if (searchTerm.length < 3) return setSemanticResults([]);
     const timeout = setTimeout(async () => {
-      setIsSearchingSemantic(true);
       try {
         const res = await fetch(`${API}/api/exercises/search?q=${encodeURIComponent(searchTerm)}`);
         const data = await res.json();
-        if (data.status === 'success') {
-          setSemanticResults(data.ejercicios);
-        }
-      } catch (e) {
-        console.error("Semantic search error", e);
-      }
-      setIsSearchingSemantic(false);
-    }, 500); // 500ms debounce
-
+        if (data.status === 'success') setSemanticResults(data.ejercicios);
+      } catch (e) { console.error(e); }
+    }, 500);
     return () => clearTimeout(timeout);
   }, [searchTerm]);
 
-  const [gifModal, setGifModal] = useState(null);
-  const [misRutinas, setMisRutinas] = useState([]);
-  const [showMisRutinas, setShowMisRutinas] = useState(false);
-  const [showGuardarModal, setShowGuardarModal] = useState(false);
-  const [nombreRutina, setNombreRutina] = useState('');
-  
-  // AI Generator
-  const [promptRutina, setPromptRutina] = useState('');
-  const [loadingAi, setLoadingAi] = useState(false);
-  
-  // Planner / Session State
   const [rutina, setRutina] = useState([]); 
-  const [ultimosPesos, setUltimosPesos] = useState({});
   const [sessionActive, setSessionActive] = useState(false);
   const [timer, setTimer] = useState(0);
-  
-  // Mover pendingRutina a rutina cuando esté presente (desde el Chat)
+
+  // Cargar historial de pesos al iniciar una rutina
+  const startRoutineWithHistory = async (rutinaBase) => {
+     const exerciseIds = rutinaBase.map(e => e.id_ejercicio || e.id);
+     let historicalWeights = {};
+     try {
+        const res = await fetch(`${API}/api/gym/historial/pesos`, {
+           method: 'POST',
+           headers: {'Content-Type': 'application/json'},
+           body: JSON.stringify({ perfil, exercise_ids: exerciseIds })
+        });
+        const data = await res.json();
+        if(data.status === 'success') historicalWeights = data.pesos;
+     } catch (e) { console.error("Error loading history", e); }
+
+     const routineWithHistory = rutinaBase.map(e => {
+        const eid = e.id_ejercicio || e.id;
+        const history = historicalWeights[eid] || { kg: '', reps: e.reps_default || '12' };
+        return {
+           ...e,
+           sets: Array(e.sets_count || 3).fill(0).map(() => ({ reps: history.reps, kg: history.kg, done: false }))
+        };
+     });
+     
+     setRutina(routineWithHistory);
+     setSessionActive(true);
+     setActiveInternalTab('entrenar');
+  };
+
   useEffect(() => {
     if (pendingRutina && pendingRutina.length > 0) {
-      setRutina(pendingRutina.map(e => ({
-        ...e,
-        sets: e.sets && e.sets.length > 0 ? e.sets : [{reps:'12',kg:'',done:false},{reps:'12',kg:'',done:false},{reps:'12',kg:'',done:false}]
-      })));
+      startRoutineWithHistory(pendingRutina);
       if (onRutinaLoaded) onRutinaLoaded();
     }
   }, [pendingRutina, onRutinaLoaded]);
 
-  // Consultar últimos pesos cuando la rutina cambia
-  useEffect(() => {
-    const fetchUltimosPesos = async () => {
-      const nuevosPesos = { ...ultimosPesos };
-      let huboCambios = false;
-
-      for (const ej of rutina) {
-        const id = ej.id_ejercicio || ej.id;
-        if (id && nuevosPesos[id] === undefined) {
-          huboCambios = true;
-          try {
-            const res = await fetch(`${API}/api/rutinas/ultimo-peso?perfil=${perfil}&id_ejercicio=${id}`);
-            const data = await res.json();
-            if (data.status === 'success' && data.peso !== null) {
-              nuevosPesos[id] = data.peso;
-            } else {
-              nuevosPesos[id] = 0; // Marcar como consultado sin peso
-            }
-          } catch (e) {
-            console.error(e);
-            nuevosPesos[id] = 0;
-          }
-        }
-      }
-
-      if (huboCambios) {
-        setUltimosPesos(nuevosPesos);
-      }
-    };
-
-    if (rutina.length > 0) {
-      fetchUltimosPesos();
-    }
-  }, [rutina, perfil, ultimosPesos]);
-  
-  // Feedback post-entrenamiento
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [feedbackText, setFeedbackText] = useState('');
-  const [feedbackRating, setFeedbackRating] = useState(0);
-  const [sessionDataToSave, setSessionDataToSave] = useState(null);
-  
-  // Rest Timer
-  const [restTime, setRestTime] = useState(0);
-  const [isResting, setIsResting] = useState(false);
-  const [descansoPreferido, setDescansoPreferido] = useState(90); 
-  
-  // Ejercicios colapsados
-  const [collapsedExercises, setCollapsedExercises] = useState(new Set());
-  const [allCollapsed, setAllCollapsed] = useState(false);
-  
-  const toggleCollapse = (idx) => {
-    setCollapsedExercises(prev => {
-      const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx); else next.add(idx);
-      return next;
-    });
-
-    // UX: Scroll al centro cuando se expande
-    setTimeout(() => {
-      const el = document.getElementById(`ex-card-${idx}`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 100);
-  };
-
-  const toggleCollapseAll = () => {
-    if (allCollapsed) {
-      setCollapsedExercises(new Set()); // Expandir
-    } else {
-      setCollapsedExercises(new Set(rutina.map((_, i) => i))); // Colapsar
-    }
-    setAllCollapsed(!allCollapsed);
-  };
-
-  // El catálogo ahora es estático para máxima fluidez. 
-  // Podríamos sincronizar con Firestore en segundo plano si fuera necesario.
-
-  // Timer de sesión
   useEffect(() => {
     let interval = null;
-    if (sessionActive) {
-      interval = setInterval(() => setTimer(t => t + 1), 1000);
-    }
+    if (sessionActive) interval = setInterval(() => setTimer(t => t + 1), 1000);
     return () => clearInterval(interval);
   }, [sessionActive]);
-
-  // Timer de descanso
-  useEffect(() => {
-    let interval = null;
-    if (isResting && restTime > 0) {
-      interval = setInterval(() => setRestTime(t => t - 1), 1000);
-    } else if (isResting && restTime === 0) {
-      setIsResting(false);
-      try {
-        if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        osc.connect(ctx.destination);
-        osc.frequency.value = 800;
-        osc.start();
-        setTimeout(() => osc.stop(), 300);
-      } catch (err) {}
-    }
-    return () => clearInterval(interval);
-  }, [isResting, restTime]);
 
   const formatTime = (secs) => {
     const mins = Math.floor(secs / 60);
@@ -204,747 +118,226 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
     return `${mins}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const cargarMisRutinas = async () => {
-    try {
-      const res = await fetch(`${API}/api/rutinas/mis-rutinas?perfil=${perfil}`);
-      const data = await res.json();
-      if (data.status === 'success') setMisRutinas(data.rutinas);
-      setShowMisRutinas(true);
-    } catch (e) {
-      console.error("Error al cargar mis rutinas", e);
-    }
-  };
-
-  const guardarRutinaActual = async () => {
-    if (!nombreRutina.trim()) return alert("Poné un nombre a la rutina, che.");
-    try {
-      const res = await fetch(`${API}/api/rutinas/guardar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          perfil: perfil,
-          nombre: nombreRutina,
-          descripcion: `Creada el ${new Date().toLocaleDateString()}`,
-          ejercicios: rutina.map(e => ({
-            id_ejercicio: e.id_ejercicio || e.id,
-            series: e.sets.length,
-            reps: e.sets[0].reps
-          }))
-        })
+  const ejerciciosFiltrados = (searchTerm.length >= 3 && semanticResults.length > 0)
+    ? semanticResults
+    : ejerciciosMasterLive.filter(ej => {
+        const n = (ej.nombre_es || ej.name || "").toLowerCase();
+        const matchSearch = n.includes(searchTerm.toLowerCase());
+        if (selectedMuscle === 'Todos') return matchSearch;
+        const target = (ej.target || "").toLowerCase();
+        const bodyPart = (ej.body_part || "").toLowerCase();
+        const allowedTags = MUSCLE_MAP[selectedMuscle] || [];
+        const matchMuscle = allowedTags.some(tag => target.includes(tag) || bodyPart.includes(tag));
+        return matchSearch && matchMuscle;
       });
-      const data = await res.json();
-      if (data.status === 'success') {
-        alert("¡Rutina guardada! Ya la tenés disponible.");
-        setShowGuardarModal(false);
-        setNombreRutina('');
-      }
-    } catch (e) {
-      console.error("Error al guardar rutina", e);
+
+  const handleAddExerciseFromModal = () => {
+    if(!selectedExerciseDetails) return;
+    const ej = selectedExerciseDetails;
+    const newEj = { ...ej, sets: [{ reps: '12', kg: '', done: false }, { reps: '12', kg: '', done: false }, { reps: '12', kg: '', done: false }] };
+    
+    if (isCreatingRoutine || sessionActive) {
+      setRutina(prev => [...prev, newEj]);
+      if (!isCreatingRoutine) setSessionActive(true);
+    } else {
+      setRutina([newEj]);
+      setSessionActive(true);
     }
+    setSelectedExerciseDetails(null);
+    setActiveInternalTab('entrenar');
   };
 
-  const pedirRutinaIA = async (suggestion = null) => {
-    const prompt = (suggestion || promptRutina).trim();
-    if (!prompt || prompt.length < 3 || loadingAi) return;
-    setLoadingAi(true);
-    
-    console.log(`[VORTICE] Pidiendo rutina IA (Vectores/Chroma)... Prompt: ${prompt}`);
-    const startTime = Date.now();
-    
-    try {
-      const res = await fetch(`${API}/api/rutinas/generar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perfil: perfil, prompt })
-      });
-      const data = await res.json();
-      const duration = Date.now() - startTime;
-      console.log(`[VORTICE] Respuesta recibida en ${duration}ms`, data);
-      
-      if (data.status === 'success' && data.rutina && data.rutina.length > 0) {
-        setRutina(data.rutina.map(e => ({
-          ...e,
-          sets: e.sets && e.sets.length > 0 ? e.sets.map(s => ({...s, done: false})) : [{reps:'12',kg:'',done:false},{reps:'12',kg:'',done:false},{reps:'12',kg:'',done:false}]
-        })));
-        setPromptRutina('');
-      } else {
-         alert("Error: " + (data.error || data.detail?.[0]?.msg || JSON.stringify(data)));
-      }
-    } catch(e) { 
-        console.error("Error al pedir Rutina IA:", e); 
-        alert("¡Error de conexión! El servidor puede tardar en despertar.");
-    }
-    setLoadingAi(false);
+  const finishSession = async () => {
+     try {
+        const res = await fetch(`${API}/api/gym/sesion/guardar`, {
+           method: 'POST',
+           headers: {'Content-Type': 'application/json'},
+           body: JSON.stringify({ perfil, rutina })
+        });
+        const data = await res.json();
+        if(data.status === 'success') {
+           setRewardMsg(`¡Entrenamiento completado! +${data.exp_ganada} EXP`);
+           setTimeout(() => setRewardMsg(null), 4000);
+        }
+     } catch(e) { console.error(e); }
+     setSessionActive(false);
+     setRutina([]);
+     setTimer(0);
   };
-
-  const reemplazarEjercicio = async (eIdx) => {
-    const ejActual = rutina[eIdx];
-    try {
-      const res = await fetch(`${API}/api/rutinas/reemplazar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          perfil,
-          ejercicio_actual: ejActual.nombre_es,
-          target: ejActual.target || ejActual.body_part
-        })
-      });
-      const data = await res.json();
-      if (data.status === 'success' && data.alternativa) {
-        const nw = [...rutina];
-        nw[eIdx] = { ...data.alternativa, sets: ejActual.sets.map(s => ({ ...s, done: false })) };
-        setRutina(nw);
-      }
-    } catch(e) { console.error(e); }
-  };
-
-  const toggleSet = (eIdx, sIdx) => {
-    const nw = [...rutina];
-    nw[eIdx].sets[sIdx].done = !nw[eIdx].sets[sIdx].done;
-    setRutina(nw);
-    
-    if (nw[eIdx].sets[sIdx].done) {
-      setRestTime(descansoPreferido);
-      setIsResting(true);
-    }
-  };
-
-  const MUSCLE_GROUPS = {
-    'Todos': { icon: <Dumbbell size={14}/>, tags: [] },
-    'Pecho': { icon: '🔘', tags: ['chest', 'pectorals', 'pecho'] },
-    'Espalda': { icon: '📐', tags: ['back', 'lats', 'upper back', 'espalda'] },
-    'Piernas': { icon: '🦵', tags: ['upper legs', 'lower legs', 'quads', 'hamstrings', 'calves', 'glutes', 'piernas'] },
-    'Brazos': { icon: '💪', tags: ['upper arms', 'lower arms', 'biceps', 'triceps', 'forearms', 'brazos'] },
-    'Hombros': { icon: '🛡️', tags: ['shoulders', 'delts', 'hombros'] },
-    'Abs': { icon: '🧱', tags: ['waist', 'abs', 'abdominals', 'cintura', 'core'] },
-    'Cardio': { icon: '🫀', tags: ['cardio', 'cardiovascular system'] }
-  };
-
-  const totalSetsDone = rutina.reduce((acc, curr) => acc + (curr.sets || []).filter(s => s.done).length, 0);
-  const totalSets = rutina.reduce((acc, curr) => acc + (curr.sets || []).length, 0);
-  const progress = totalSets > 0 ? (totalSetsDone / totalSets) * 100 : 0;
-
-  // Filtrado de catálogo optimizado: Ahora usa el catálogo vivo (Backend -> Cloud)
-  const baseEjercicios = (semanticResults.length > 0 && searchTerm.length >= 3) ? semanticResults : ejerciciosMasterLive;
-  
-  const ejerciciosFiltrados = baseEjercicios.filter(e => {
-    // 1. Buscador texto (solo aplica si NO estamos usando la búsqueda semántica, o como refuerzo)
-    const searchMatch = (semanticResults.length > 0 && searchTerm.length >= 3) ? true 
-                      : ((e.nombre_es || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         (e.nombre_en || '').toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    // 2. Filtro de músculo
-    if (selectedMuscle === 'Todos') return searchMatch;
-    
-    const allowed = MUSCLE_GROUPS[selectedMuscle]?.tags || [];
-    const bPart = (e.body_part || '').toLowerCase();
-    const target = (e.target || '').toLowerCase();
-    
-    const muscleMatch = allowed.some(a => 
-      bPart === a || target === a || bPart.includes(a) || target.includes(a)
-    );
-    
-    return searchMatch && muscleMatch;
-  });
 
   return (
-    <div className="main-content animate-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '5rem', maxWidth: '500px', margin: '0 auto' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '5rem', maxWidth: '500px', margin: '0 auto' }}>
       
-      {/* 1. HEADER DE SESIÓN / STATUS */}
-      <div className="glass-card" style={{ 
-        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%)', 
-        borderRadius: '24px',
-        padding: '1.5rem'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <div>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'white', margin: 0 }}>Entrenamiento</h2>
-            <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{sessionActive ? 'Sesión en progreso...' : '¿Qué entrenamos hoy?'}</p>
-          </div>
-          {sessionActive ? (
-            <div style={{ textAlign: 'right' }}>
-               <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--accent-gym)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                 <Clock size={18}/> {formatTime(timer)}
-               </div>
-            </div>
-          ) : (
-            <Dumbbell size={32} color="var(--accent-gym)" style={{ opacity: 0.5 }} />
-          )}
-        </div>
-
-        {/* Progress Bar (if active) */}
-        {rutina.length > 0 && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.75rem', color: '#94a3b8' }}>
-              <span>Progreso del entrenamiento</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px' }}>
-              <div style={{ height: '100%', width: `${progress}%`, background: 'var(--accent-gym)', borderRadius: '10px', transition: 'width 0.4s ease' }} />
-            </div>
-          </div>
-        )}
-
-        {/* Stats Row */}
-        <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
-          <div>
-            <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>EJERCICIOS</span>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>{rutina.length}</div>
-          </div>
-          <div>
-            <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.05em' }}>TOTAL SERIES</span>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>{totalSets}</div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button 
-            className="btn-premium" 
-            onClick={() => sessionActive ? setShowFeedbackModal(true) : setSessionActive(true)}
-            style={{ 
-              flex: 1,
-              background: sessionActive ? 'var(--danger-color)' : 'var(--accent-gym)',
-              color: sessionActive ? 'white' : 'black',
-              boxShadow: sessionActive ? '0 4px 20px rgba(244, 63, 94, 0.4)' : '0 10px 25px rgba(99, 102, 241, 0.4)',
+      {/* TABS PRINCIPALES */}
+      <div style={{ display: 'flex', gap: '0.75rem', padding: '0.5rem', background: 'var(--bg-card)', borderRadius: '24px', border: '1px solid var(--border-color)' }}>
+        {['entrenar', 'explorar', 'historial'].map(tKey => (
+          <button
+            key={tKey}
+            onClick={() => { setActiveInternalTab(tKey); setIsCreatingRoutine(false); }}
+            style={{
+              flex: 1, padding: '1rem', borderRadius: '18px', border: 'none', fontWeight: 900, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px',
+              background: activeInternalTab === tKey ? 'var(--accent-gym)' : 'transparent',
+              color: activeInternalTab === tKey ? 'white' : '#64748b',
+              transition: 'all 0.3s'
             }}
           >
-            {sessionActive ? 'Terminar Sesión' : 'Iniciar Entrenamiento'}
+            {t(tKey)}
           </button>
-          
-          {rutina.length > 0 && !sessionActive && (
-            <button 
-              onClick={() => setShowGuardarModal(true)}
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', borderRadius: '16px', padding: '0 1rem' }}
-            >
-              <Plus size={20}/>
-            </button>
-          )}
-        </div>
+        ))}
       </div>
 
-      {/* 2. ACCESOS RÁPIDOS Y MIS RUTINAS */}
-      <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', padding: '0.2rem', scrollbarWidth: 'none' }}>
-         <button 
-            onClick={cargarMisRutinas}
-            style={{ 
-              background: 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)', 
-              border: 'none',
-              padding: '0.75rem 1.2rem', 
-              borderRadius: '14px', 
-              color: 'black', 
-              fontSize: '0.8rem', 
-              fontWeight: 800, 
-              whiteSpace: 'nowrap',
-              cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(234, 179, 8, 0.3)'
-            }}
-         >
-           🌟 MIS RUTINAS
-         </button>
-         {[
-           { n: 'Pecho y Tríceps', p: 'Rutina de pecho y triceps con hipertrofia' },
-           { n: 'Espalda y Bíceps', p: 'Rutina de espalda y biceps pesado' },
-           { n: 'Piernas', p: 'Rutina de piernas con sentadilla y prensa' },
-           { n: 'Full Body', p: 'Rutina full body funcional' }
-         ].map(pr => (
-           <button 
-              key={pr.n}
-              onClick={() => { setPromptRutina(pr.p); pedirRutinaIA(pr.p); }}
-              style={{ 
-                background: 'rgba(255,255,255,0.05)', 
-                border: '1px solid rgba(255,255,255,0.1)', 
-                padding: '0.75rem 1.2rem', 
-                borderRadius: '14px', 
-                color: 'white', 
-                fontSize: '0.8rem', 
-                fontWeight: 700, 
-                whiteSpace: 'nowrap',
-                cursor: 'pointer',
-                transition: 'background 0.2s'
-              }}
-              onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-              onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-           >
-             {pr.n}
-           </button>
-         ))}
-      </div>
-
-      {/* 2. REEST TIMER LIVE (Sticky-ish) */}
-      {isResting && (
-        <div style={{ 
-          background: 'rgba(15, 23, 42, 0.95)', 
-          backdropFilter: 'blur(10px)',
-          border: '2px solid #ef4444',
-          borderRadius: '20px',
-          padding: '1rem 1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          zIndex: 100,
-          boxShadow: '0 10px 30px rgba(239, 68, 68, 0.2)'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ animation: 'pulse 2s infinite' }}>⏲️</div>
-            <div>
-              <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'white' }}>Descanso activo</div>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Próxima serie en...</div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ fontSize: '1.8rem', fontWeight: 900, color: '#ef4444', fontFamily: 'monospace' }}>
-              {formatTime(restTime)}
-            </span>
-            <button onClick={() => setIsResting(false)} style={{ background: '#ef4444', border: 'none', borderRadius: '10px', color: 'white', padding: '0.5rem 1rem', fontWeight: 800, cursor: 'pointer' }}>LISTO</button>
-          </div>
-        </div>
+      {rewardMsg && (
+         <div style={{ background: 'rgba(16, 185, 129, 0.2)', border: '1px solid #10b981', color: 'white', padding: '1rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '1rem', fontWeight: 800 }} className="animate-in">
+            <Trophy color="#10b981" /> {rewardMsg}
+         </div>
       )}
 
-      {/* 3. LISTA DE EJERCICIOS */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '-0.5rem', padding: '0 0.5rem' }}>
-        <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#94a3b8' }}>Plan de Trabajo</h3>
-        {rutina.length > 0 && (
-          <button 
-            onClick={toggleCollapseAll}
-            style={{ background: 'transparent', border: 'none', color: 'var(--accent-gym)', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600 }}
-          >
-            {allCollapsed ? 'Expandir Todo' : 'Colapsar Todo'}
-          </button>
+      <div style={{ minHeight: '60vh' }}>
+        {activeInternalTab === 'entrenar' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {isCreatingRoutine ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="animate-in">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                   <button onClick={() => setIsCreatingRoutine(false)} className="hevy-btn"><X size={20}/></button>
+                   <h2 style={{ color: 'white', margin: 0, fontSize: '1.2rem', fontWeight: 900 }}>{lang === 'es' ? 'Crear Rutina' : 'Create Routine'}</h2>
+                   <button 
+                     onClick={async () => {
+                        if(!nombreRutinaNueva) return;
+                        const res = await fetch(`${API}/api/gym/rutina/nueva`, {
+                           method: 'POST',
+                           headers: {'Content-Type': 'application/json'},
+                           body: JSON.stringify({ perfil, nombre: nombreRutinaNueva, ejercicios: rutina.map(e => ({ id_ejercicio: e.id_ejercicio || e.id, sets_count: e.sets.length, reps_default: '12' })) })
+                        });
+                        if((await res.json()).status === 'success') { setIsCreatingRoutine(false); setRutina([]); setNombreRutinaNueva(''); loadRoutines(); }
+                     }}
+                     className="hevy-btn hevy-btn-primary"
+                   >{t('save')}</button>
+                </div>
+                <div className="hevy-card">
+                   <input value={nombreRutinaNueva} onChange={e => setNombreRutinaNueva(e.target.value)} placeholder={lang === 'es' ? 'Nombre de la rutina' : 'Routine Name'} style={{ width: '100%', background: 'transparent', border: 'none', color: 'white', fontSize: '1.4rem', fontWeight: 900, outline: 'none' }} />
+                </div>
+                {rutina.map((e, idx) => (
+                   <div key={idx} className="hevy-card" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: 'white', fontWeight: 800 }}>{e.nombre_es || e.name}</span>
+                      <button onClick={() => setRutina(rutina.filter((_, i) => i !== idx))} style={{ color: '#ef4444', background: 'transparent', border: 'none' }}><Trash2 size={18}/></button>
+                   </div>
+                ))}
+                <button onClick={() => setActiveInternalTab('explorar')} className="hevy-btn" style={{ padding: '1.2rem', border: '1px dashed var(--border-color)' }}>
+                   <Plus size={20} /> {t('add_exercise')}
+                </button>
+              </div>
+            ) : rutina.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="animate-in">
+                <div className="hevy-card" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                   <div>
+                      <h2 style={{ color: 'white', margin: 0, fontSize: '1.5rem', fontWeight: 900 }}>{t('active_session')}</h2>
+                      <div style={{ color: 'var(--accent-gym)', fontWeight: 800, fontSize: '1.2rem', marginTop: '0.2rem' }}>{formatTime(timer)}</div>
+                   </div>
+                   <div style={{ width: '60px', height: '80px' }}><MuscleMap targets={rutina.map(e => e.target)} /></div>
+                </div>
+                {rutina.map((ej, index) => (
+                  <div key={index} className="hevy-card">
+                    <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+                       <img src={ej.gif_url} style={{ width: '56px', height: '56px', borderRadius: '12px', background: 'white', objectFit: 'cover' }} />
+                       <h4 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '1.1rem' }}>{ej.nombre_es || ej.name}</h4>
+                    </div>
+                    {ej.sets.map((s, si) => (
+                      <div key={si} style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1.5fr 1fr', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
+                         <div style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 900 }}>SET {si+1}</div>
+                         <input value={s.kg} onChange={e => { const nw = [...rutina]; nw[index].sets[si].kg = e.target.value; setRutina(nw); }} placeholder="kg" className="hevy-input" />
+                         <input value={s.reps} onChange={e => { const nw = [...rutina]; nw[index].sets[si].reps = e.target.value; setRutina(nw); }} placeholder="reps" className="hevy-input" />
+                         <button onClick={() => { const nw = [...rutina]; nw[index].sets[si].done = !nw[index].sets[si].done; setRutina(nw); }} className="hevy-btn" style={{ background: s.done ? 'var(--accent-gym)' : 'rgba(255,255,255,0.05)', color: s.done ? 'white' : '#64748b' }}><Check size={18}/></button>
+                      </div>
+                    ))}
+                    <button onClick={() => { const nw = [...rutina]; nw[index].sets.push({reps: ej.sets[ej.sets.length-1]?.reps || '12', kg: ej.sets[ej.sets.length-1]?.kg || '', done:false}); setRutina(nw); }} className="hevy-btn" style={{ marginTop: '0.5rem' }}>+ Agregar Serie</button>
+                  </div>
+                ))}
+                <button onClick={() => setActiveInternalTab('explorar')} className="hevy-btn" style={{ padding: '1.2rem', border: '1px dashed var(--border-color)' }}>+ Añadir más ejercicios</button>
+                <button onClick={finishSession} className="hevy-btn hevy-btn-primary" style={{ padding: '1.2rem', fontSize: '1.1rem' }}>{t('finish_workout')}</button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div className="hevy-card" style={{ padding: '1.5rem' }}>
+                  <button onClick={() => { setRutina([]); setIsCreatingRoutine(true); }} className="hevy-btn" style={{ padding: '1.2rem', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                       <div style={{ background: 'var(--accent-gym)', padding: '0.5rem', borderRadius: '10px' }}><Plus size={20} color="white"/></div>
+                       <span style={{ fontSize: '1.1rem' }}>{t('new_routine')}</span>
+                    </div>
+                    <ChevronRight size={20} color="#64748b" />
+                  </button>
+                </div>
+                <h3 style={{ color: 'white', fontSize: '1.1rem', fontWeight: 900, margin: '1rem 0 0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><TrendingUp size={20} color="var(--accent-gym)"/> {t('my_routines')}</h3>
+                {rutinasGuardadas.map(r => (
+                  <div key={r.id} onClick={() => startRoutineWithHistory(r.ejercicios)} className="hevy-card exercise-card-hover" style={{ cursor: 'pointer' }}>
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h4 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '1.2rem' }}>{r.name}</h4>
+                        <div style={{ height: '50px', width: '40px' }}><MuscleMap targets={r.ejercicios.map(e => e.target)} /></div>
+                     </div>
+                     <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.5rem 0 0 0', fontWeight: 500 }}>{r.ejercicios.slice(0, 3).map(e => e.nombre_es || e.name).join(', ')}...</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
-      </div>
-        
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {rutina.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px dashed rgba(255,255,255,0.1)' }}>
-             <Dumbbell size={48} color="#1e293b" style={{ marginBottom: '1rem' }} />
-             <h3 style={{ color: '#94a3b8', fontSize: '1.1rem' }}>Tu rutina está vacía</h3>
-             <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '1.5rem' }}>Usá el asistente IA o agregalos manualmente.</p>
-             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center' }}>
-                {['Pecho y Tríceps', 'Piernas full', 'Espalda y Bíceps'].map(s => (
-                  <button key={s} onClick={() => pedirRutinaIA(s)} style={{ padding: '0.5rem 1rem', borderRadius: '12px', background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.2)', color: 'var(--accent-gym)', fontSize: '0.8rem', cursor: 'pointer' }}>{s}</button>
+
+        {activeInternalTab === 'explorar' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="animate-in">
+             <div style={{ position: 'relative' }}>
+                <Search style={{ position: 'absolute', left: '1.2rem', top: '1.2rem', color: '#64748b' }} size={20} />
+                <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder={t('search_placeholder')} className="hevy-input" style={{ paddingLeft: '3.5rem', textAlign: 'left' }} />
+             </div>
+             <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
+                {['Todos', 'Pecho', 'Espalda', 'Piernas', 'Hombros', 'Brazos', 'Abs'].map(m => (
+                   <button key={m} onClick={() => setSelectedMuscle(m)} className="hevy-btn" style={{ padding: '0.6rem 1.2rem', borderRadius: '14px', background: selectedMuscle === m ? 'var(--accent-gym)' : 'rgba(255,255,255,0.05)', color: selectedMuscle === m ? 'white' : '#94a3b8', whiteSpace: 'nowrap' }}>{m}</button>
+                ))}
+             </div>
+             <div style={{ display: 'grid', gap: '1rem' }}>
+                {ejerciciosFiltrados.slice(0, 40).map((ej, idx) => (
+                   <div key={idx} onClick={() => setSelectedExerciseDetails(ej)} className="hevy-card exercise-card-hover" style={{ flexDirection: 'row', alignItems: 'center', cursor: 'pointer', padding: '1rem' }}>
+                      <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                         <img src={ej.gif_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                         <div style={{ color: 'white', fontWeight: 800, fontSize: '1.05rem' }}>{ej.nombre_es || ej.name}</div>
+                         <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '0.3rem' }}>{ej.target}</div>
+                      </div>
+                      <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.6rem', borderRadius: '12px' }}><Info size={20} color="#64748b" /></div>
+                   </div>
                 ))}
              </div>
           </div>
-        ) : (
-          rutina.map((ej, eIdx) => (
-            <div key={eIdx} id={`ex-card-${eIdx}`} className="glass-card animate-in" style={{ 
-              animationDelay: `${eIdx * 0.1}s`,
-              background: 'rgba(15, 23, 42, 0.8)', 
-              borderRadius: '20px', 
-              overflow: 'hidden',
-              border: collapsedExercises.has(eIdx) ? '1px solid rgba(255,255,255,0.02)' : '1px solid rgba(56,189,248,0.2)'
-            }}>
-              {/* Card Header */}
-              <div style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderBottom: collapsedExercises.has(eIdx) ? 'none' : '1px solid rgba(255,255,255,0.05)' }}>
-                <div 
-                  onClick={() => setGifModal(ej)}
-                  style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'white', flexShrink: 0, cursor: 'pointer', overflow: 'hidden' }}
-                >
-                  <img src={ej.gif_url?.startsWith('http') || ej.gif_url?.startsWith('/') ? ej.gif_url : `${API}${ej.gif_url}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }} onClick={() => toggleCollapse(eIdx)}>
-                  <div style={{ fontWeight: 800, fontSize: '1rem', color: 'white', marginBottom: '0.1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ej.nombre_es}</div>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--accent-gym)', background: 'rgba(56,189,248,0.1)', padding: '0.1rem 0.5rem', borderRadius: '6px', fontWeight: 700 }}>
-                    {ej.body_part || 'Fuerza'}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: '0.4rem' }}>
-                   <button onClick={() => reemplazarEjercicio(eIdx)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '10px', color: '#94a3b8', padding: '0.5rem', cursor: 'pointer' }}><RotateCcw size={16}/></button>
-                   <button onClick={() => toggleCollapse(eIdx)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '10px', color: '#94a3b8', padding: '0.5rem', cursor: 'pointer' }}>{collapsedExercises.has(eIdx) ? <ChevronDown size={18}/> : <ChevronUp size={18}/>}</button>
-                </div>
-              </div>
+        )}
+      </div>
 
-              {!collapsedExercises.has(eIdx) && (
-                <div style={{ padding: '1rem' }}>
-                  <div style={{ display: 'flex', fontSize: '0.7rem', color: '#64748b', fontWeight: 800, marginBottom: '0.5rem', textAlign: 'center' }}>
-                    <div style={{ width: '30px' }}>SET</div>
-                    <div style={{ flex: 1 }}>PESO (KG)</div>
-                    <div style={{ flex: 1 }}>REPS</div>
-                    <div style={{ width: '40px' }}></div>
+      {/* MODAL DE DETALLES DE EJERCICIO */}
+      {selectedExerciseDetails && (
+         <div className="modal-overlay" onClick={() => setSelectedExerciseDetails(null)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+                  <h2 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 900, margin: 0, flex: 1 }}>{selectedExerciseDetails.nombre_es || selectedExerciseDetails.name}</h2>
+                  <button onClick={() => setSelectedExerciseDetails(null)} className="hevy-btn" style={{ padding: '0.5rem' }}><X size={24} /></button>
+               </div>
+               
+               <div style={{ background: 'white', borderRadius: '24px', overflow: 'hidden', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+                  <img src={selectedExerciseDetails.gif_url} style={{ width: '100%', maxWidth: '300px', objectFit: 'cover' }} />
+               </div>
+
+               <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+                  <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+                     <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase' }}>Objetivo Principal</div>
+                     <div style={{ color: 'var(--accent-gym)', fontSize: '1.1rem', fontWeight: 900, marginTop: '0.2rem', textTransform: 'capitalize' }}>{selectedExerciseDetails.target}</div>
                   </div>
-                  {ej.sets.map((s, sIdx) => (
-                    <div key={sIdx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                      <div style={{ width: '30px', textAlign: 'center', fontSize: '0.9rem', fontWeight: 800, color: s.done ? 'var(--accent-gym)' : '#334155' }}>{sIdx + 1}</div>
-                      {/* STEPPER DE PESO */}
-                      <div style={{ display: 'flex', flex: 1, alignItems: 'center', background: '#1e293b', borderRadius: '10px' }}>
-                        <button onClick={() => {
-                          const nw = [...rutina];
-                          nw[eIdx].sets[sIdx].kg = Math.max(0, (parseFloat(s.kg||0) - 2.5)).toString();
-                          setRutina(nw);
-                        }} style={{ padding: '0.6rem 0.5rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>-</button>
-                        <input 
-                          type="text" 
-                          inputMode="decimal"
-                          value={s.kg} 
-                          placeholder={ultimosPesos[ej.id_ejercicio || ej.id] > 0 ? `Ult: ${ultimosPesos[ej.id_ejercicio || ej.id]}` : "0"}
-                          onChange={(e) => {
-                            const nw = [...rutina];
-                            nw[eIdx].sets[sIdx].kg = e.target.value;
-                            setRutina(nw);
-                          }}
-                          style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', textAlign: 'center', fontWeight: 700, padding: '0', width: '30px' }}
-                        />
-                        <button onClick={() => {
-                          const nw = [...rutina];
-                          nw[eIdx].sets[sIdx].kg = (parseFloat(s.kg||0) + 2.5).toString();
-                          setRutina(nw);
-                        }} style={{ padding: '0.6rem 0.5rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>+</button>
-                      </div>
+                  <div style={{ width: '80px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                     <MuscleMap targets={[selectedExerciseDetails.target]} />
+                  </div>
+               </div>
 
-                      {/* STEPPER DE REPS */}
-                      <div style={{ display: 'flex', flex: 1, alignItems: 'center', background: '#1e293b', borderRadius: '10px' }}>
-                        <button onClick={() => {
-                          const nw = [...rutina];
-                          nw[eIdx].sets[sIdx].reps = Math.max(1, (parseInt(s.reps||0) - 1)).toString();
-                          setRutina(nw);
-                        }} style={{ padding: '0.6rem 0.5rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>-</button>
-                        <input 
-                          type="text" 
-                          inputMode="text"
-                          value={s.reps} 
-                          placeholder="12"
-                          onChange={(e) => {
-                            const nw = [...rutina];
-                            nw[eIdx].sets[sIdx].reps = e.target.value;
-                            setRutina(nw);
-                          }}
-                          style={{ flex: 1, background: 'transparent', border: 'none', color: 'white', textAlign: 'center', fontWeight: 700, padding: '0', width: '30px' }}
-                        />
-                        <button onClick={() => {
-                          const nw = [...rutina];
-                          nw[eIdx].sets[sIdx].reps = (parseInt(s.reps||0) + 1).toString();
-                          setRutina(nw);
-                        }} style={{ padding: '0.6rem 0.5rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>+</button>
-                      </div>
-                      <button 
-                        onClick={() => toggleSet(eIdx, sIdx)}
-                        style={{ 
-                          width: '40px', height: '40px', borderRadius: '12px', border: 'none',
-                          background: s.done ? 'var(--accent-gym)' : '#1e293b',
-                          color: s.done ? 'black' : '#475569',
-                          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}
-                      >
-                        <CheckCircle2 size={20} />
-                      </button>
-                    </div>
-                  ))}
-                  <button 
-                    onClick={() => {
-                        const nw = [...rutina];
-                        nw[eIdx].sets.push({ reps: '12', kg: '', done: false });
-                        setRutina(nw);
-                    }}
-                    style={{ width: '100%', background: 'transparent', border: '1px dashed #334155', borderRadius: '12px', color: '#64748b', padding: '0.6rem', marginTop: '0.5rem', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}
-                  >+ AÑADIR SERIE</button>
-                </div>
-              )}
-            </div>
-          ))
-        )}
-        
-        {rutina.length > 0 && (
-          <button 
-            onClick={() => setShowCatalogModal(true)}
-            style={{ 
-              width: '100%', 
-              padding: '1.25rem', 
-              borderRadius: '20px', 
-              background: 'rgba(56,189,248,0.1)', 
-              border: '2px dashed rgba(56,189,248,0.3)', 
-              color: 'var(--accent-gym)', 
-              fontWeight: 800, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              gap: '0.75rem',
-              cursor: 'pointer',
-              marginTop: '0.5rem',
-              transition: 'all 0.2s'
-            }}
-          >
-            <Plus size={20} /> AÑADIR OTRO EJERCICIO
-          </button>
-        )}
-      </div>
-
-      {/* 4. MAGIC AI GENERATOR BOX */}
-      <div className="glass-card animate-in" style={{ 
-        background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%)', 
-        borderRadius: '24px',
-        padding: '1.25rem'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-agent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <Brain size={20} color="black" />
-          </div>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 900 }}>Asistente IA</h3>
-            <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8' }}>Pedí una rutina como te salga (ej: "pecho y triceps 1 hora")</p>
-          </div>
-        </div>
-        <div style={{ position: 'relative' }}>
-          <input 
-            value={promptRutina}
-            onChange={(e) => setPromptRutina(e.target.value)}
-            disabled={loadingAi}
-            placeholder="¿Qué entrenamos hoy?"
-            style={{ width: '100%', background: '#0f172a', border: '1px solid rgba(56,189,248,0.2)', borderRadius: '16px', padding: '1rem 3.5rem 1rem 1rem', color: 'white', boxSizing: 'border-box' }}
-          />
-          <button 
-            onClick={() => pedirRutinaIA()}
-            disabled={loadingAi || !promptRutina}
-            style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'var(--accent-gym)', border: 'none', borderRadius: '10px', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', opacity: (loadingAi || !promptRutina) ? 0.3 : 1 }}
-          >
-            {loadingAi ? '...' : <Play size={18} color="black" />}
-          </button>
-        </div>
-      </div>
-
-      {/* FAB (Añadir manual) */}
-      <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 1000 }}>
-         <button 
-           onClick={() => setShowCatalogModal(true)}
-           style={{ width: '56px', height: '56px', borderRadius: '28px', background: 'var(--accent-gym)', border: 'none', color: 'black', boxShadow: '0 8px 30px rgba(56, 189, 248, 0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-         >
-           <Plus size={28} />
-         </button>
-      </div>
-
-      {/* MODAL CATALOGO */}
-      {showCatalogModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 1000, padding: '1rem' }}>
-          <div style={{ background: '#0f172a', width: '100%', height: '100%', borderRadius: '24px', display: 'flex', flexDirection: 'column', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-               <h2 style={{ color: 'white', fontSize: '1.4rem', fontWeight: 900 }}>Catálogo</h2>
-               <button onClick={() => setShowCatalogModal(false)} style={{ background: '#ef4444', border: 'none', color: 'white', padding: '0.6rem 1rem', borderRadius: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  CERRAR <X size={18}/>
+               <button onClick={handleAddExerciseFromModal} className="hevy-btn hevy-btn-primary" style={{ padding: '1.2rem', fontSize: '1.1rem' }}>
+                  <Plus size={24} /> {lang === 'es' ? 'Añadir a la Rutina' : 'Add to Routine'}
                </button>
             </div>
-            {/* Filtros */}
-            <div style={{ padding: '1rem' }}>
-               <div style={{ position: 'relative', marginBottom: '1rem' }}>
-                  <Search size={18} color="#475569" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                  <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Buscador..." style={{ width: '100%', background: '#1e293b', border: 'none', padding: '0.8rem 0.8rem 0.8rem 2.5rem', borderRadius: '12px', color: 'white', boxSizing: 'border-box' }}/>
-               </div>
-               <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
-                  {Object.entries(MUSCLE_GROUPS).map(([name, data]) => (
-                    <button 
-                      key={name} 
-                      onClick={() => setSelectedMuscle(name)} 
-                      style={{ 
-                        padding: '0.6rem 1rem', 
-                        borderRadius: '12px', 
-                        background: selectedMuscle === name ? 'var(--accent-gym)' : 'rgba(255,255,255,0.05)', 
-                        color: selectedMuscle === name ? 'black' : 'white', 
-                        border: 'none', 
-                        whiteSpace: 'nowrap', 
-                        fontWeight: 800, 
-                        fontSize: '0.75rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.4rem',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      {data.icon} {name.toUpperCase()}
-                    </button>
-                  ))}
-               </div>
-            </div>
-            {/* Lista Scroll */}
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0 1rem 1rem' }}>
-               {ejerciciosFiltrados
-                  .slice(0, 40)
-                  .map(e => (
-                 <div key={e.id_ejercicio} style={{ padding: '0.75rem', borderRadius: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.03)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div onClick={() => setGifModal(e)} style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, cursor: 'pointer' }}>
-                        <img src={e.gif_url?.startsWith('http') || e.gif_url?.startsWith('/') ? e.gif_url : `${API}${e.gif_url}`} style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'white' }} />
-                        <div>
-                           <div style={{ fontWeight: 700, color: 'white', fontSize: '0.85rem' }}>{e.nombre_es}</div>
-                           <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{e.target}</div>
-                        </div>
-                    </div>
-                    <button onClick={(event) => { 
-                      event.stopPropagation(); 
-                      setRutina([...rutina, { ...e, sets:[{reps:'12',kg:'',done:false}, {reps:'12',kg:'',done:false}, {reps:'12',kg:'',done:false}] }]);
-                      // Feedback visual simple (opcional: podrías añadir un toast o estado efímero)
-                    }} style={{ 
-                      background: 'var(--accent-gym)', 
-                      borderRadius: '8px', 
-                      padding: '0.4rem', 
-                      border: 'none', 
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <Plus size={18}/>
-                    </button>
-                 </div>
-               ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* FEEDBACK MODAL (Simple, directo) */}
-      {showFeedbackModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-           <div style={{ background: '#0f172a', padding: '2rem', borderRadius: '24px', width: '100%', maxWidth: '380px', border: '1px solid rgba(56,189,248,0.2)' }}>
-              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                <span style={{ fontSize: '3rem' }}>🔥</span>
-                <h2 style={{ color: 'white', margin: '0.5rem 0' }}>¡Gran trabajo!</h2>
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Completaste un entrenamiento épico.</p>
-              </div>
-              <p style={{ color: '#64748b', fontSize: '0.75rem', marginBottom: '0.5rem' }}>¿Qué tal estuvo el nivel?</p>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
-                 {[1,2,3,4,5].map(n => (
-                   <button key={n} onClick={() => setFeedbackRating(n)} style={{ fontSize: '1.5rem', background: 'none', border: 'none', filter: feedbackRating >= n ? 'grayscale(0)' : 'grayscale(1)', cursor: 'pointer' }}>⭐</button>
-                 ))}
-              </div>
-              <button onClick={() => { setSessionActive(false); setRutina([]); setShowFeedbackModal(false); setTimer(0); }} style={{ width: '100%', padding: '1rem', background: 'var(--accent-gym)', color: 'black', border: 'none', borderRadius: '14px', fontWeight: 900 }}>GUARDAR SESIÓN</button>
-           </div>
-        </div>
-      )}
-
-      {/* MODAL MIS RUTINAS */}
-      {showMisRutinas && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 1000, padding: '1rem' }}>
-          <div style={{ background: '#0f172a', width: '100%', maxWidth: '500px', margin: '0 auto', height: '100%', borderRadius: '24px', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ color: 'white', margin: 0 }}>Mis Rutinas</h2>
-              <button onClick={() => setShowMisRutinas(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '10px' }}><X size={20}/></button>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '1rem' }}>
-              {misRutinas.length === 0 ? (
-                <p style={{ color: '#64748b', textAlign: 'center' }}>No tenés rutinas guardadas todavía.</p>
-              ) : (
-                misRutinas.map(r => (
-                  <div key={r.id} onClick={async () => {
-                    // Cargar ejercicios de esta rutina
-                    const ids = r.ejercicios.map(ex => ex.exercise_id);
-                    const res = await fetch(`${API}/api/exercises/search?q=${ids.join(',')}`); // El search con IDs sirve
-                    const data = await res.json();
-                    if (data.status === 'success') {
-                       setRutina(data.ejercicios.map(ex => ({
-                         ...ex,
-                         sets: [{reps: '12', kg: '', done: false}, {reps: '12', kg: '', done: false}, {reps: '12', kg: '', done: false}]
-                       })));
-                       setShowMisRutinas(false);
-                    }
-                  }} style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '16px', marginBottom: '0.75rem', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ color: 'white', fontWeight: 800 }}>{r.nombre}</div>
-                    <div style={{ color: '#64748b', fontSize: '0.8rem' }}>{r.descripcion}</div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL GUARDAR */}
-      {showGuardarModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 1001, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div style={{ background: '#0f172a', padding: '2rem', borderRadius: '24px', width: '100%', maxWidth: '380px', border: '1px solid var(--accent-gym)' }}>
-            <h3 style={{ color: 'white', marginTop: 0 }}>Guardar Rutina</h3>
-            <input 
-              value={nombreRutina} 
-              onChange={e => setNombreRutina(e.target.value)} 
-              placeholder="Nombre (ej: Pecho Explosivo)" 
-              style={{ width: '100%', background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', padding: '1rem', borderRadius: '12px', color: 'white', marginBottom: '1.5rem', boxSizing: 'border-box' }}
-            />
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button onClick={() => setShowGuardarModal(false)} style={{ flex: 1, padding: '1rem', background: 'transparent', color: 'white', border: 'none' }}>Cancelar</button>
-              <button onClick={guardarRutinaActual} style={{ flex: 1, padding: '1rem', background: 'var(--accent-gym)', color: 'black', border: 'none', borderRadius: '12px', fontWeight: 800 }}>GUARDAR</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL DETALLE DE EJERCICIO (PROFESIONAL) */}
-      {gifModal && (
-        <div onClick={() => setGifModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-           <div onClick={e => e.stopPropagation()} style={{ 
-             background: '#0f172a', 
-             borderRadius: '28px', 
-             width: '100%', 
-             maxWidth: '430px', 
-             maxHeight: '90vh',
-             overflowY: 'auto',
-             boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-             border: '1px solid rgba(255,255,255,0.1)'
-           }}>
-              {/* Media Section */}
-              <div style={{ position: 'relative', width: '100%', height: '250px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 <img src={gifModal.gif_url?.startsWith('http') || gifModal.gif_url?.startsWith('/exercises') ? gifModal.gif_url : `${API}${gifModal.gif_url}`} alt={gifModal.nombre_es} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
-                 <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
-                    <button onClick={() => setGifModal(null)} style={{ background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', padding: '0.5rem', borderRadius: '50%', cursor: 'pointer' }}><X size={20}/></button>
-                 </div>
-              </div>
-
-              {/* Content Section */}
-              <div style={{ padding: '2rem' }}>
-                 <div style={{ marginBottom: '1.5rem' }}>
-                    <h2 style={{ color: 'white', margin: '0 0 0.5rem 0', fontSize: '1.5rem', fontWeight: 900, lineHeight: 1.1 }}>{gifModal.nombre_es}</h2>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                       <span style={{ fontSize: '0.7rem', color: 'black', background: 'var(--accent-gym)', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{gifModal.target_es || gifModal.target}</span>
-                       <span style={{ fontSize: '0.7rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '6px', fontWeight: 800 }}>{gifModal.equipment_es || gifModal.equipment}</span>
-                    </div>
-                 </div>
-
-                 {gifModal.resumen_es && (
-                   <div style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(56,189,248,0.05)', borderRadius: '16px', borderLeft: '4px solid var(--accent-gym)' }}>
-                      <p style={{ color: '#bae6fd', fontSize: '0.85rem', margin: 0, fontStyle: 'italic', lineHeight: 1.5 }}>"{gifModal.resumen_es}"</p>
-                   </div>
-                 )}
-
-                 <div style={{ marginBottom: '1.5rem' }}>
-                    <h4 style={{ color: 'white', fontSize: '0.9rem', fontWeight: 800, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                       📋 Instrucciones Paso a Paso
-                    </h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                       {(gifModal.instrucciones_es || gifModal.instructions || []).map((step, idx) => (
-                         <div key={idx} style={{ display: 'flex', gap: '0.75rem' }}>
-                            <span style={{ color: 'var(--accent-gym)', fontWeight: 900, fontSize: '0.85rem' }}>{idx + 1}.</span>
-                            <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0, lineHeight: 1.4 }}>{step}</p>
-                         </div>
-                       ))}
-                    </div>
-                 </div>
-
-                 {gifModal.tips_es && gifModal.tips_es.length > 0 && (
-                   <div style={{ marginBottom: '1.5rem' }}>
-                      <h4 style={{ color: 'white', fontSize: '0.9rem', fontWeight: 800, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                         💡 Tips del Instructor
-                      </h4>
-                      <ul style={{ margin: 0, paddingLeft: '1.2rem', color: '#64748b', fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                         {gifModal.tips_es.map((tip, idx) => (
-                           <li key={idx} style={{ lineHeight: 1.4 }}>{tip}</li>
-                         ))}
-                      </ul>
-                   </div>
-                 )}
-
-                 <button 
-                   onClick={() => setGifModal(null)} 
-                   style={{ 
-                     width: '100%', 
-                     padding: '1.1rem', 
-                     background: 'white', 
-                     color: 'black', 
-                     border: 'none', 
-                     borderRadius: '16px', 
-                     marginTop: '1rem', 
-                     fontWeight: 900,
-                     fontSize: '1rem',
-                     cursor: 'pointer'
-                   }}
-                 >ENTENDIDO</button>
-              </div>
-           </div>
-        </div>
+         </div>
       )}
     </div>
   );

@@ -1,196 +1,182 @@
 import { useState, useEffect, useCallback } from 'react';
-import { User, Save, RefreshCw, LogOut, Zap } from 'lucide-react';
+import { User, Save, LogOut, MessageSquare, Globe, Scale, Ruler, Calendar, ChevronRight, Check } from 'lucide-react';
 import API from '../config';
+import MuscleMap from './MuscleMap';
+import { useLanguage } from '../LanguageContext';
 
 export default function PerfilView({ perfil, onLogout }) {
-  const [perfilData, setPerfilData] = useState({
-    descripcion: '',
-    detalle: '',
-    objetivo_ia: '',
-    memoria_viva: ''
+  const { t, lang, setLang } = useLanguage();
+  const [userData, setUserData] = useState({
+    name: '',
+    age: '',
+    weight: '',
+    height: '',
+    level: 1,
+    exp: 0
   });
+  const [feedback, setFeedback] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [activeRoutines, setActiveRoutines] = useState([]);
+  const [realIntensity, setRealIntensity] = useState([]);
 
-  const [auditLogs, setAuditLogs] = useState([]);
-  const [loadingAudit, setLoadingAudit] = useState(false);
-  const [errorAudit, setErrorAudit] = useState(null);
-
-  const fetchPerfil = useCallback(async () => {
+  const fetchUserData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API}/api/perfil/${perfil}`);
       const data = await res.json();
-      if (data.perfil) setPerfilData(data.perfil);
-    } catch (e) {
-      console.error(e);
-    }
+      if (data.perfil) {
+        setUserData({
+          name: perfil,
+          age: data.perfil.age || '',
+          weight: data.perfil.weight || '',
+          height: data.perfil.height || '',
+          level: data.perfil.level || 1,
+          exp: data.perfil.exp || 0
+        });
+      }
+      const resR = await fetch(`${API}/api/gym/rutinas?perfil=${perfil}`);
+      const dataR = await resR.json();
+      if (dataR.status === 'success') setActiveRoutines(dataR.rutinas);
+      const resI = await fetch(`${API}/api/gym/intensidad?perfil=${perfil}`);
+      const dataI = await resI.json();
+      if (dataI.status === 'success') setRealIntensity(dataI.intensidad);
+    } catch (e) { console.error(e); }
     setLoading(false);
   }, [perfil]);
 
   useEffect(() => {
-    fetchPerfil();
-  }, [perfil, fetchPerfil]);
+    fetchUserData();
+  }, [perfil, fetchUserData]);
 
-  const handleSave = async () => {
+  const handleUpdateProfile = async () => {
     setSaving(true);
     try {
-      await fetch(`${API}/api/perfil/${perfil}`, {
-        method: 'PUT',
+      await fetch(`${API}/api/perfil/${perfil}/update_stats`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          descripcion: perfilData.descripcion,
-          detalle: perfilData.detalle,
-          objetivo_ia: perfilData.objetivo_ia
-        })
+        body: JSON.stringify({ ...userData, language: lang })
       });
-      alert('Perfil actualizado con éxito');
-    } catch (e) {
-      console.error("Error saving perfil:", e);
-    }
+      alert(lang === 'es' ? '¡Perfil actualizado!' : 'Profile updated!');
+    } catch (e) { console.error(e); }
     setSaving(false);
   };
 
-  const handleRefreshMemoria = async () => {
-    setRefreshing(true);
-    try {
-      await fetch(`${API}/api/memoria/refresh?perfil=${perfil}`, { method: 'POST' });
-      await fetchPerfil();
-    } catch (e) {
-      console.error(e);
-    }
-    setRefreshing(false);
-  };
+  if (loading) return <div className="loading-state">...</div>;
 
-  if (loading) return <div className="loading-state">Interpretando identidad...</div>;
+  const allTargets = [
+    ...activeRoutines.flatMap(r => r.ejercicios.map(e => e.target)),
+    ...realIntensity.map(i => i.target)
+  ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '2rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '5rem', maxWidth: '500px', margin: '0 auto' }}>
       
-      {/* 1. Usuario Activo + AUDITORÍA (v3.1) */}
-      <div className="card" style={{ borderLeft: '4px solid #10b981' }}>
-        <h2 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <User size={18} color="var(--accent-color)" /> Usuario Activo
-        </h2>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(56,189,248,0.07)', borderRadius: '12px', padding: '0.85rem 1rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #0ea5e9, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: 'white', fontSize: '1.1rem' }}>
+      {/* HEADER PREMIUM */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.05)' }}>
+         <div style={{ width: '64px', height: '64px', borderRadius: '22px', background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', fontWeight: 900, color: 'white', boxShadow: '0 8px 20px rgba(6, 182, 212, 0.2)' }}>
             {perfil.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{perfil}</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--accent-nutri)', fontWeight: 600 }}>v3.1 Elite Edition</div>
-          </div>
-          <span className="dot pulse" style={{ marginLeft: 'auto' }}></span>
-        </div>
+         </div>
+         <div style={{ flex: 1 }}>
+            <h2 style={{ color: 'white', margin: 0, fontSize: '1.5rem', fontWeight: 900 }}>{perfil}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.3rem' }}>
+               <div style={{ background: 'var(--accent-gym)', color: 'black', padding: '0.2rem 0.6rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 900 }}>{t('level')} {userData.level}</div>
+               <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700 }}>{userData.exp} EXP</div>
+            </div>
+         </div>
+         <button onClick={onLogout} style={{ background: 'rgba(239, 68, 68, 0.05)', border: 'none', color: '#ef4444', padding: '0.8rem', borderRadius: '18px', transition: 'all 0.2s' }}><LogOut size={22}/></button>
+      </div>
 
-        {/* Auditoría Interna - Integrada en la primera tarjeta */}
-        <div style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              🔍 Sistema v3.1
-            </span>
-            <button 
-              className="btn" 
-              style={{ width: 'auto', marginBottom: 0, padding: '0.2rem 0.6rem', fontSize: '0.7rem' }}
-              onClick={async () => {
-                 setLoadingAudit(true);
-                 setErrorAudit(null);
-                 try {
-                   const res = await fetch(`${API}/api/logs?perfil=${perfil}`);
-                   const data = await res.json();
-                   if (data.status === 'success') setAuditLogs(data.logs);
-                   else setErrorAudit(data.error || 'Err');
-                 } catch (e) {
-                   setErrorAudit('Link Error');
-                 }
-                 setLoadingAudit(false);
-              }}
-              disabled={loadingAudit}
-            >
-              {loadingAudit ? '...' : 'Refrescar'}
+      {/* MUSCLE HEATMAP (ELITE LOOK) */}
+      <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '32px', padding: '2rem', border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+         <div style={{ position: 'absolute', top: '-20px', left: '-20px', width: '100px', height: '100px', background: 'radial-gradient(circle, rgba(6, 182, 212, 0.1) 0%, transparent 70%)' }}></div>
+         <h3 style={{ color: 'white', marginTop: 0, fontSize: '0.9rem', fontWeight: 800, letterSpacing: '1px', color: '#94a3b8' }}>{t('intensity')}</h3>
+         <div style={{ height: '240px', margin: '1.5rem 0' }}>
+            <MuscleMap targets={allTargets} />
+         </div>
+      </div>
+
+      {/* SELECTOR DE IDIOMA (RADIO BUTTONS PREMIUM) */}
+      <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+         <h3 style={{ color: 'white', margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Globe size={18} color="var(--accent-gym)" /> {t('language')}
+         </h3>
+         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            {['es', 'en'].map(l => (
+               <button 
+                 key={l}
+                 onClick={() => setLang(l)}
+                 style={{ 
+                   padding: '1rem', 
+                   borderRadius: '16px', 
+                   background: lang === l ? 'rgba(6, 182, 212, 0.1)' : 'rgba(255,255,255,0.03)', 
+                   border: lang === l ? '1px solid var(--accent-gym)' : '1px solid transparent',
+                   color: lang === l ? 'white' : '#64748b',
+                   fontWeight: 800,
+                   display: 'flex',
+                   alignItems: 'center',
+                   justifyContent: 'center',
+                   gap: '0.75rem',
+                   transition: 'all 0.2s',
+                   fontSize: '0.9rem'
+                 }}
+               >
+                  <span style={{ fontSize: '1.4rem' }}>{l === 'es' ? '🇪🇸' : '🇺🇸'}</span>
+                  {l === 'es' ? 'ESPAÑOL' : 'ENGLISH'}
+               </button>
+            ))}
+         </div>
+      </div>
+
+      {/* CONFIGURACIÓN FÍSICA (PREMIUM INPUTS) */}
+      <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h3 style={{ color: 'white', margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>{t('physical_config')}</h3>
+            <button onClick={handleUpdateProfile} disabled={saving} style={{ background: 'var(--accent-gym)', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '12px', color: 'black', fontWeight: 900, fontSize: '0.8rem' }}>
+               {saving ? '...' : t('save')}
             </button>
-          </div>
-          <div style={{ maxHeight: '120px', overflowY: 'auto', fontSize: '0.7rem' }}>
-            {auditLogs && auditLogs.length > 0 ? auditLogs.map((log, i) => (
-              <div key={i} style={{ padding: '0.25rem 0', borderBottom: '1px solid rgba(255,255,255,0.02)', display: 'flex', gap: '0.5rem' }}>
-                <span style={{ color: '#10b981', fontWeight: 700 }}>{log.type}</span>
-                <span style={{ opacity: 0.9 }}>{log.description}</span>
-              </div>
-            )) : <div style={{ opacity: 0.5, textAlign: 'center', padding: '0.5rem' }}>Sin logs recientes.</div>}
-            {errorAudit && <div style={{ color: 'var(--danger-color)', textAlign: 'center' }}>{errorAudit}</div>}
-          </div>
-        </div>
+         </div>
+
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {[
+              { id: 'age', label: t('age'), icon: Calendar, value: userData.age },
+              { id: 'weight', label: t('weight'), icon: Scale, value: userData.weight },
+              { id: 'height', label: t('height'), icon: Ruler, value: userData.height }
+            ].map(f => (
+               <div key={f.id} style={{ position: 'relative' }}>
+                  <label style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 800, position: 'absolute', top: '10px', left: '1rem', zIndex: 1 }}>{f.label}</label>
+                  <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', padding: '1.8rem 1rem 0.8rem 1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                     <f.icon size={18} color="var(--accent-gym)" style={{ marginRight: '0.75rem' }} />
+                     <input 
+                       type="number" 
+                       value={f.value} 
+                       onChange={e => setUserData({...userData, [f.id]: e.target.value})} 
+                       style={{ background: 'transparent', border: 'none', color: 'white', fontWeight: 700, width: '100%', fontSize: '1.1rem', outline: 'none' }} 
+                     />
+                  </div>
+               </div>
+            ))}
+         </div>
       </div>
 
-      {/* 2. Configuración de IA */}
-      <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <h2 style={{ fontSize: '1.1rem', color: '#38bdf8' }}>⚙️ Configuración</h2>
-          <button className="btn btn-primary" onClick={handleSave} disabled={saving} style={{ width: 'auto', marginBottom: 0, padding: '0.5rem 1rem' }}>
-            {saving ? '...' : <Save size={16} />} 
-          </button>
-        </div>
-        
-        <div className="form-group" style={{ marginBottom: '1rem' }}>
-          <input 
-            className="chat-input"
-            value={perfilData.descripcion}
-            onChange={e => setPerfilData({...perfilData, descripcion: e.target.value})}
-            placeholder="Descripción corta..."
-            style={{ width: '100%' }}
-          />
-        </div>
-
-        <div className="form-group" style={{ marginBottom: '1rem' }}>
-          <textarea 
-            className="chat-input"
-            style={{ width: '100%', height: '60px', paddingTop: '0.75rem' }}
-            value={perfilData.detalle}
-            onChange={e => setPerfilData({...perfilData, detalle: e.target.value})}
-            placeholder="Detalle de rutina..."
-          />
-        </div>
-
-        <div className="form-group">
-          <textarea 
-            className="chat-input"
-            style={{ width: '100%', height: '60px', border: '1px solid rgba(56, 189, 248, 0.2)', paddingTop: '0.75rem' }}
-            value={perfilData.objetivo_ia}
-            onChange={e => setPerfilData({...perfilData, objetivo_ia: e.target.value})}
-            placeholder="Consigna IA..."
-          />
-        </div>
+      {/* FEEDBACK BOX */}
+      <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '24px', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+         <h3 style={{ color: 'white', margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <MessageSquare size={18} color="var(--accent-gym)" /> {t('feedback_title')}
+         </h3>
+         <textarea 
+            value={feedback}
+            onChange={e => setFeedback(e.target.value)}
+            placeholder={t('feedback_placeholder')} 
+            style={{ width: '100%', height: '100px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '20px', padding: '1rem', color: 'white', fontSize: '0.9rem', resize: 'none', outline: 'none' }}
+         />
+         <button 
+           onClick={() => {}}
+           style={{ width: '100%', marginTop: '1rem', padding: '1.1rem', borderRadius: '18px', background: 'white', color: 'black', border: 'none', fontWeight: 900, cursor: 'pointer' }}
+         >
+            {t('send_feedback')}
+         </button>
       </div>
-
-      {/* 3. Memoria Viva */}
-      <div className="card" style={{ borderLeft: '3px solid #38bdf8' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <h2 style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Zap size={18} color="#38bdf8" /> Memoria Viva
-          </h2>
-          <button 
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)' }}
-            onClick={handleRefreshMemoria}
-            disabled={refreshing}
-          >
-            <RefreshCw size={16} className={refreshing ? 'spin' : ''} />
-          </button>
-        </div>
-        <div style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontStyle: 'italic' }}>
-          "{perfilData.memoria_viva}"
-        </div>
-      </div>
-
-      <button 
-        className="btn" 
-        style={{ background: 'transparent', borderColor: 'var(--danger-color)', color: 'var(--danger-color)', marginTop: '0.5rem' }} 
-        onClick={onLogout}
-      >
-        <LogOut size={18} /> Cerrar Sesión
-      </button>
-
     </div>
   );
 }
