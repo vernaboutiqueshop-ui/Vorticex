@@ -474,8 +474,6 @@ def obtener_comidas_hoy(perfil: str):
         return [dict(r) for r in cur.fetchall()]
 
 def guardar_rutina_template(perfil: str, nombre: str, ejercicios: list):
-    import uuid
-    rid = str(uuid.uuid4())[:8]
     with get_conn() as conn:
         cur = conn.cursor()
         # Obtener user_id
@@ -483,12 +481,14 @@ def guardar_rutina_template(perfil: str, nombre: str, ejercicios: list):
         u = cur.fetchone()
         uid = u['id'] if u else 1
         
-        cur.execute("INSERT INTO routines (id, user_id, name) VALUES (?, ?, ?)", (rid, uid, nombre))
-        for ej in ejercicios:
+        cur.execute("INSERT INTO routines (user_id, name) VALUES (?, ?)", (uid, nombre))
+        rid = cur.lastrowid
+        
+        for idx, ej in enumerate(ejercicios):
             eid = ej.get('id_ejercicio')
             sets = ej.get('sets_count', 3)
             reps = ej.get('reps_default', '12')
-            cur.execute("INSERT INTO routine_exercises (routine_id, exercise_id, sets_count, reps_default) VALUES (?, ?, ?, ?)", (rid, eid, sets, reps))
+            cur.execute("INSERT INTO routine_exercises (routine_id, exercise_id, sets, reps, order_index) VALUES (?, ?, ?, ?, ?)", (rid, eid, sets, reps, idx))
         conn.commit()
     return rid
 
@@ -503,7 +503,7 @@ def obtener_rutinas_templates(perfil: str):
         rutinas = [dict(r) for r in cur.fetchall()]
         for r in rutinas:
             cur.execute("""
-                SELECT exercise_id as id_ejercicio, sets_count, reps_default, name as nombre_es, name as name, target, gif_url 
+                SELECT exercise_id as id_ejercicio, sets as sets_count, reps as reps_default, name as nombre_es, name as name, target, gif_url 
                 FROM routine_exercises 
                 JOIN exercises ON exercises.id = routine_exercises.exercise_id
                 WHERE routine_id = ?
