@@ -41,6 +41,8 @@ from personality.motor_memoria import generar_y_guardar_contexto
 from core.intelligence import semantic_search_exercises
 from core.auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 from fastapi.security import OAuth2PasswordRequestForm
+import threading
+from vortice_discovery import run_tunnel
 
 async def lifespan(app: FastAPI):
     print("[VORTICE] Iniciando Vórtice Health API (All-Local Mode)")
@@ -51,6 +53,13 @@ async def lifespan(app: FastAPI):
         init_final_db()
     except Exception as e:
         print(f"[VORTICE] Error inicializando DB: {e}")
+    
+    # Lanzamos el Túnel de Auto-Descubrimiento en un hilo separado
+    # para que no bloquee el arranque del servidor.
+    print("[VORTICE] Lanzando túnel de auto-descubrimiento...")
+    discovery_thread = threading.Thread(target=run_tunnel, daemon=True)
+    discovery_thread.start()
+    
     yield
 
 app = FastAPI(

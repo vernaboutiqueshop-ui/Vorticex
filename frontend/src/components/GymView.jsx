@@ -1,3 +1,4 @@
+// Vórtice Health - GymView v3.1.2 (Force Refresh)
 import { useState, useEffect, useCallback } from 'react';
 import { Play, Plus, Search, Dumbbell, Brain, X, CheckCircle2, Clock, RotateCcw, Image as ImageIcon, ChevronDown, ChevronUp, Timer } from 'lucide-react';
 import { API } from '../config';
