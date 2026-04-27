@@ -218,7 +218,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                 </div>
                 {rutina.map((e, idx) => (
                    <div key={idx} className="hevy-card" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: 'white', fontWeight: 800 }}>{e.nombre_es || e.name}</span>
+                      <span style={{ color: 'white', fontWeight: 800 }}>{lang === 'en' ? (e.nombre_en || e.name) : (e.nombre_es || e.name)}</span>
                       <button onClick={() => setRutina(rutina.filter((_, i) => i !== idx))} style={{ color: '#ef4444', background: 'transparent', border: 'none' }}><Trash2 size={18}/></button>
                    </div>
                 ))}
@@ -239,7 +239,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                   <div key={index} className="hevy-card">
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
                        <img src={ej.gif_url} style={{ width: '56px', height: '56px', borderRadius: '12px', background: 'white', objectFit: 'cover' }} />
-                       <h4 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '1.1rem' }}>{ej.nombre_es || ej.name}</h4>
+                       <h4 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '1.1rem' }}>{lang === 'en' ? (ej.nombre_en || ej.name) : (ej.nombre_es || ej.name)}</h4>
                     </div>
                     {ej.sets.map((s, si) => (
                       <div key={si} style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1.5fr 1fr', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
@@ -273,7 +273,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                         <h4 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '1.2rem' }}>{r.name}</h4>
                         <div style={{ height: '50px', width: '40px' }}><MuscleMap targets={r.ejercicios.map(e => e.target)} /></div>
                      </div>
-                     <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.5rem 0 0 0', fontWeight: 500 }}>{r.ejercicios.slice(0, 3).map(e => e.nombre_es || e.name).join(', ')}...</p>
+                     <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.5rem 0 0 0', fontWeight: 500 }}>{r.ejercicios.slice(0, 3).map(e => lang === 'en' ? (e.nombre_en || e.name) : (e.nombre_es || e.name)).join(', ')}...</p>
                   </div>
                 ))}
               </div>
@@ -294,15 +294,23 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
              </div>
              <div style={{ display: 'grid', gap: '1rem' }}>
                 {ejerciciosFiltrados.slice(0, 40).map((ej, idx) => (
-                   <div key={idx} onClick={() => setSelectedExerciseDetails(ej)} className="hevy-card exercise-card-hover" style={{ flexDirection: 'row', alignItems: 'center', cursor: 'pointer', padding: '1rem' }}>
-                      <div style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                   <div key={idx} className="hevy-card exercise-card-hover" style={{ flexDirection: 'row', alignItems: 'center', padding: '1rem' }}>
+                      <div onClick={() => setSelectedExerciseDetails(ej)} style={{ width: '64px', height: '64px', borderRadius: '16px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', cursor: 'pointer' }}>
                          <img src={ej.gif_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
-                      <div style={{ flex: 1 }}>
-                         <div style={{ color: 'white', fontWeight: 800, fontSize: '1.05rem' }}>{ej.nombre_es || ej.name}</div>
+                      <div onClick={() => setSelectedExerciseDetails(ej)} style={{ flex: 1, cursor: 'pointer' }}>
+                         <div style={{ color: 'white', fontWeight: 800, fontSize: '1.05rem' }}>{lang === 'en' ? (ej.nombre_en || ej.name) : (ej.nombre_es || ej.name)}</div>
                          <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '0.3rem' }}>{ej.target}</div>
                       </div>
-                      <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.6rem', borderRadius: '12px' }}><Info size={20} color="#64748b" /></div>
+                      <button onClick={(e) => {
+                          e.stopPropagation();
+                          const newEj = { ...ej, sets: [{ reps: '12', kg: '', done: false }, { reps: '12', kg: '', done: false }, { reps: '12', kg: '', done: false }] };
+                          if (isCreatingRoutine || sessionActive) { setRutina(prev => [...prev, newEj]); if(!isCreatingRoutine) setSessionActive(true); } 
+                          else { setRutina([newEj]); setSessionActive(true); }
+                          setActiveInternalTab('entrenar');
+                      }} className="hevy-btn" style={{ background: 'rgba(255,255,255,0.05)', padding: '0.6rem', borderRadius: '12px', zIndex: 10 }}>
+                          <Plus size={24} color="var(--accent-gym)" />
+                      </button>
                    </div>
                 ))}
              </div>
@@ -315,7 +323,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
          <div className="modal-overlay" onClick={() => setSelectedExerciseDetails(null)}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
-                  <h2 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 900, margin: 0, flex: 1 }}>{selectedExerciseDetails.nombre_es || selectedExerciseDetails.name}</h2>
+                  <h2 style={{ color: 'white', fontSize: '1.5rem', fontWeight: 900, margin: 0, flex: 1 }}>{lang === 'en' ? (selectedExerciseDetails.nombre_en || selectedExerciseDetails.name) : (selectedExerciseDetails.nombre_es || selectedExerciseDetails.name)}</h2>
                   <button onClick={() => setSelectedExerciseDetails(null)} className="hevy-btn" style={{ padding: '0.5rem' }}><X size={24} /></button>
                </div>
                

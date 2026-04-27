@@ -416,6 +416,20 @@ class RutinaSaveRequest(BaseModel):
     perfil: str
     rutina: List[EjercicioEdit]
 
+class RutinaNuevaRequest(BaseModel):
+    perfil: str
+    nombre: str
+    ejercicios: list
+
+@app.post("/api/gym/rutina/nueva")
+def api_nueva_rutina(req: RutinaNuevaRequest):
+    try:
+        from core.database_sqlite import guardar_rutina_template
+        rid = guardar_rutina_template(req.perfil, req.nombre, req.ejercicios)
+        return {"status": "success", "id_rutina": rid}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
 @app.get("/api/exercises")
 def get_ejercicios_endpoint():
     try:
