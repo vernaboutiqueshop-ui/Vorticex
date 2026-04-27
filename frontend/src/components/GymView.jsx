@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Play, Plus, Search, X, Check, Trash2, ChevronRight, Info, TrendingUp, Trophy, MoreVertical, Edit2, Trash } from 'lucide-react';
+import { Play, Plus, Search, X, Check, Trash2, ChevronRight, Info, TrendingUp, Trophy, MoreVertical, Edit2, Trash, History } from 'lucide-react';
 import MuscleMap from './MuscleMap';
 import { API } from '../config';
 import { useLanguage } from '../LanguageContext';
