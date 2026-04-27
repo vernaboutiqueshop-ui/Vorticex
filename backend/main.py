@@ -44,6 +44,16 @@ from fastapi.security import OAuth2PasswordRequestForm
 import threading
 from vortice_discovery import run_tunnel
 
+def fix_gif_url(url: str):
+    if not url: return ""
+    if url.startswith("http"): return url
+    # Extraer ID del ejercicio de cualquier formato (/exercises/gifs/ID.gif o /api/exercises/gif/ID)
+    import re
+    match = re.search(r'(\d{4})', url)
+    if match:
+        return f"/gifs/{match.group(1)}.gif"
+    return url
+
 async def lifespan(app: FastAPI):
     print("[VORTICE] Iniciando Vórtice Health API (All-Local Mode)")
     # Asegúrate de que la carpeta de datos existe

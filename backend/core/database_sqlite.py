@@ -133,7 +133,7 @@ def obtener_catalogo_completo():
                 "equipment": r['equipment'],
                 "difficulty_level": r.get('difficulty_level', 'Medium'),
                 "instrucciones_es": inst_list,
-                "gif_url": f"/exercises/gifs/{r['id']}.gif"
+                "gif_url": f"/gifs/{r['id']}.gif"
             })
         return catalogo
 
@@ -177,7 +177,7 @@ def buscar_ejercicios_por_ids(ids: list):
                 "target": r['target'],
                 "equipment": r['equipment'],
                 "instrucciones_es": inst_list,
-                "gif_url": f"/exercises/gifs/{r['id']}.gif"
+                "gif_url": f"/gifs/{r['id']}.gif"
             })
         return ejercicios
 
@@ -190,7 +190,7 @@ def buscar_ejercicio_por_id(id_ej: str):
             r = dict(row)
             r["id_ejercicio"] = r["id"]
             r["nombre_es"] = r["name"]
-            r["gif_url"] = f"/exercises/gifs/{r['id']}.gif"
+            r["gif_url"] = f"/gifs/{r['id']}.gif"
             return r
     return None
 

@@ -6,7 +6,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0007",
+    "gif_url": "/gifs/0007.gif",
     "source": "static_raw_v1"
   },
   {
@@ -16,7 +16,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0015",
+    "gif_url": "/gifs/0015.gif",
     "source": "static_raw_v1"
   },
   {
@@ -26,7 +26,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0017",
+    "gif_url": "/gifs/0017.gif",
     "source": "static_raw_v1"
   },
   {
@@ -36,7 +36,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0022",
+    "gif_url": "/gifs/0022.gif",
     "source": "static_raw_v1"
   },
   {
@@ -46,7 +46,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0027",
+    "gif_url": "/gifs/0027.gif",
     "source": "static_raw_v1"
   },
   {
@@ -56,7 +56,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0034",
+    "gif_url": "/gifs/0034.gif",
     "source": "static_raw_v1"
   },
   {
@@ -66,7 +66,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0037",
+    "gif_url": "/gifs/0037.gif",
     "source": "static_raw_v1"
   },
   {
@@ -76,7 +76,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0049",
+    "gif_url": "/gifs/0049.gif",
     "source": "static_raw_v1"
   },
   {
@@ -86,7 +86,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0064",
+    "gif_url": "/gifs/0064.gif",
     "source": "static_raw_v1"
   },
   {
@@ -96,7 +96,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0073",
+    "gif_url": "/gifs/0073.gif",
     "source": "static_raw_v1"
   },
   {
@@ -106,7 +106,7 @@
     "target": "cardiovascular system",
     "body_part": "cardio",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0501",
+    "gif_url": "/gifs/0501.gif",
     "source": "static_raw_v1"
   },
   {
@@ -116,7 +116,7 @@
     "target": "cardiovascular system",
     "body_part": "cardio",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0630",
+    "gif_url": "/gifs/0630.gif",
     "source": "static_raw_v1"
   },
   {
@@ -126,7 +126,7 @@
     "target": "cardiovascular system",
     "body_part": "cardio",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0684",
+    "gif_url": "/gifs/0684.gif",
     "source": "static_raw_v1"
   },
   {
@@ -136,7 +136,7 @@
     "target": "cardiovascular system",
     "body_part": "cardio",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0685",
+    "gif_url": "/gifs/0685.gif",
     "source": "static_raw_v1"
   },
   {
@@ -146,7 +146,7 @@
     "target": "cardiovascular system",
     "body_part": "cardio",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0798",
+    "gif_url": "/gifs/0798.gif",
     "source": "static_raw_v1"
   },
   {
@@ -156,7 +156,7 @@
     "target": "cardiovascular system",
     "body_part": "cardio",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/1160",
+    "gif_url": "/gifs/1160.gif",
     "source": "static_raw_v1"
   },
   {
@@ -166,7 +166,7 @@
     "target": "cardiovascular system",
     "body_part": "cardio",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/1201",
+    "gif_url": "/gifs/1201.gif",
     "source": "static_raw_v1"
   },
   {
@@ -176,7 +176,7 @@
     "target": "cardiovascular system",
     "body_part": "cardio",
     "equipment": "stationary bike",
-    "gif_url": "/api/exercises/gif/2138",
+    "gif_url": "/gifs/2138.gif",
     "source": "static_raw_v1"
   },
   {
@@ -186,7 +186,7 @@
     "target": "cardiovascular system",
     "body_part": "cardio",
     "equipment": "elliptical machine",
-    "gif_url": "/api/exercises/gif/2141",
+    "gif_url": "/gifs/2141.gif",
     "source": "static_raw_v1"
   },
   {
@@ -196,7 +196,7 @@
     "target": "cardiovascular system",
     "body_part": "cardio",
     "equipment": "stepmill machine",
-    "gif_url": "/api/exercises/gif/2311",
+    "gif_url": "/gifs/2311.gif",
     "source": "static_raw_v1"
   },
   {
@@ -206,7 +206,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0009",
+    "gif_url": "/gifs/0009.gif",
     "source": "static_raw_v1"
   },
   {
@@ -216,7 +216,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0025",
+    "gif_url": "/gifs/0025.gif",
     "source": "static_raw_v1"
   },
   {
@@ -226,7 +226,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0033",
+    "gif_url": "/gifs/0033.gif",
     "source": "static_raw_v1"
   },
   {
@@ -236,7 +236,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0036",
+    "gif_url": "/gifs/0036.gif",
     "source": "static_raw_v1"
   },
   {
@@ -246,7 +246,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0040",
+    "gif_url": "/gifs/0040.gif",
     "source": "static_raw_v1"
   },
   {
@@ -256,7 +256,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0045",
+    "gif_url": "/gifs/0045.gif",
     "source": "static_raw_v1"
   },
   {
@@ -266,7 +266,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0047",
+    "gif_url": "/gifs/0047.gif",
     "source": "static_raw_v1"
   },
   {
@@ -276,7 +276,7 @@
     "target": "serratus anterior",
     "body_part": "chest",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0050",
+    "gif_url": "/gifs/0050.gif",
     "source": "static_raw_v1"
   },
   {
@@ -286,7 +286,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0122",
+    "gif_url": "/gifs/0122.gif",
     "source": "static_raw_v1"
   },
   {
@@ -296,7 +296,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0151",
+    "gif_url": "/gifs/0151.gif",
     "source": "static_raw_v1"
   },
   {
@@ -306,7 +306,7 @@
     "target": "forearms",
     "body_part": "lower arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0079",
+    "gif_url": "/gifs/0079.gif",
     "source": "static_raw_v1"
   },
   {
@@ -316,7 +316,7 @@
     "target": "forearms",
     "body_part": "lower arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0082",
+    "gif_url": "/gifs/0082.gif",
     "source": "static_raw_v1"
   },
   {
@@ -326,7 +326,7 @@
     "target": "forearms",
     "body_part": "lower arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0104",
+    "gif_url": "/gifs/0104.gif",
     "source": "static_raw_v1"
   },
   {
@@ -336,7 +336,7 @@
     "target": "forearms",
     "body_part": "lower arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0125",
+    "gif_url": "/gifs/0125.gif",
     "source": "static_raw_v1"
   },
   {
@@ -346,7 +346,7 @@
     "target": "forearms",
     "body_part": "lower arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0126",
+    "gif_url": "/gifs/0126.gif",
     "source": "static_raw_v1"
   },
   {
@@ -356,7 +356,7 @@
     "target": "forearms",
     "body_part": "lower arms",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0210",
+    "gif_url": "/gifs/0210.gif",
     "source": "static_raw_v1"
   },
   {
@@ -366,7 +366,7 @@
     "target": "forearms",
     "body_part": "lower arms",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0224",
+    "gif_url": "/gifs/0224.gif",
     "source": "static_raw_v1"
   },
   {
@@ -376,7 +376,7 @@
     "target": "forearms",
     "body_part": "lower arms",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0247",
+    "gif_url": "/gifs/0247.gif",
     "source": "static_raw_v1"
   },
   {
@@ -386,7 +386,7 @@
     "target": "forearms",
     "body_part": "lower arms",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0347",
+    "gif_url": "/gifs/0347.gif",
     "source": "static_raw_v1"
   },
   {
@@ -396,7 +396,7 @@
     "target": "forearms",
     "body_part": "lower arms",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0349",
+    "gif_url": "/gifs/0349.gif",
     "source": "static_raw_v1"
   },
   {
@@ -406,7 +406,7 @@
     "target": "calves",
     "body_part": "lower legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0088",
+    "gif_url": "/gifs/0088.gif",
     "source": "static_raw_v1"
   },
   {
@@ -416,7 +416,7 @@
     "target": "calves",
     "body_part": "lower legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0108",
+    "gif_url": "/gifs/0108.gif",
     "source": "static_raw_v1"
   },
   {
@@ -426,7 +426,7 @@
     "target": "calves",
     "body_part": "lower legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0111",
+    "gif_url": "/gifs/0111.gif",
     "source": "static_raw_v1"
   },
   {
@@ -436,7 +436,7 @@
     "target": "calves",
     "body_part": "lower legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0257",
+    "gif_url": "/gifs/0257.gif",
     "source": "static_raw_v1"
   },
   {
@@ -446,7 +446,7 @@
     "target": "calves",
     "body_part": "lower legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0284",
+    "gif_url": "/gifs/0284.gif",
     "source": "static_raw_v1"
   },
   {
@@ -456,7 +456,7 @@
     "target": "calves",
     "body_part": "lower legs",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0400",
+    "gif_url": "/gifs/0400.gif",
     "source": "static_raw_v1"
   },
   {
@@ -466,7 +466,7 @@
     "target": "calves",
     "body_part": "lower legs",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0409",
+    "gif_url": "/gifs/0409.gif",
     "source": "static_raw_v1"
   },
   {
@@ -476,7 +476,7 @@
     "target": "calves",
     "body_part": "lower legs",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0417",
+    "gif_url": "/gifs/0417.gif",
     "source": "static_raw_v1"
   },
   {
@@ -486,7 +486,7 @@
     "target": "calves",
     "body_part": "lower legs",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0594",
+    "gif_url": "/gifs/0594.gif",
     "source": "static_raw_v1"
   },
   {
@@ -496,7 +496,7 @@
     "target": "calves",
     "body_part": "lower legs",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0605",
+    "gif_url": "/gifs/0605.gif",
     "source": "static_raw_v1"
   },
   {
@@ -506,7 +506,7 @@
     "target": "levator scapulae",
     "body_part": "neck",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0716",
+    "gif_url": "/gifs/0716.gif",
     "source": "static_raw_v1"
   },
   {
@@ -516,7 +516,7 @@
     "target": "levator scapulae",
     "body_part": "neck",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/1403",
+    "gif_url": "/gifs/1403.gif",
     "source": "static_raw_v1"
   },
   {
@@ -526,7 +526,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0041",
+    "gif_url": "/gifs/0041.gif",
     "source": "static_raw_v1"
   },
   {
@@ -536,7 +536,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0067",
+    "gif_url": "/gifs/0067.gif",
     "source": "static_raw_v1"
   },
   {
@@ -546,7 +546,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0075",
+    "gif_url": "/gifs/0075.gif",
     "source": "static_raw_v1"
   },
   {
@@ -556,7 +556,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0076",
+    "gif_url": "/gifs/0076.gif",
     "source": "static_raw_v1"
   },
   {
@@ -566,7 +566,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0086",
+    "gif_url": "/gifs/0086.gif",
     "source": "static_raw_v1"
   },
   {
@@ -576,7 +576,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0087",
+    "gif_url": "/gifs/0087.gif",
     "source": "static_raw_v1"
   },
   {
@@ -586,7 +586,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0091",
+    "gif_url": "/gifs/0091.gif",
     "source": "static_raw_v1"
   },
   {
@@ -596,7 +596,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0100",
+    "gif_url": "/gifs/0100.gif",
     "source": "static_raw_v1"
   },
   {
@@ -606,7 +606,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0105",
+    "gif_url": "/gifs/0105.gif",
     "source": "static_raw_v1"
   },
   {
@@ -616,7 +616,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0107",
+    "gif_url": "/gifs/0107.gif",
     "source": "static_raw_v1"
   },
   {
@@ -626,7 +626,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "assisted (towel)",
-    "gif_url": "/api/exercises/gif/0018",
+    "gif_url": "/gifs/0018.gif",
     "source": "static_raw_v1"
   },
   {
@@ -636,7 +636,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0019",
+    "gif_url": "/gifs/0019.gif",
     "source": "static_raw_v1"
   },
   {
@@ -646,7 +646,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0023",
+    "gif_url": "/gifs/0023.gif",
     "source": "static_raw_v1"
   },
   {
@@ -656,7 +656,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0030",
+    "gif_url": "/gifs/0030.gif",
     "source": "static_raw_v1"
   },
   {
@@ -666,7 +666,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0031",
+    "gif_url": "/gifs/0031.gif",
     "source": "static_raw_v1"
   },
   {
@@ -676,7 +676,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0035",
+    "gif_url": "/gifs/0035.gif",
     "source": "static_raw_v1"
   },
   {
@@ -686,7 +686,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0038",
+    "gif_url": "/gifs/0038.gif",
     "source": "static_raw_v1"
   },
   {
@@ -696,7 +696,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0048",
+    "gif_url": "/gifs/0048.gif",
     "source": "static_raw_v1"
   },
   {
@@ -706,7 +706,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0052",
+    "gif_url": "/gifs/0052.gif",
     "source": "static_raw_v1"
   },
   {
@@ -716,7 +716,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0055",
+    "gif_url": "/gifs/0055.gif",
     "source": "static_raw_v1"
   },
   {
@@ -726,7 +726,7 @@
     "target": "hamstrings",
     "body_part": "upper legs",
     "equipment": "assisted",
-    "gif_url": "/api/exercises/gif/0016",
+    "gif_url": "/gifs/0016.gif",
     "source": "static_raw_v1"
   },
   {
@@ -736,7 +736,7 @@
     "target": "quads",
     "body_part": "upper legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0020",
+    "gif_url": "/gifs/0020.gif",
     "source": "static_raw_v1"
   },
   {
@@ -746,7 +746,7 @@
     "target": "quads",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0024",
+    "gif_url": "/gifs/0024.gif",
     "source": "static_raw_v1"
   },
   {
@@ -756,7 +756,7 @@
     "target": "quads",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0026",
+    "gif_url": "/gifs/0026.gif",
     "source": "static_raw_v1"
   },
   {
@@ -766,7 +766,7 @@
     "target": "quads",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0028",
+    "gif_url": "/gifs/0028.gif",
     "source": "static_raw_v1"
   },
   {
@@ -776,7 +776,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0029",
+    "gif_url": "/gifs/0029.gif",
     "source": "static_raw_v1"
   },
   {
@@ -786,7 +786,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0032",
+    "gif_url": "/gifs/0032.gif",
     "source": "static_raw_v1"
   },
   {
@@ -796,7 +796,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0039",
+    "gif_url": "/gifs/0039.gif",
     "source": "static_raw_v1"
   },
   {
@@ -806,7 +806,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0042",
+    "gif_url": "/gifs/0042.gif",
     "source": "static_raw_v1"
   },
   {
@@ -816,7 +816,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0043",
+    "gif_url": "/gifs/0043.gif",
     "source": "static_raw_v1"
   },
   {
@@ -826,7 +826,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0001",
+    "gif_url": "/gifs/0001.gif",
     "source": "static_raw_v1"
   },
   {
@@ -836,7 +836,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0002",
+    "gif_url": "/gifs/0002.gif",
     "source": "static_raw_v1"
   },
   {
@@ -846,7 +846,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0003",
+    "gif_url": "/gifs/0003.gif",
     "source": "static_raw_v1"
   },
   {
@@ -856,7 +856,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0006",
+    "gif_url": "/gifs/0006.gif",
     "source": "static_raw_v1"
   },
   {
@@ -866,7 +866,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "assisted",
-    "gif_url": "/api/exercises/gif/0010",
+    "gif_url": "/gifs/0010.gif",
     "source": "static_raw_v1"
   },
   {
@@ -876,7 +876,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "assisted",
-    "gif_url": "/api/exercises/gif/0011",
+    "gif_url": "/gifs/0011.gif",
     "source": "static_raw_v1"
   },
   {
@@ -886,7 +886,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "assisted",
-    "gif_url": "/api/exercises/gif/0012",
+    "gif_url": "/gifs/0012.gif",
     "source": "static_raw_v1"
   },
   {
@@ -896,7 +896,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "assisted",
-    "gif_url": "/api/exercises/gif/0013",
+    "gif_url": "/gifs/0013.gif",
     "source": "static_raw_v1"
   },
   {
@@ -906,7 +906,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "medicine ball",
-    "gif_url": "/api/exercises/gif/0014",
+    "gif_url": "/gifs/0014.gif",
     "source": "static_raw_v1"
   },
   {
@@ -916,7 +916,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0071",
+    "gif_url": "/gifs/0071.gif",
     "source": "static_raw_v1"
   },
   {
@@ -926,7 +926,7 @@
     "target": "abductors",
     "body_part": "upper legs",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0597",
+    "gif_url": "/gifs/0597.gif",
     "source": "static_raw_v1"
   },
   {
@@ -936,7 +936,7 @@
     "target": "abductors",
     "body_part": "upper legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0710",
+    "gif_url": "/gifs/0710.gif",
     "source": "static_raw_v1"
   },
   {
@@ -946,7 +946,7 @@
     "target": "abductors",
     "body_part": "upper legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/1427",
+    "gif_url": "/gifs/1427.gif",
     "source": "static_raw_v1"
   },
   {
@@ -956,7 +956,7 @@
     "target": "abductors",
     "body_part": "upper legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/1774",
+    "gif_url": "/gifs/1774.gif",
     "source": "static_raw_v1"
   },
   {
@@ -966,7 +966,7 @@
     "target": "abductors",
     "body_part": "upper legs",
     "equipment": "resistance band",
-    "gif_url": "/api/exercises/gif/3006",
+    "gif_url": "/gifs/3006.gif",
     "source": "static_raw_v1"
   },
   {
@@ -976,7 +976,7 @@
     "target": "adductors",
     "body_part": "upper legs",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0168",
+    "gif_url": "/gifs/0168.gif",
     "source": "static_raw_v1"
   },
   {
@@ -986,7 +986,7 @@
     "target": "adductors",
     "body_part": "upper legs",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0598",
+    "gif_url": "/gifs/0598.gif",
     "source": "static_raw_v1"
   },
   {
@@ -996,7 +996,7 @@
     "target": "adductors",
     "body_part": "upper legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/1494",
+    "gif_url": "/gifs/1494.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1006,7 +1006,7 @@
     "target": "adductors",
     "body_part": "upper legs",
     "equipment": "assisted",
-    "gif_url": "/api/exercises/gif/1712",
+    "gif_url": "/gifs/1712.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1016,7 +1016,7 @@
     "target": "adductors",
     "body_part": "upper legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/1775",
+    "gif_url": "/gifs/1775.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1026,7 +1026,7 @@
     "target": "adductors",
     "body_part": "upper legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/3667",
+    "gif_url": "/gifs/3667.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1036,7 +1036,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0059",
+    "gif_url": "/gifs/0059.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1046,7 +1046,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0070",
+    "gif_url": "/gifs/0070.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1056,7 +1056,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0072",
+    "gif_url": "/gifs/0072.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1066,7 +1066,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0080",
+    "gif_url": "/gifs/0080.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1076,7 +1076,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0081",
+    "gif_url": "/gifs/0081.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1086,7 +1086,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0089",
+    "gif_url": "/gifs/0089.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1096,7 +1096,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0106",
+    "gif_url": "/gifs/0106.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1106,7 +1106,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0046",
+    "gif_url": "/gifs/0046.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1116,7 +1116,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0051",
+    "gif_url": "/gifs/0051.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1126,7 +1126,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0053",
+    "gif_url": "/gifs/0053.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1136,7 +1136,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0054",
+    "gif_url": "/gifs/0054.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1146,7 +1146,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0058",
+    "gif_url": "/gifs/0058.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1156,7 +1156,7 @@
     "target": "hamstrings",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0044",
+    "gif_url": "/gifs/0044.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1166,7 +1166,7 @@
     "target": "hamstrings",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0116",
+    "gif_url": "/gifs/0116.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1176,7 +1176,7 @@
     "target": "hamstrings",
     "body_part": "upper legs",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0339",
+    "gif_url": "/gifs/0339.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1186,7 +1186,7 @@
     "target": "hamstrings",
     "body_part": "upper legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0496",
+    "gif_url": "/gifs/0496.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1196,7 +1196,7 @@
     "target": "hamstrings",
     "body_part": "upper legs",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0535",
+    "gif_url": "/gifs/0535.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1206,7 +1206,7 @@
     "target": "hamstrings",
     "body_part": "upper legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0555",
+    "gif_url": "/gifs/0555.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1216,7 +1216,7 @@
     "target": "hamstrings",
     "body_part": "upper legs",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0582",
+    "gif_url": "/gifs/0582.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1226,7 +1226,7 @@
     "target": "hamstrings",
     "body_part": "upper legs",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0586",
+    "gif_url": "/gifs/0586.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1236,7 +1236,7 @@
     "target": "hamstrings",
     "body_part": "upper legs",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0599",
+    "gif_url": "/gifs/0599.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1246,7 +1246,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0150",
+    "gif_url": "/gifs/0150.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1256,7 +1256,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0153",
+    "gif_url": "/gifs/0153.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1266,7 +1266,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0172",
+    "gif_url": "/gifs/0172.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1276,7 +1276,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0155",
+    "gif_url": "/gifs/0155.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1286,7 +1286,7 @@
     "target": "quads",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0068",
+    "gif_url": "/gifs/0068.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1296,7 +1296,7 @@
     "target": "quads",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0069",
+    "gif_url": "/gifs/0069.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1306,7 +1306,7 @@
     "target": "quads",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0097",
+    "gif_url": "/gifs/0097.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1316,7 +1316,7 @@
     "target": "quads",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0098",
+    "gif_url": "/gifs/0098.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1326,7 +1326,7 @@
     "target": "quads",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0099",
+    "gif_url": "/gifs/0099.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1336,7 +1336,7 @@
     "target": "quads",
     "body_part": "upper legs",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0102",
+    "gif_url": "/gifs/0102.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1346,7 +1346,7 @@
     "target": "serratus anterior",
     "body_part": "chest",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0328",
+    "gif_url": "/gifs/0328.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1356,7 +1356,7 @@
     "target": "serratus anterior",
     "body_part": "chest",
     "equipment": "smith machine",
-    "gif_url": "/api/exercises/gif/0759",
+    "gif_url": "/gifs/0759.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1366,7 +1366,7 @@
     "target": "serratus anterior",
     "body_part": "chest",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/3011",
+    "gif_url": "/gifs/3011.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1376,7 +1376,7 @@
     "target": "serratus anterior",
     "body_part": "chest",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/3021",
+    "gif_url": "/gifs/3021.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1386,7 +1386,7 @@
     "target": "spine",
     "body_part": "back",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0488",
+    "gif_url": "/gifs/0488.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1396,7 +1396,7 @@
     "target": "spine",
     "body_part": "back",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0489",
+    "gif_url": "/gifs/0489.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1406,7 +1406,7 @@
     "target": "spine",
     "body_part": "back",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0573",
+    "gif_url": "/gifs/0573.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1416,7 +1416,7 @@
     "target": "spine",
     "body_part": "back",
     "equipment": "weighted",
-    "gif_url": "/api/exercises/gif/0835",
+    "gif_url": "/gifs/0835.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1426,7 +1426,7 @@
     "target": "spine",
     "body_part": "back",
     "equipment": "band",
-    "gif_url": "/api/exercises/gif/1010",
+    "gif_url": "/gifs/1010.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1436,7 +1436,7 @@
     "target": "spine",
     "body_part": "back",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/1314",
+    "gif_url": "/gifs/1314.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1446,7 +1446,7 @@
     "target": "spine",
     "body_part": "back",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/1333",
+    "gif_url": "/gifs/1333.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1456,7 +1456,7 @@
     "target": "spine",
     "body_part": "back",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/1334",
+    "gif_url": "/gifs/1334.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1466,7 +1466,7 @@
     "target": "spine",
     "body_part": "back",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/1335",
+    "gif_url": "/gifs/1335.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1476,7 +1476,7 @@
     "target": "spine",
     "body_part": "back",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/1336",
+    "gif_url": "/gifs/1336.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1486,7 +1486,7 @@
     "target": "traps",
     "body_part": "back",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0095",
+    "gif_url": "/gifs/0095.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1496,7 +1496,7 @@
     "target": "traps",
     "body_part": "back",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0220",
+    "gif_url": "/gifs/0220.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1506,7 +1506,7 @@
     "target": "traps",
     "body_part": "back",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0304",
+    "gif_url": "/gifs/0304.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1516,7 +1516,7 @@
     "target": "traps",
     "body_part": "back",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0305",
+    "gif_url": "/gifs/0305.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1526,7 +1526,7 @@
     "target": "traps",
     "body_part": "back",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0329",
+    "gif_url": "/gifs/0329.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1536,7 +1536,7 @@
     "target": "traps",
     "body_part": "back",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0406",
+    "gif_url": "/gifs/0406.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1546,7 +1546,7 @@
     "target": "traps",
     "body_part": "back",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0548",
+    "gif_url": "/gifs/0548.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1556,7 +1556,7 @@
     "target": "traps",
     "body_part": "back",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0580",
+    "gif_url": "/gifs/0580.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1566,7 +1566,7 @@
     "target": "traps",
     "body_part": "back",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0604",
+    "gif_url": "/gifs/0604.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1576,7 +1576,7 @@
     "target": "traps",
     "body_part": "back",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0688",
+    "gif_url": "/gifs/0688.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1586,7 +1586,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0056",
+    "gif_url": "/gifs/0056.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1596,7 +1596,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0057",
+    "gif_url": "/gifs/0057.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1606,7 +1606,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0060",
+    "gif_url": "/gifs/0060.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1616,7 +1616,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "barbell",
-    "gif_url": "/api/exercises/gif/0118",
+    "gif_url": "/gifs/0118.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1626,7 +1626,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0159",
+    "gif_url": "/gifs/0159.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1636,7 +1636,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0160",
+    "gif_url": "/gifs/0160.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1646,7 +1646,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0167",
+    "gif_url": "/gifs/0167.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1656,7 +1656,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0180",
+    "gif_url": "/gifs/0180.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1666,7 +1666,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0189",
+    "gif_url": "/gifs/0189.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1676,7 +1676,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0193",
+    "gif_url": "/gifs/0193.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1686,7 +1686,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0148",
+    "gif_url": "/gifs/0148.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1696,7 +1696,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0149",
+    "gif_url": "/gifs/0149.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1706,7 +1706,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0152",
+    "gif_url": "/gifs/0152.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1716,7 +1716,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0154",
+    "gif_url": "/gifs/0154.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1726,7 +1726,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "cable",
-    "gif_url": "/api/exercises/gif/0157",
+    "gif_url": "/gifs/0157.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1736,7 +1736,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0285",
+    "gif_url": "/gifs/0285.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1746,7 +1746,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0286",
+    "gif_url": "/gifs/0286.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1756,7 +1756,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0287",
+    "gif_url": "/gifs/0287.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1766,7 +1766,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0288",
+    "gif_url": "/gifs/0288.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1776,7 +1776,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0289",
+    "gif_url": "/gifs/0289.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1786,7 +1786,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0290",
+    "gif_url": "/gifs/0290.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1796,7 +1796,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0291",
+    "gif_url": "/gifs/0291.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1806,7 +1806,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0292",
+    "gif_url": "/gifs/0292.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1816,7 +1816,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0293",
+    "gif_url": "/gifs/0293.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1826,7 +1826,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "dumbbell",
-    "gif_url": "/api/exercises/gif/0294",
+    "gif_url": "/gifs/0294.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1836,7 +1836,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0571",
+    "gif_url": "/gifs/0571.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1846,7 +1846,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0572",
+    "gif_url": "/gifs/0572.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1856,7 +1856,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0575",
+    "gif_url": "/gifs/0575.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1866,7 +1866,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0576",
+    "gif_url": "/gifs/0576.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1876,7 +1876,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "leverage machine",
-    "gif_url": "/api/exercises/gif/0577",
+    "gif_url": "/gifs/0577.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1886,7 +1886,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0517",
+    "gif_url": "/gifs/0517.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1896,7 +1896,7 @@
     "target": "forearms",
     "body_part": "lower arms",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0518",
+    "gif_url": "/gifs/0518.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1906,7 +1906,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0519",
+    "gif_url": "/gifs/0519.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1916,7 +1916,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0520",
+    "gif_url": "/gifs/0520.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1926,7 +1926,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0521",
+    "gif_url": "/gifs/0521.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1936,7 +1936,7 @@
     "target": "upper back",
     "body_part": "back",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0522",
+    "gif_url": "/gifs/0522.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1946,7 +1946,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0523",
+    "gif_url": "/gifs/0523.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1956,7 +1956,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0524",
+    "gif_url": "/gifs/0524.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1966,7 +1966,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0525",
+    "gif_url": "/gifs/0525.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1976,7 +1976,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "kettlebell",
-    "gif_url": "/api/exercises/gif/0526",
+    "gif_url": "/gifs/0526.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1986,7 +1986,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "band",
-    "gif_url": "/api/exercises/gif/0968",
+    "gif_url": "/gifs/0968.gif",
     "source": "static_raw_v1"
   },
   {
@@ -1996,7 +1996,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "band",
-    "gif_url": "/api/exercises/gif/0969",
+    "gif_url": "/gifs/0969.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2006,7 +2006,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "band",
-    "gif_url": "/api/exercises/gif/0970",
+    "gif_url": "/gifs/0970.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2016,7 +2016,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "band",
-    "gif_url": "/api/exercises/gif/0971",
+    "gif_url": "/gifs/0971.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2026,7 +2026,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "band",
-    "gif_url": "/api/exercises/gif/0972",
+    "gif_url": "/gifs/0972.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2036,7 +2036,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "band",
-    "gif_url": "/api/exercises/gif/0974",
+    "gif_url": "/gifs/0974.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2046,7 +2046,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "band",
-    "gif_url": "/api/exercises/gif/0975",
+    "gif_url": "/gifs/0975.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2056,7 +2056,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "band",
-    "gif_url": "/api/exercises/gif/0976",
+    "gif_url": "/gifs/0976.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2066,7 +2066,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "band",
-    "gif_url": "/api/exercises/gif/0977",
+    "gif_url": "/gifs/0977.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2076,7 +2076,7 @@
     "target": "delts",
     "body_part": "shoulders",
     "equipment": "band",
-    "gif_url": "/api/exercises/gif/0978",
+    "gif_url": "/gifs/0978.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2086,7 +2086,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0129",
+    "gif_url": "/gifs/0129.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2096,7 +2096,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0130",
+    "gif_url": "/gifs/0130.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2106,7 +2106,7 @@
     "target": "triceps",
     "body_part": "upper arms",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0137",
+    "gif_url": "/gifs/0137.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2116,7 +2116,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0138",
+    "gif_url": "/gifs/0138.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2126,7 +2126,7 @@
     "target": "biceps",
     "body_part": "upper arms",
     "equipment": "body weight",
-    "gif_url": "/api/exercises/gif/0139",
+    "gif_url": "/gifs/0139.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2136,7 +2136,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/0271",
+    "gif_url": "/gifs/0271.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2146,7 +2146,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/0272",
+    "gif_url": "/gifs/0272.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2156,7 +2156,7 @@
     "target": "abs",
     "body_part": "waist",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/0650",
+    "gif_url": "/gifs/0650.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2166,7 +2166,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/0655",
+    "gif_url": "/gifs/0655.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2176,7 +2176,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/0656",
+    "gif_url": "/gifs/0656.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2186,7 +2186,7 @@
     "target": "glutes",
     "body_part": "upper legs",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/0675",
+    "gif_url": "/gifs/0675.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2196,7 +2196,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/1272",
+    "gif_url": "/gifs/1272.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2206,7 +2206,7 @@
     "target": "pectorals",
     "body_part": "chest",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/1296",
+    "gif_url": "/gifs/1296.gif",
     "source": "static_raw_v1"
   },
   {
@@ -2216,7 +2216,7 @@
     "target": "lats",
     "body_part": "back",
     "equipment": "stability ball",
-    "gif_url": "/api/exercises/gif/1332",
+    "gif_url": "/gifs/1332.gif",
     "source": "static_raw_v1"
   }
 ]
