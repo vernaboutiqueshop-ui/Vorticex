@@ -1,23 +1,22 @@
 import { useState, useEffect } from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  PieChart, Pie, Cell, LineChart, Line
-} from 'recharts';
-import { Calendar, Activity, PieChart as PieIcon, TrendingUp, History } from 'lucide-react';
+import { Player } from '@lottiefiles/react-lottie-player';
+import { Trophy, Flame, Target, CalendarDays, Activity, ChevronRight } from 'lucide-react';
 import API from '../config';
+import { useLanguage } from '../LanguageContext';
 
 export default function GraficosView({ perfil }) {
-  const [trainingData, setTrainingData] = useState({ por_dia: [], por_musculo: [] });
+  const { t, lang } = useLanguage();
+  const [userData, setUserData] = useState({ level: 1, exp: 0 });
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${API}/api/graficos/entrenamientos?perfil=${perfil}`).then(r => r.ok ? r.json() : {}),
-      fetch(`${API}/api/graficos/timeline?perfil=${perfil}`).then(r => r.ok ? r.json() : {})
-    ]).then(([train, time]) => {
-      if (train.data) setTrainingData(train.data);
+      fetch(`${API}/api/perfil/${perfil}`).then(r => r.ok ? r.json() : {}),
+      fetch(`${API}/api/graficos/timeline?perfil=${perfil}&limit=100`).then(r => r.ok ? r.json() : {})
+    ]).then(([profile, time]) => {
+      if (profile.perfil) setUserData(profile.perfil);
       if (time.eventos) setTimeline(time.eventos);
       setLoading(false);
     }).catch(err => {
@@ -26,121 +25,133 @@ export default function GraficosView({ perfil }) {
     });
   }, [perfil]);
 
-  const COLORS = ['#38bdf8', '#818cf8', '#34d399', '#fbbf24', '#f87171', '#a78bfa'];
+  if (loading) return <div className="loading-state">Calculando estadísticas...</div>;
 
-  if (loading) return <div className="loading-state">Analizando datos biométricos...</div>;
+  // Cálculos de EXP
+  const level = userData.level || 1;
+  const exp = userData.exp || 0;
+  const expParaSiguiente = level * 1000;
+  const expActualNivel = exp % 1000;
+  const pctProgreso = Math.min(100, Math.max(0, (expActualNivel / expParaSiguiente) * 100));
+
+  // Rango / Ranking basado en nivel
+  const getRango = (lvl) => {
+    if (lvl < 5) return "Novato";
+    if (lvl < 15) return "Entusiasta";
+    if (lvl < 30) return "Avanzado";
+    if (lvl < 50) return "Atleta";
+    return "Élite";
+  };
+
+  // Cálculos para el Heatmap (Calendario)
+  const hoy = new Date();
+  const heatMapDays = [];
+  // Últimos 28 días
+  for (let i = 27; i >= 0; i--) {
+    const d = new Date(hoy);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    
+    // Contar eventos GymSession o Gym para ese día
+    const eventosDia = timeline.filter(ev => ev.timestamp && ev.timestamp.startsWith(dateStr) && (ev.tipo === 'GymSession' || ev.tipo === 'Gym'));
+    heatMapDays.push({
+      date: dateStr,
+      diaSemana: d.getDay(),
+      count: eventosDia.length,
+      isActive: eventosDia.length > 0
+    });
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '2rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '5rem', maxWidth: '500px', margin: '0 auto' }}>
       
-      {/* 1. Volumen Semanal */}
-      <div className="card">
-        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem' }}>
-          <TrendingUp size={18} color="#38bdf8" /> Volumen de Entrenamiento (kg)
-        </h2>
-        <div style={{ height: '220px', width: '100%', marginTop: '1rem' }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={[...trainingData.por_dia].reverse()}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis 
-                dataKey="fecha" 
-                tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} 
-                axisLine={false}
-                tickLine={false}
-                tickFormatter={(val) => val.split('-').slice(1).reverse().join('/')}
-              />
-              <YAxis hide />
-              <Tooltip 
-                contentStyle={{ backgroundColor: 'var(--bg-card)', border: 'none', borderRadius: '8px', color: 'white' }}
-                itemStyle={{ color: '#38bdf8' }}
-                cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-              />
-              <Bar dataKey="volumen" fill="url(#colorVol)" radius={[4, 4, 0, 0]} />
-              <defs>
-                <linearGradient id="colorVol" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.1}/>
-                </linearGradient>
-              </defs>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-        {/* 2. Distribución Muscular */}
-        <div className="card">
-          <h2 style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Músculos</h2>
-          <div style={{ height: '140px', width: '100%' }}>
-            <ResponsiveContainer width="99%" height="100%">
-              <PieChart>
-                <Pie 
-                  data={trainingData.por_musculo} 
-                  innerRadius={35} 
-                  outerRadius={55} 
-                  paddingAngle={5} 
-                  dataKey="sets"
-                >
-                  {trainingData.por_musculo.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
-            Últimos 30 días
-          </div>
+      {/* 1. SECCIÓN DE GAMIFICACIÓN (EXP Y NIVEL) */}
+      <div className="hevy-card" style={{ padding: '2rem 1.5rem', position: 'relative', overflow: 'hidden' }}>
+        {/* Lottie Fire background sutil */}
+        <div style={{ position: 'absolute', top: '-30px', right: '-30px', opacity: 0.1, transform: 'scale(1.5)' }}>
+            <Player autoplay loop src="https://assets3.lottiefiles.com/packages/lf20_touohxv0.json" style={{ width: '150px', height: '150px' }} />
         </div>
 
-        {/* 3. Stats Rápidas */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div className="card" style={{ padding: '0.8rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Series Totales</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#38bdf8' }}>
-              {trainingData.por_dia.reduce((a, b) => a + b.series, 0)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', position: 'relative', zIndex: 2 }}>
+          <div style={{ 
+            width: '80px', height: '80px', borderRadius: '50%', 
+            background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 0 20px rgba(245, 158, 11, 0.4)', border: '3px solid #1e293b'
+          }}>
+            <span style={{ fontSize: '2rem', fontWeight: 900, color: 'white', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>{level}</span>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.3rem' }}>
+               <h2 style={{ color: 'white', margin: 0, fontSize: '1.3rem', fontWeight: 900 }}>Nivel {level}</h2>
+               <span style={{ color: '#f59e0b', fontWeight: 800, fontSize: '0.9rem' }}>{getRango(level)}</span>
             </div>
-          </div>
-          <div className="card" style={{ padding: '0.8rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Ejercicios</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#34d399' }}>
-              {trainingData.por_dia.length > 0 ? Math.max(...trainingData.por_dia.map(d => d.ejercicios)) : 0}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Timeline de Eventos */}
-      <div className="card">
-        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.1rem', marginBottom: '1rem' }}>
-          <History size={18} color="var(--text-secondary)" /> Línea de Tiempo
-        </h2>
-        <div className="timeline-container">
-          {timeline.map((ev, i) => (
-            <div key={i} className="timeline-item">
-              <div className="timeline-marker" style={{ 
-                background: ev.tipo === 'Gym' ? '#38bdf8' : (ev.tipo === 'Nutricion' ? '#ef4444' : '#94a3b8') 
+            
+            <div style={{ background: 'rgba(0,0,0,0.5)', height: '14px', borderRadius: '10px', overflow: 'hidden', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ 
+                width: `${pctProgreso}%`, height: '100%', 
+                background: 'linear-gradient(90deg, #f59e0b, #ef4444)',
+                borderRadius: '10px', transition: 'width 1s ease-in-out'
               }}></div>
-              <div className="timeline-content">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{ev.tipo}</span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
-                    {new Date(ev.timestamp).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}
-                  </span>
-                </div>
-                <div style={{ fontSize: '0.8rem', marginTop: '0.2rem', color: 'var(--text-primary)' }}>{ev.descripcion}</div>
-                {ev.tipo === 'Nutricion' && ev.calorias > 0 && (
-                  <div style={{ fontSize: '0.75rem', color: '#ef4444', marginTop: '0.2rem', fontWeight: 500 }}>
-                    🔥 {ev.calorias} kcal | {ev.proteinas}g Prot
-                  </div>
-                )}
-              </div>
             </div>
-          ))}
-          {timeline.length === 0 && <p className="text-muted" style={{textAlign:'center', fontSize:'0.85rem'}}>Sin eventos registrados todavía.</p>}
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>
+              <span>{expActualNivel} EXP</span>
+              <span>{expParaSiguiente} EXP</span>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* 2. CALENDARIO DE ENTRENAMIENTO (HEATMAP) */}
+      <div className="hevy-card">
+        <h3 style={{ color: 'white', fontSize: '1.1rem', fontWeight: 900, margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CalendarDays size={20} color="#10b981" /> Racha de Entrenamiento
+        </h3>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
+          {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map(d => (
+             <div key={d} style={{ textAlign: 'center', color: '#64748b', fontSize: '0.7rem', fontWeight: 800 }}>{d}</div>
+          ))}
+          {/* Rellenar espacios vacíos para que el primer día cuadre (simplificado) */}
+          {Array(heatMapDays[0].diaSemana).fill(0).map((_, i) => <div key={`empty-${i}`}></div>)}
+          
+          {heatMapDays.map((dia, i) => (
+             <div key={i} title={`${dia.date}: ${dia.count} eventos`} style={{
+               aspectRatio: '1',
+               borderRadius: '6px',
+               background: dia.isActive ? (dia.count > 10 ? '#10b981' : 'rgba(16, 185, 129, 0.4)') : 'rgba(255,255,255,0.03)',
+               border: dia.isActive ? '1px solid rgba(16, 185, 129, 0.8)' : '1px solid rgba(255,255,255,0.05)',
+               display: 'flex', alignItems: 'center', justifyContent: 'center',
+               fontSize: '0.6rem', color: dia.isActive ? 'black' : 'transparent', fontWeight: 900,
+               transition: 'all 0.2s', cursor: 'pointer'
+             }}>
+               {dia.isActive ? '✓' : ''}
+             </div>
+          ))}
+        </div>
+        <p style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'center', marginTop: '1rem', marginBottom: 0 }}>
+          Si no entrenás por más de 1 día perdés EXP, pero nunca tu nivel. ¡Mantené la racha!
+        </p>
+      </div>
+
+      {/* 3. RANKING Y LOGROS */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div className="hevy-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.5rem 1rem' }}>
+          <Player autoplay loop src="https://assets2.lottiefiles.com/packages/lf20_t24tpvcu.json" style={{ width: '80px', height: '80px', marginBottom: '0.5rem' }} />
+          <h4 style={{ color: 'white', margin: '0', fontSize: '1rem', fontWeight: 900 }}>Top 5%</h4>
+          <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>En tu categoría de edad</span>
+        </div>
+
+        <div className="hevy-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.5rem 1rem' }}>
+          <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', marginBottom: '0.5rem' }}>
+            <Activity size={40} color="#38bdf8" />
+          </div>
+          <h4 style={{ color: 'white', margin: '0', fontSize: '1rem', fontWeight: 900 }}>{timeline.filter(e => e.tipo==='GymSession').length} Sesiones</h4>
+          <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>Últimos 30 días</span>
+        </div>
+      </div>
+
     </div>
   );
 }

@@ -296,10 +296,36 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                   </button>
                 </div>
                 <h3 style={{ color: 'white', fontSize: '1.1rem', fontWeight: 900, margin: '1rem 0 0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><TrendingUp size={20} color="var(--accent-gym)"/> {t('my_routines')}</h3>
-                {rutinasGuardadas.map(r => (
-                  <div key={r.id} className="hevy-card" style={{ position: 'relative' }}>
-                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <h4 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '1.2rem' }}>{r.name}</h4>
+                {rutinasGuardadas.map(r => {
+                  const formatAvgTime = (secs) => {
+                     if (!secs) return null;
+                     const h = Math.floor(secs / 3600);
+                     const m = Math.floor((secs % 3600) / 60);
+                     if (h > 0) return `${h}h ${m}m`;
+                     return `${m}m`;
+                  };
+                  return (
+                  <div key={r.id} className="hevy-card" style={{ position: 'relative', cursor: 'pointer', transition: 'all 0.2s' }} onClick={() => {
+                      setEditingRoutineId(r.id); 
+                      setNombreRutinaNueva(r.name); 
+                      const rutinaEditable = r.ejercicios.map(ej => ({
+                         ...ej,
+                         sets: Array(ej.sets_count || 3).fill(0).map(() => ({ reps: ej.reps_default || '12', kg: '', done: false }))
+                      }));
+                      setRutina(rutinaEditable); 
+                      setIsCreatingRoutine(true); 
+                  }}>
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <div>
+                           <h4 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '1.2rem' }}>{r.name}</h4>
+                           {r.avg_duration_seconds > 0 && (
+                              <div style={{ marginTop: '0.3rem' }}>
+                                 <span style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 800 }}>
+                                    ⏱️ {formatAvgTime(r.avg_duration_seconds)}
+                                 </span>
+                              </div>
+                           )}
+                        </div>
                         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                            <div style={{ height: '40px', width: '30px' }}><MuscleMap targets={r.ejercicios.map(e => e.target)} /></div>
                            <div style={{ position: 'relative' }}>
@@ -308,21 +334,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                              </button>
                              {activeMenuId === r.id && (
                                 <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: '100%', right: 0, background: 'white', borderRadius: '12px', padding: '0.5rem', zIndex: 50, width: '200px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                                   <button onClick={() => { 
-                                      setActiveMenuId(null); 
-                                      setEditingRoutineId(r.id); 
-                                      setNombreRutinaNueva(r.name); 
-                                      // Inicializar sets para la edición
-                                      const rutinaEditable = r.ejercicios.map(ej => ({
-                                         ...ej,
-                                         sets: Array(ej.sets_count || 3).fill(0).map(() => ({ reps: ej.reps_default || '12', kg: '', done: false }))
-                                      }));
-                                      setRutina(rutinaEditable); 
-                                      setIsCreatingRoutine(true); 
-                                   }} className="hevy-btn" style={{ background: 'transparent', color: '#1e293b', justifyContent: 'flex-start', padding: '0.8rem', width: '100%' }}>
-                                      <Edit2 size={18} style={{ marginRight: '0.5rem' }} /> {lang === 'es' ? 'Editar rutina' : 'Edit routine'}
-                                   </button>
-                                   <button onClick={async () => { setActiveMenuId(null); if(window.confirm(lang === 'es' ? '¿Seguro que deseas ocultar/eliminar esta rutina?' : 'Delete this routine?')){ await fetch(`${API}/api/gym/rutina/${r.id}`, { method: 'DELETE' }); loadRoutines(); } }} className="hevy-btn" style={{ background: 'transparent', color: '#ef4444', justifyContent: 'flex-start', padding: '0.8rem', width: '100%' }}>
+                                   <button onClick={async () => { setActiveMenuId(null); if(window.confirm(lang === 'es' ? '¿Seguro que deseas eliminar esta rutina?' : 'Delete this routine?')){ await fetch(`${API}/api/gym/rutina/${r.id}`, { method: 'DELETE' }); loadRoutines(); } }} className="hevy-btn" style={{ background: 'transparent', color: '#ef4444', justifyContent: 'flex-start', padding: '0.8rem', width: '100%' }}>
                                       <Trash size={18} style={{ marginRight: '0.5rem' }} /> {lang === 'es' ? 'Eliminar rutina' : 'Delete routine'}
                                    </button>
                                 </div>
@@ -335,11 +347,11 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                            ? r.ejercicios.slice(0, 3).map(e => lang === 'en' && e.nombre_en ? e.nombre_en : e.nombre_es).join(', ') + '...'
                            : 'Sin ejercicios'}
                      </p>
-                     <button onClick={() => startRoutineWithHistory(r.ejercicios)} className="hevy-btn hevy-btn-primary" style={{ width: '100%', padding: '0.8rem', fontSize: '1rem' }}>
-                        {lang === 'es' ? 'Empezar Entrenamiento' : 'Start Workout'}
+                     <button onClick={(e) => { e.stopPropagation(); startRoutineWithHistory(r.ejercicios); }} className="hevy-btn hevy-btn-primary" style={{ width: '100%', padding: '0.8rem', fontSize: '1rem', marginTop: '0.5rem' }}>
+                        <Play fill="currentColor" size={16} style={{marginRight: '0.5rem'}}/> {lang === 'es' ? 'Empezar Entrenamiento' : 'Start Workout'}
                      </button>
                   </div>
-                ))}
+                )})}
               </div>
             )}
           </div>

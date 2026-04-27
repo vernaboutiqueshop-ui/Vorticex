@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { MessageSquare, Apple, Activity, BarChart2, User, Zap } from 'lucide-react';
-import AgentView from './components/AgentView';
 import GymView from './components/GymView';
 import NutricionView from './components/NutricionView';
 import GraficosView from './components/GraficosView';
@@ -12,7 +11,7 @@ import { LanguageProvider, useLanguage } from './LanguageContext';
 import './index.css';
 
 function AppContent() {
-  const [activeTab, setActiveTab] = useState('agente');
+  const [activeTab, setActiveTab] = useState('gym');
   const [pendingRutina, setPendingRutina] = useState(null);
   const { t } = useLanguage();
 
@@ -45,7 +44,6 @@ function AppContent() {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'agente': return <AgentView perfil={perfil} onLoadRutina={handleLoadRutina} />;
       case 'nutricion': return <NutricionView perfil={perfil} />;
       case 'gym': return <GymView perfil={perfil} pendingRutina={pendingRutina} onRutinaLoaded={() => setPendingRutina(null)} />;
       case 'graficos': return <GraficosView perfil={perfil} />;
@@ -55,7 +53,6 @@ function AppContent() {
   };
 
   const tabs = [
-    { id: 'agente',    icon: MessageSquare, label: 'Coach' },
     { id: 'nutricion', icon: Apple,         label: t('nutrition') },
     { id: 'gym',       icon: Activity,      label: t('gym') },
     { id: 'graficos',  icon: BarChart2,     label: t('stats') },

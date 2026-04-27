@@ -21,15 +21,48 @@ def _now():
 def _today():
     return datetime.datetime.now().strftime("%Y-%m-%d")
 
-# --- PERFILES ---
 def obtener_perfil(nombre: str):
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT * FROM users WHERE name = ?", (nombre,))
+        
+        # Lógica de Decaimiento de EXP (Penalización por no entrenar)
+        hoy_date = datetime.datetime.now().strftime("%Y-%m-%d")
+        cur.execute("""
+            SELECT id, exp, level, last_penalty_date FROM users WHERE LOWER(name) = LOWER(?)
+        """, (nombre,))
+        u = cur.fetchone()
+        
+        if u:
+            uid = u['id']
+            exp = u['exp'] if u['exp'] else 0
+            nivel = u['level'] if u['level'] else 1
+            last_penalty = u['last_penalty_date']
+            
+            # Chequeamos si hoy ya aplicamos la penalidad
+            if last_penalty != hoy_date:
+                # Buscamos último entrenamiento
+                cur.execute("SELECT timestamp FROM activity_logs WHERE user_id = ? AND type = 'Gym' ORDER BY timestamp DESC LIMIT 1", (uid,))
+                last_gym = cur.fetchone()
+                
+                if last_gym:
+                    last_gym_date = datetime.datetime.strptime(last_gym['timestamp'][:10], "%Y-%m-%d")
+                    hoy_dt = datetime.datetime.strptime(hoy_date, "%Y-%m-%d")
+                    dias_sin_gym = (hoy_dt - last_gym_date).days
+                    
+                    if dias_sin_gym > 1:
+                        # Restar 10 exp por cada día, sin bajar de 0
+                        exp_perdida = (dias_sin_gym - 1) * 10
+                        nueva_exp = max(0, exp - exp_perdida)
+                        
+                        cur.execute("UPDATE users SET exp = ?, last_penalty_date = ? WHERE id = ?", (nueva_exp, hoy_date, uid))
+                        conn.commit()
+                        print(f"Penalización de {exp_perdida} EXP aplicada al usuario {nombre}.")
+
+        # Obtener datos frescos
+        cur.execute("SELECT * FROM users WHERE LOWER(name) = LOWER(?)", (nombre,))
         row = cur.fetchone()
         if row:
             res = dict(row)
-            # Re-mapear para compatibilidad con el resto de la app
             res["descripcion"] = f"Meta: {res.get('goal')}. Peso: {res.get('weight')}kg."
             res["objetivo_ia"] = res.get('goal')
             res["memoria_viva"] = res.get('memoria_viva', 'Sin contexto generado aún.')
@@ -502,6 +535,14 @@ def obtener_rutinas_templates(perfil: str):
         """, (perfil,))
         rutinas = [dict(r) for r in cur.fetchall()]
         for r in rutinas:
+            cur.execute("""
+                SELECT AVG(CAST(val1 AS INTEGER)) as avg_duration 
+                FROM activity_logs 
+                WHERE type = 'GymSession' AND val2 = ?
+            """, (str(r['id']),))
+            avg_res = cur.fetchone()
+            r['avg_duration_seconds'] = int(avg_res['avg_duration']) if avg_res and avg_res['avg_duration'] else 0
+            
             cur.execute("""
                 SELECT exercise_id as id_ejercicio, sets as sets_count, reps as reps_default, name as nombre_es, name as name, target, gif_url 
                 FROM routine_exercises 
