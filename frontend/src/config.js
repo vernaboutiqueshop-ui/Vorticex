@@ -28,3 +28,5 @@ export const API = {
 if (typeof window !== 'undefined') {
   window.VORTICE_API = API;
 }
+
+export default API;
