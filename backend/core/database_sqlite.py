@@ -544,7 +544,7 @@ def obtener_rutinas_templates(perfil: str):
             r['avg_duration_seconds'] = int(avg_res['avg_duration']) if avg_res and avg_res['avg_duration'] else 0
             
             cur.execute("""
-                SELECT exercise_id as id_ejercicio, sets as sets_count, reps as reps_default, name as nombre_es, name as name, target, gif_url 
+                SELECT exercise_id as id_ejercicio, sets as sets_count, reps as reps_default, name as nombre_es, name as name, nombre_en, target, gif_url 
                 FROM routine_exercises 
                 JOIN exercises ON exercises.id = routine_exercises.exercise_id
                 WHERE routine_id = ?

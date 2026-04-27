@@ -415,19 +415,37 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                <History size={22} color="var(--accent-gym)"/> Historial de Sesiones
             </h3>
             
-            {timelineHistory.length > 0 ? timelineHistory.map(session => (
-               <div key={session.id} className="hevy-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem' }}>
-                  <div>
-                     <h4 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '1.1rem' }}>{session.description || 'Entrenamiento'}</h4>
-                     <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '0.4rem', fontWeight: 600 }}>
-                        {new Date(session.timestamp).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })} • ⏱️ {Math.floor(session.val1 / 60)} min
+            {timelineHistory.length > 0 ? (
+               Object.entries(
+                  timelineHistory.reduce((acc, session) => {
+                     const d = new Date(session.timestamp);
+                     const monthYear = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+                     const capitalizedMonth = monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
+                     if (!acc[capitalizedMonth]) acc[capitalizedMonth] = [];
+                     acc[capitalizedMonth].push(session);
+                     return acc;
+                  }, {})
+               ).map(([month, sessions]) => (
+                  <div key={month} style={{ marginBottom: '1.5rem' }}>
+                     <h4 style={{ color: '#94a3b8', fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '0.8rem', paddingLeft: '0.5rem', fontWeight: 800 }}>{month}</h4>
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                        {sessions.map(session => (
+                           <div key={session.id} className="hevy-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem', background: 'rgba(255,255,255,0.02)' }}>
+                              <div>
+                                 <h4 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '1.1rem' }}>{session.description || 'Entrenamiento'}</h4>
+                                 <div style={{ color: '#94a3b8', fontSize: '0.85rem', marginTop: '0.4rem', fontWeight: 600 }}>
+                                    {new Date(session.timestamp).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric' }).replace('.', ',')} • ⏱️ {Math.floor(session.val1 / 60)} min
+                                 </div>
+                              </div>
+                              <div style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '0.5rem 1rem', borderRadius: '12px', fontWeight: 900, fontSize: '0.8rem' }}>
+                                 Completado
+                              </div>
+                           </div>
+                        ))}
                      </div>
                   </div>
-                  <div style={{ background: 'rgba(56, 189, 248, 0.1)', color: '#38bdf8', padding: '0.5rem 1rem', borderRadius: '12px', fontWeight: 900, fontSize: '0.8rem' }}>
-                     Completado
-                  </div>
-               </div>
-            )) : (
+               ))
+            ) : (
                <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>Cargando sesiones o sin historial...</div>
             )}
          </div>

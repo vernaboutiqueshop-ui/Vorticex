@@ -9,6 +9,7 @@ export default function GraficosView({ perfil }) {
   const [userData, setUserData] = useState({ level: 1, exp: 0 });
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [heatmapMonthOffset, setHeatmapMonthOffset] = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -44,15 +45,19 @@ export default function GraficosView({ perfil }) {
   };
 
   // Cálculos para el Heatmap (Calendario)
-  const hoy = new Date();
+  const targetDate = new Date();
+  targetDate.setMonth(targetDate.getMonth() + heatmapMonthOffset);
+  const startOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+  const endOfMonth = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
+  
   const heatMapDays = [];
-  // Últimos 28 días
-  for (let i = 27; i >= 0; i--) {
-    const d = new Date(hoy);
-    d.setDate(d.getDate() - i);
+  // Agregar días vacíos para alinear el inicio del mes (0 = Domingo)
+  for (let i = 0; i < startOfMonth.getDay(); i++) {
+     heatMapDays.push({ empty: true });
+  }
+
+  for (let d = new Date(startOfMonth); d <= endOfMonth; d.setDate(d.getDate() + 1)) {
     const dateStr = d.toISOString().split('T')[0];
-    
-    // Contar eventos GymSession o Gym para ese día
     const eventosDia = timeline.filter(ev => ev.timestamp && ev.timestamp.startsWith(dateStr) && (ev.type === 'GymSession' || ev.type === 'Gym'));
     heatMapDays.push({
       date: dateStr,
@@ -105,30 +110,40 @@ export default function GraficosView({ perfil }) {
 
       {/* 2. CALENDARIO DE ENTRENAMIENTO (HEATMAP) */}
       <div className="hevy-card">
-        <h3 style={{ color: 'white', fontSize: '1.1rem', fontWeight: 900, margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <CalendarDays size={20} color="#10b981" /> Racha de Entrenamiento
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+           <h3 style={{ color: 'white', fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+             <CalendarDays size={20} color="#10b981" /> Racha de Entrenamiento
+           </h3>
+           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>
+             <button onClick={() => setHeatmapMonthOffset(prev => prev - 1)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center' }}><ChevronRight size={16} style={{ transform: 'rotate(180deg)' }} /></button>
+             <span style={{ color: 'white', fontSize: '0.8rem', fontWeight: 800, minWidth: '85px', textAlign: 'center', textTransform: 'capitalize' }}>
+               {new Date(new Date().setMonth(new Date().getMonth() + heatmapMonthOffset)).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).replace('.', '')}
+             </span>
+             <button onClick={() => setHeatmapMonthOffset(prev => prev + 1)} disabled={heatmapMonthOffset >= 0} style={{ background: 'transparent', border: 'none', color: heatmapMonthOffset >= 0 ? 'transparent' : '#94a3b8', cursor: heatmapMonthOffset >= 0 ? 'default' : 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center' }}><ChevronRight size={16} /></button>
+           </div>
+        </div>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
           {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map(d => (
              <div key={d} style={{ textAlign: 'center', color: '#64748b', fontSize: '0.7rem', fontWeight: 800 }}>{d}</div>
           ))}
-          {/* Rellenar espacios vacíos para que el primer día cuadre (simplificado) */}
-          {Array(heatMapDays[0].diaSemana).fill(0).map((_, i) => <div key={`empty-${i}`}></div>)}
           
-          {heatMapDays.map((dia, i) => (
-             <div key={i} title={`${dia.date}: ${dia.count} eventos`} style={{
-               aspectRatio: '1',
-               borderRadius: '6px',
-               background: dia.isActive ? (dia.count > 10 ? '#10b981' : 'rgba(16, 185, 129, 0.4)') : 'rgba(255,255,255,0.03)',
-               border: dia.isActive ? '1px solid rgba(16, 185, 129, 0.8)' : '1px solid rgba(255,255,255,0.05)',
-               display: 'flex', alignItems: 'center', justifyContent: 'center',
-               fontSize: '0.6rem', color: dia.isActive ? 'black' : 'transparent', fontWeight: 900,
-               transition: 'all 0.2s', cursor: 'pointer'
-             }}>
-               {dia.isActive ? '✓' : ''}
-             </div>
-          ))}
+          {heatMapDays.map((dia, i) => {
+             if (dia.empty) return <div key={`empty-${i}`} style={{ aspectRatio: '1', borderRadius: '6px' }}></div>;
+             return (
+               <div key={dia.date} title={`${dia.date}: ${dia.count} eventos`} style={{
+                 aspectRatio: '1',
+                 borderRadius: '6px',
+                 background: dia.isActive ? (dia.count > 10 ? '#10b981' : 'rgba(16, 185, 129, 0.4)') : 'rgba(255,255,255,0.03)',
+                 border: dia.isActive ? '1px solid rgba(16, 185, 129, 0.8)' : '1px solid rgba(255,255,255,0.05)',
+                 display: 'flex', alignItems: 'center', justifyContent: 'center',
+                 fontSize: '0.6rem', color: dia.isActive ? 'black' : '#64748b', fontWeight: 900,
+                 transition: 'all 0.2s', cursor: 'pointer'
+               }}>
+                 {dia.isActive ? '✓' : dia.date.split('-')[2]}
+               </div>
+             )
+          })}
         </div>
         <p style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'center', marginTop: '1rem', marginBottom: 0 }}>
           Si no entrenás por más de 1 día perdés EXP, pero nunca tu nivel. ¡Mantené la racha!
