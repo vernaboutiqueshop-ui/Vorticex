@@ -430,6 +430,15 @@ def api_nueva_rutina(req: RutinaNuevaRequest):
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
+@app.get("/api/gym/rutinas")
+def get_rutinas(perfil: str):
+    try:
+        from core.database_sqlite import obtener_rutinas_templates
+        rutinas = obtener_rutinas_templates(perfil)
+        return {"status": "success", "rutinas": rutinas}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
 @app.get("/api/exercises")
 def get_ejercicios_endpoint():
     try:
