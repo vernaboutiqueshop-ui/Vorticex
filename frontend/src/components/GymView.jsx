@@ -202,9 +202,9 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
          </div>
       )}
 
-      <div style={{ minHeight: '60vh' }}>
+      <div>
         {activeInternalTab === 'entrenar' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minHeight: '60vh' }}>
             {isCreatingRoutine ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="animate-in">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -358,7 +358,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
         )}
 
         {activeInternalTab === 'explorar' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }} className="animate-in">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minHeight: '60vh' }} className="animate-in">
              <div style={{ position: 'relative' }}>
                 <Search style={{ position: 'absolute', left: '1.2rem', top: '1.2rem', color: '#64748b' }} size={20} />
                 <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder={t('search_placeholder')} className="hevy-input" style={{ paddingLeft: '3.5rem', textAlign: 'left' }} />
@@ -396,7 +396,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
 
       {/* PESTAÑA HISTORIAL */}
       {activeInternalTab === 'historial' && (
-         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} className="animate-in">
+         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '60vh' }} className="animate-in">
             <h3 style={{ color: 'white', fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem 0' }}>
                <History size={22} color="var(--accent-gym)"/> Historial de Sesiones
             </h3>
