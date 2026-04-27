@@ -498,7 +498,7 @@ def obtener_rutinas_templates(perfil: str):
         cur.execute("""
             SELECT routines.* FROM routines 
             JOIN users ON users.id = routines.user_id 
-            WHERE LOWER(users.name) = LOWER(?)
+            WHERE LOWER(users.name) = LOWER(?) AND routines.active = 1
         """, (perfil,))
         rutinas = [dict(r) for r in cur.fetchall()]
         for r in rutinas:
@@ -510,6 +510,27 @@ def obtener_rutinas_templates(perfil: str):
             """, (r['id'],))
             r['ejercicios'] = [dict(e) for e in cur.fetchall()]
         return rutinas
+
+def eliminar_rutina(rid: int):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("UPDATE routines SET active = 0 WHERE id = ?", (rid,))
+        conn.commit()
+
+def actualizar_rutina_template(rid: int, nombre: str, ejercicios: list):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("UPDATE routines SET name = ? WHERE id = ?", (nombre, rid))
+        
+        # Reemplazamos los ejercicios por los nuevos
+        cur.execute("DELETE FROM routine_exercises WHERE routine_id = ?", (rid,))
+        for idx, ej in enumerate(ejercicios):
+            eid = ej.get('id_ejercicio')
+            sets = ej.get('sets_count', 3)
+            reps = ej.get('reps_default', '12')
+            cur.execute("INSERT INTO routine_exercises (routine_id, exercise_id, sets, reps, order_index) VALUES (?, ?, ?, ?, ?)", (rid, eid, sets, reps, idx))
+        conn.commit()
+        return rid
 
 def actualizar_perfil_elite(perfil: str, age: int, weight: float, height: float, language: str):
     with get_conn() as conn:

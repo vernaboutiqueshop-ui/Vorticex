@@ -421,12 +421,34 @@ class RutinaNuevaRequest(BaseModel):
     nombre: str
     ejercicios: list
 
+class RutinaUpdatePayload(BaseModel):
+    nombre: str
+    ejercicios: list
+
 @app.post("/api/gym/rutina/nueva")
 def api_nueva_rutina(req: RutinaNuevaRequest):
     try:
         from core.database_sqlite import guardar_rutina_template
         rid = guardar_rutina_template(req.perfil, req.nombre, req.ejercicios)
         return {"status": "success", "id_rutina": rid}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.delete("/api/gym/rutina/{rid}")
+def api_eliminar_rutina(rid: int):
+    try:
+        from core.database_sqlite import eliminar_rutina
+        eliminar_rutina(rid)
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+@app.put("/api/gym/rutina/{rid}")
+def api_actualizar_rutina(rid: int, req: RutinaUpdatePayload):
+    try:
+        from core.database_sqlite import actualizar_rutina_template
+        actualizar_rutina_template(rid, req.nombre, req.ejercicios)
+        return {"status": "success"}
     except Exception as e:
         return {"status": "error", "error": str(e)}
 
