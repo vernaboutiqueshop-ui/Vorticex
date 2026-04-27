@@ -503,7 +503,7 @@ def obtener_rutinas_templates(perfil: str):
         rutinas = [dict(r) for r in cur.fetchall()]
         for r in rutinas:
             cur.execute("""
-                SELECT exercise_id, sets_count, reps_default, name as nombre_es, target, gif_url 
+                SELECT exercise_id as id_ejercicio, sets_count, reps_default, name as nombre_es, name as name, target, gif_url 
                 FROM routine_exercises 
                 JOIN exercises ON exercises.id = routine_exercises.exercise_id
                 WHERE routine_id = ?
