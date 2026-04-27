@@ -477,7 +477,7 @@ def guardar_rutina_template(perfil: str, nombre: str, ejercicios: list):
     with get_conn() as conn:
         cur = conn.cursor()
         # Obtener user_id
-        cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
         u = cur.fetchone()
         uid = u['id'] if u else 1
         
@@ -498,7 +498,7 @@ def obtener_rutinas_templates(perfil: str):
         cur.execute("""
             SELECT routines.* FROM routines 
             JOIN users ON users.id = routines.user_id 
-            WHERE users.name = ?
+            WHERE LOWER(users.name) = LOWER(?)
         """, (perfil,))
         rutinas = [dict(r) for r in cur.fetchall()]
         for r in rutinas:
@@ -550,7 +550,7 @@ def obtener_ultimos_pesos(perfil: str, exercise_ids: list):
         res = {}
         cur.execute("""
             SELECT val1 FROM activity_logs 
-            WHERE user_id = (SELECT id FROM users WHERE name = ?) 
+            WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?)) 
             AND type = 'Gym' 
             ORDER BY timestamp DESC LIMIT 300
         """, (perfil,))
@@ -565,7 +565,7 @@ def obtener_ultimos_pesos(perfil: str, exercise_ids: list):
 def guardar_sesion_gym(perfil: str, rutina_data: list):
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id, exp, level FROM users WHERE name = ?", (perfil,))
+        cur.execute("SELECT id, exp, level FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
         user = cur.fetchone()
         if not user: return {"status": "error"}
         
