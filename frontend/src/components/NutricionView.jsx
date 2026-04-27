@@ -744,7 +744,7 @@ export default function NutricionView({ perfil }) {
             value={searchText}
             onChange={e => setSearchText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && buscarAlimento()}
-            className="chat-input" 
+            className="hevy-input" 
             placeholder="Ej: 2 empanadas de carne"
             style={{ flex: 1 }}
           />
@@ -773,7 +773,7 @@ export default function NutricionView({ perfil }) {
             value={newIngrediente}
             onChange={e => setNewIngrediente(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && agregarAlacena()}
-            className="chat-input"
+            className="hevy-input"
             placeholder="Agregar ingrediente..."
             style={{ flex: 1 }}
           />
@@ -792,7 +792,7 @@ export default function NutricionView({ perfil }) {
                       value={editText}
                       onChange={e => setEditText(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && guardarEdicion(item.id)}
-                      className="chat-input"
+                      className="hevy-input"
                       style={{ flex: 1, padding: '0.25rem 0.5rem', fontSize: '0.85rem' }}
                       autoFocus
                     />

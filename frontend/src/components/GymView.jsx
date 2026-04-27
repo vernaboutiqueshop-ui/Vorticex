@@ -213,7 +213,7 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                    <button 
                      onClick={async () => {
                         if(!nombreRutinaNueva) return;
-                        const payload = { perfil, nombre: nombreRutinaNueva, ejercicios: rutina.map(e => ({ id_ejercicio: e.id_ejercicio || e.id, sets_count: e.sets.length, reps_default: '12' })) };
+                        const payload = { perfil, nombre: nombreRutinaNueva, ejercicios: rutina.map(e => ({ id_ejercicio: e.id_ejercicio || e.id, sets_count: e.sets.length, reps_default: e.sets[0]?.reps || '12' })) };
                         if (editingRoutineId) {
                            await fetch(`${API}/api/gym/rutina/${editingRoutineId}`, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
                         } else {
@@ -227,12 +227,30 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                 <div className="hevy-card">
                    <input value={nombreRutinaNueva} onChange={e => setNombreRutinaNueva(e.target.value)} placeholder={lang === 'es' ? 'Nombre de la rutina' : 'Routine Name'} style={{ width: '100%', background: 'transparent', border: 'none', color: 'white', fontSize: '1.4rem', fontWeight: 900, outline: 'none' }} />
                 </div>
-                {rutina.map((e, idx) => (
-                   <div key={idx} className="hevy-card" style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: 'white', fontWeight: 800 }}>{lang === 'en' && e.nombre_en ? e.nombre_en : e.nombre_es}</span>
-                      <button onClick={() => setRutina(rutina.filter((_, i) => i !== idx))} style={{ color: '#ef4444', background: 'transparent', border: 'none' }}><Trash2 size={18}/></button>
+                 {rutina.map((ej, index) => (
+                   <div key={index} className="hevy-card">
+                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                           <img src={ej.gif_url} style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'white', objectFit: 'cover' }} />
+                           <h4 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '1.05rem' }}>{lang === 'en' && ej.nombre_en ? ej.nombre_en : ej.nombre_es}</h4>
+                        </div>
+                        <button onClick={() => setRutina(rutina.filter((_, i) => i !== index))} style={{ color: '#ef4444', background: 'transparent', border: 'none' }}><Trash2 size={18}/></button>
+                     </div>
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                       {ej.sets?.map((s, si) => (
+                         <div key={si} style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1.5fr', gap: '0.5rem', alignItems: 'center' }}>
+                            <div style={{ color: '#64748b', fontSize: '0.85rem', fontWeight: 900 }}>SET {si+1}</div>
+                            <input value={s.kg} onChange={e => { const nw = [...rutina]; nw[index].sets[si].kg = e.target.value; setRutina(nw); }} placeholder="kg" className="hevy-input" style={{ textAlign: 'center' }} />
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                               <input value={s.reps} onChange={e => { const nw = [...rutina]; nw[index].sets[si].reps = e.target.value; setRutina(nw); }} placeholder="reps" className="hevy-input" style={{ flex: 1, textAlign: 'center' }} />
+                               <button onClick={() => { const nw = [...rutina]; nw[index].sets = nw[index].sets.filter((_, idx) => idx !== si); setRutina(nw); }} style={{ color: '#64748b', background: 'transparent', border: 'none', padding: '0.2rem' }}><X size={16}/></button>
+                            </div>
+                         </div>
+                       ))}
+                     </div>
+                     <button onClick={() => { const nw = [...rutina]; const lastReps = ej.sets && ej.sets.length > 0 ? ej.sets[ej.sets.length-1].reps : '12'; nw[index].sets = [...(ej.sets || []), {reps: lastReps, kg: '', done:false}]; setRutina(nw); }} className="hevy-btn" style={{ marginTop: '1rem', width: '100%', border: '1px dashed var(--border-color)', background: 'transparent' }}>+ Agregar Serie</button>
                    </div>
-                ))}
+                 ))}
                 <button onClick={() => setActiveInternalTab('explorar')} className="hevy-btn" style={{ padding: '1.2rem', border: '1px dashed var(--border-color)' }}>
                    <Plus size={20} /> {t('add_exercise')}
                 </button>
@@ -290,7 +308,18 @@ export default function GymView({ perfil, pendingRutina, onRutinaLoaded }) {
                              </button>
                              {activeMenuId === r.id && (
                                 <div onClick={(e) => e.stopPropagation()} style={{ position: 'absolute', top: '100%', right: 0, background: 'white', borderRadius: '12px', padding: '0.5rem', zIndex: 50, width: '200px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                                   <button onClick={() => { setActiveMenuId(null); setEditingRoutineId(r.id); setNombreRutinaNueva(r.name); setRutina(r.ejercicios); setIsCreatingRoutine(true); }} className="hevy-btn" style={{ background: 'transparent', color: '#1e293b', justifyContent: 'flex-start', padding: '0.8rem', width: '100%' }}>
+                                   <button onClick={() => { 
+                                      setActiveMenuId(null); 
+                                      setEditingRoutineId(r.id); 
+                                      setNombreRutinaNueva(r.name); 
+                                      // Inicializar sets para la edición
+                                      const rutinaEditable = r.ejercicios.map(ej => ({
+                                         ...ej,
+                                         sets: Array(ej.sets_count || 3).fill(0).map(() => ({ reps: ej.reps_default || '12', kg: '', done: false }))
+                                      }));
+                                      setRutina(rutinaEditable); 
+                                      setIsCreatingRoutine(true); 
+                                   }} className="hevy-btn" style={{ background: 'transparent', color: '#1e293b', justifyContent: 'flex-start', padding: '0.8rem', width: '100%' }}>
                                       <Edit2 size={18} style={{ marginRight: '0.5rem' }} /> {lang === 'es' ? 'Editar rutina' : 'Edit routine'}
                                    </button>
                                    <button onClick={async () => { setActiveMenuId(null); if(window.confirm(lang === 'es' ? '¿Seguro que deseas ocultar/eliminar esta rutina?' : 'Delete this routine?')){ await fetch(`${API}/api/gym/rutina/${r.id}`, { method: 'DELETE' }); loadRoutines(); } }} className="hevy-btn" style={{ background: 'transparent', color: '#ef4444', justifyContent: 'flex-start', padding: '0.8rem', width: '100%' }}>

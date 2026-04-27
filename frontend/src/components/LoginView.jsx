@@ -107,7 +107,7 @@ export default function LoginView({ onLogin }) {
           <div className="input-group">
             <label className="input-label">Tu nombre</label>
             <input
-              className="chat-input" type="text" placeholder="Ej: Gonzalo"
+              className="hevy-input" type="text" placeholder="Ej: Gonzalo"
               value={wizardData.nombre}
               onChange={e => setWizardData(p => ({ ...p, nombre: e.target.value }))}
             />
@@ -115,7 +115,7 @@ export default function LoginView({ onLogin }) {
           <div className="input-group">
             <label className="input-label">Contraseña</label>
             <input
-              className="chat-input" type="password" placeholder="Mínimo 4 caracteres"
+              className="hevy-input" type="password" placeholder="Mínimo 4 caracteres"
               value={wizardData.password}
               onChange={e => setWizardData(p => ({ ...p, password: e.target.value }))}
             />
@@ -133,7 +133,7 @@ export default function LoginView({ onLogin }) {
             <div className="input-group">
               <label className="input-label">Edad (años)</label>
               <input
-                className="chat-input" type="number" placeholder="28"
+                className="hevy-input" type="number" placeholder="28"
                 value={wizardData.edad}
                 onChange={e => setWizardData(p => ({ ...p, edad: e.target.value }))}
               />
@@ -141,7 +141,7 @@ export default function LoginView({ onLogin }) {
             <div className="input-group">
               <label className="input-label">Peso (kg)</label>
               <input
-                className="chat-input" type="number" placeholder="75"
+                className="hevy-input" type="number" placeholder="75"
                 value={wizardData.peso}
                 onChange={e => setWizardData(p => ({ ...p, peso: e.target.value }))}
               />
@@ -256,7 +256,7 @@ export default function LoginView({ onLogin }) {
             <div className="input-group">
               <label className="input-label">Nombre de usuario</label>
               <input
-                className="chat-input" type="text" placeholder="Gonzalo"
+                className="hevy-input" type="text" placeholder="Gonzalo"
                 value={loginData.username}
                 onChange={e => setLoginData(p => ({ ...p, username: e.target.value }))}
                 required
@@ -265,7 +265,7 @@ export default function LoginView({ onLogin }) {
             <div className="input-group">
               <label className="input-label">Contraseña</label>
               <input
-                className="chat-input" type="password" placeholder="••••••"
+                className="hevy-input" type="password" placeholder="••••••"
                 value={loginData.password}
                 onChange={e => setLoginData(p => ({ ...p, password: e.target.value }))}
                 required
