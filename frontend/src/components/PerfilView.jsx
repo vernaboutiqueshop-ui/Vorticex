@@ -182,9 +182,22 @@ export default function PerfilView({ perfil, onLogout }) {
                   >{l === 'es' ? '🇪🇸' : '🇺🇸'}</motion.button>
                 ))}
                 <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.08)', margin: '0 0.1rem' }} />
-                <button onClick={onLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem' }}>
-                  <LogOut size={16} color="#475569" />
-                </button>
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm(lang === 'es' ? '¿Cerrar sesión?' : 'Log out?')) {
+                      onLogout();
+                    }
+                  }}
+                  style={{
+                    background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)',
+                    borderRadius: '8px', cursor: 'pointer', padding: '0.3rem',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <LogOut size={14} color="#ef4444" />
+                </motion.button>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.35rem' }}>
