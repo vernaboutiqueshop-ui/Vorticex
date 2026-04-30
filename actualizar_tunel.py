@@ -65,11 +65,12 @@ def iniciar_backend():
 def iniciar_tunel():
     print("[VORTICE] Iniciando túnel de Cloudflare...")
     proc = subprocess.Popen(
-        ["cloudflared", "tunnel", "--url", "http://localhost:8000"],
+        ["npx", "cloudflared", "tunnel", "--url", "http://localhost:8000"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
+        shell=True,
     )
 
     url = None
