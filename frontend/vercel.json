@@ -2,19 +2,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://roommate-epinions-orbit-gardens.trycloudflare.com/api/$1"
+      "dest": "https://choice-variety-watt-variance.trycloudflare.com/api/$1"
     },
     {
       "src": "/exercises/(.*)",
-      "dest": "https://roommate-epinions-orbit-gardens.trycloudflare.com/exercises/$1"
+      "dest": "https://choice-variety-watt-variance.trycloudflare.com/exercises/$1"
     },
     {
       "src": "/gifs/(.*)",
-      "dest": "https://roommate-epinions-orbit-gardens.trycloudflare.com/gifs/$1"
+      "dest": "https://choice-variety-watt-variance.trycloudflare.com/gifs/$1"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "https://roommate-epinions-orbit-gardens.trycloudflare.com/uploads/$1"
+      "dest": "https://choice-variety-watt-variance.trycloudflare.com/uploads/$1"
     },
     {
       "handle": "filesystem"
