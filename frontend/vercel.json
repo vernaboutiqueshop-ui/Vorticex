@@ -1,10 +1,27 @@
 {
   "routes": [
-    { "src": "/api/(.*)", "dest": "https://officials-scientists-movements-legitimate.trycloudflare.com/api/$1" },
-    { "src": "/exercises/(.*)", "dest": "https://officials-scientists-movements-legitimate.trycloudflare.com/exercises/$1" },
-    { "src": "/gifs/(.*)", "dest": "https://officials-scientists-movements-legitimate.trycloudflare.com/gifs/$1" },
-    { "src": "/uploads/(.*)", "dest": "https://officials-scientists-movements-legitimate.trycloudflare.com/uploads/$1" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "src": "/api/(.*)",
+      "dest": "https://roommate-epinions-orbit-gardens.trycloudflare.com/api/$1"
+    },
+    {
+      "src": "/exercises/(.*)",
+      "dest": "https://roommate-epinions-orbit-gardens.trycloudflare.com/exercises/$1"
+    },
+    {
+      "src": "/gifs/(.*)",
+      "dest": "https://roommate-epinions-orbit-gardens.trycloudflare.com/gifs/$1"
+    },
+    {
+      "src": "/uploads/(.*)",
+      "dest": "https://roommate-epinions-orbit-gardens.trycloudflare.com/uploads/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
