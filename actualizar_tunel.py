@@ -133,7 +133,7 @@ def push_to_github():
             cwd=ROOT_DIR,
             check=True,
         )
-        subprocess.run(["git", "push"], cwd=ROOT_DIR, check=True)
+        subprocess.run(["git", "push", "origin", "main"], cwd=ROOT_DIR, check=True)
         print("[VORTICE] Push completado. Vercel desplegará en ~1 min.")
     except Exception as e:
         print(f"[VORTICE] Error en push: {e}")
