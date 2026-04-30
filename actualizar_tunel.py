@@ -1,80 +1,192 @@
+"""
+VÓRTICE — Iniciar backend + túnel Cloudflare + auto-push a Vercel
+
+Uso:
+  python actualizar_tunel.py
+
+Qué hace:
+  1. Inicia el backend FastAPI en localhost:8000
+  2. Inicia un túnel Cloudflare que expone localhost:8000
+  3. Captura la URL dinámica del túnel
+  4. Actualiza frontend/vercel.json con la nueva URL
+  5. Hace git add + commit + push → Vercel se re-deploya automáticamente
+  6. Mantiene backend + túnel vivos hasta Ctrl+C
+"""
+
 import subprocess
 import re
 import json
 import time
 import os
+import sys
+import signal
 
-# Configuración
-VERCEL_JSON_PATH = os.path.abspath("frontend/vercel.json")
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+VERCEL_JSON_PATH = os.path.join(ROOT_DIR, "frontend", "vercel.json")
+BACKEND_DIR = os.path.join(ROOT_DIR, "backend")
 
-def obtener_url_tunel():
-    print("[VORTICE] Iniciando túnel de Cloudflare...")
-    # Ejecutamos cloudflared y capturamos la salida
-    process = subprocess.Popen(
-        ["npx", "cloudflared", "tunnel", "--url", "http://localhost:8000"],
+backend_proc = None
+tunnel_proc = None
+
+
+def cleanup(sig=None, frame=None):
+    print("\n[VORTICE] Cerrando todo...")
+    if tunnel_proc:
+        tunnel_proc.terminate()
+    if backend_proc:
+        backend_proc.terminate()
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, cleanup)
+signal.signal(signal.SIGTERM, cleanup)
+
+
+def iniciar_backend():
+    print("[VORTICE] Iniciando backend FastAPI en :8000...")
+    proc = subprocess.Popen(
+        [sys.executable, "main.py"],
+        cwd=BACKEND_DIR,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        bufsize=1
+        bufsize=1,
+    )
+    # Esperar a que arranque
+    time.sleep(3)
+    if proc.poll() is not None:
+        out = proc.stdout.read()
+        print(f"[VORTICE] ERROR: Backend no arrancó:\n{out}")
+        return None
+    print("[VORTICE] Backend corriendo en http://localhost:8000")
+    return proc
+
+
+def iniciar_tunel():
+    print("[VORTICE] Iniciando túnel de Cloudflare...")
+    proc = subprocess.Popen(
+        ["cloudflared", "tunnel", "--url", "http://localhost:8000"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
     )
 
     url = None
-    # Buscamos la URL en los logs (tarda unos segundos en aparecer)
     start_time = time.time()
-    while time.time() - start_time < 30: # 30 segundos de timeout
-        line = process.stdout.readline()
+    while time.time() - start_time < 30:
+        line = proc.stdout.readline()
         if not line:
             break
-        print(line.strip())
-        
+        line = line.strip()
+        if line:
+            print(f"  {line}")
         match = re.search(r"https://[a-zA-Z0-9-]+\.trycloudflare\.com", line)
         if match:
             url = match.group(0)
-            print(f"\n[VORTICE] ¡Túnel detectado!: {url}")
+            print(f"\n[VORTICE] Túnel activo: {url}")
             break
-    
-    return url, process
+
+    return url, proc
+
 
 def actualizar_vercel_json(nueva_url):
-    print(f"[VORTICE] Actualizando {VERCEL_JSON_PATH}...")
-    with open(VERCEL_JSON_PATH, "r") as f:
+    print(f"[VORTICE] Actualizando vercel.json → {nueva_url}")
+    with open(VERCEL_JSON_PATH, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    # Actualizar todas las rutas que apuntan al túnel
+    cambios = 0
     for route in data.get("routes", []):
         if "dest" in route and "trycloudflare.com" in route["dest"]:
-            # Reemplazar la parte del dominio preservando el resto de la ruta
-            route["dest"] = re.sub(r"https://.*?\.trycloudflare\.com", nueva_url, route["dest"])
+            old = route["dest"]
+            route["dest"] = re.sub(
+                r"https://[a-zA-Z0-9-]+\.trycloudflare\.com", nueva_url, route["dest"]
+            )
+            if old != route["dest"]:
+                cambios += 1
 
-    with open(VERCEL_JSON_PATH, "w") as f:
+    if cambios == 0:
+        print("[VORTICE] vercel.json ya tenía la URL correcta. Sin cambios.")
+        return False
+
+    with open(VERCEL_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
-    print("[VORTICE] vercel.json actualizado con éxito.")
+        f.write("\n")
+    print(f"[VORTICE] vercel.json actualizado ({cambios} rutas).")
+    return True
+
 
 def push_to_github():
-    print("[VORTICE] Subiendo cambios a GitHub...")
+    print("[VORTICE] Subiendo a GitHub...")
     try:
-        subprocess.run(["git", "add", VERCEL_JSON_PATH], check=True)
-        subprocess.run(["git", "commit", "-m", "⚡ Auto-update Cloudflare Tunnel URL"], check=True)
-        subprocess.run(["git", "push"], check=True)
-        print("[VORTICE] ¡Push completado! Vercel se está desplegando.")
+        subprocess.run(["git", "add", VERCEL_JSON_PATH], cwd=ROOT_DIR, check=True)
+        result = subprocess.run(
+            ["git", "diff", "--cached", "--quiet"],
+            cwd=ROOT_DIR,
+        )
+        if result.returncode == 0:
+            print("[VORTICE] Sin cambios para commitear.")
+            return
+        subprocess.run(
+            ["git", "commit", "-m", "tunnel: auto-update Cloudflare URL"],
+            cwd=ROOT_DIR,
+            check=True,
+        )
+        subprocess.run(["git", "push"], cwd=ROOT_DIR, check=True)
+        print("[VORTICE] Push completado. Vercel desplegará en ~1 min.")
     except Exception as e:
-        print(f"[VORTICE] Error al subir a GitHub: {e}")
+        print(f"[VORTICE] Error en push: {e}")
+
 
 if __name__ == "__main__":
-    url, process = obtener_url_tunel()
-    if url:
-        actualizar_vercel_json(url)
+    print("=" * 55)
+    print("  VÓRTICE — Backend + Tunnel + Auto-Deploy")
+    print("=" * 55)
+
+    # 1. Backend
+    backend_proc = iniciar_backend()
+    if not backend_proc:
+        print("[VORTICE] Abortando: backend no arrancó.")
+        sys.exit(1)
+
+    # 2. Túnel
+    url, tunnel_proc = iniciar_tunel()
+    if not url:
+        print("[VORTICE] No se pudo obtener URL del túnel.")
+        cleanup()
+
+    # 3. Actualizar vercel.json
+    changed = actualizar_vercel_json(url)
+
+    # 4. Push si hubo cambios
+    if changed:
         push_to_github()
-        print("\n[VORTICE] Todo listo. Mantén esta ventana abierta para que el túnel siga activo.")
-        try:
-            # Mantener el proceso del túnel vivo
-            while True:
-                line = process.stdout.readline()
-                if not line: break
-                # print(line.strip()) # Opcional: ver logs del túnel
-        except KeyboardInterrupt:
-            print("\n[VORTICE] Cerrando túnel...")
-            process.terminate()
-    else:
-        print("[VORTICE] No se pudo obtener la URL del túnel. Revisa tu conexión.")
-        process.terminate()
+
+    # 5. Mantener vivo
+    print("\n" + "=" * 55)
+    print(f"  Backend:  http://localhost:8000")
+    print(f"  Túnel:    {url}")
+    print(f"  Vercel:   https://vorticex.vercel.app")
+    print(f"  Ctrl+C para detener todo")
+    print("=" * 55 + "\n")
+
+    try:
+        while True:
+            # Verificar que ambos procesos sigan vivos
+            if backend_proc.poll() is not None:
+                print("[VORTICE] Backend se detuvo. Reiniciando...")
+                backend_proc = iniciar_backend()
+                if not backend_proc:
+                    cleanup()
+            if tunnel_proc.poll() is not None:
+                print("[VORTICE] Túnel se detuvo. Reiniciando...")
+                url, tunnel_proc = iniciar_tunel()
+                if url:
+                    if actualizar_vercel_json(url):
+                        push_to_github()
+                else:
+                    print("[VORTICE] No se pudo reconectar el túnel.")
+                    cleanup()
+            time.sleep(5)
+    except KeyboardInterrupt:
+        cleanup()
