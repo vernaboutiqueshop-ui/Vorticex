@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Apple, Activity, BarChart2, User, Zap, Send, X, Bell, Heart, MessageCircle } from 'lucide-react';
+import { MessageSquare, Apple, Activity, BarChart2, User, Zap, Send, X, Bell, Heart, MessageCircle, Lock } from 'lucide-react';
 import { API, authFetch } from './config';
 import WorkoutTracker from './components/WorkoutTracker';
 import GymView from './components/GymView';
@@ -12,6 +12,36 @@ import { LanguageProvider, useLanguage } from './LanguageContext';
 import './index.css';
 
 import PublicRoutineView from './components/PublicRoutineView';
+
+function ComingSoon({ label }) {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      height: '70vh', gap: '1.2rem', textAlign: 'center', padding: '2rem',
+    }}>
+      <div style={{
+        width: 80, height: 80, borderRadius: '50%',
+        background: 'rgba(6,182,212,0.08)', border: '2px solid rgba(6,182,212,0.15)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Lock size={32} color="#06b6d4" />
+      </div>
+      <h2 style={{ color: '#fff', margin: 0, fontSize: '1.3rem', fontWeight: 900 }}>
+        {label}
+      </h2>
+      <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 600, maxWidth: 280, lineHeight: 1.5 }}>
+        Próximamente disponible. Estamos trabajando para traerte esta funcionalidad.
+      </p>
+      <div style={{
+        background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.2)',
+        borderRadius: '12px', padding: '0.6rem 1.2rem',
+        color: '#06b6d4', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '1px',
+      }}>
+        🚀 COMING SOON
+      </div>
+    </div>
+  );
+}
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('gym');
@@ -101,6 +131,7 @@ function AppContent() {
   }
 
   const perfil = authUser;
+  const isAdmin = perfil?.toLowerCase() === 'gonza';
 
   const handleStartSession = (exercises, routineId, routineName) => {
     setSessionExercises(exercises);
@@ -174,7 +205,7 @@ function AppContent() {
 
       <main className="main-content">
         <div style={{ display: activeTab === 'nutricion' ? 'block' : 'none' }}>
-          {mountedTabs.nutricion && <NutricionView perfil={perfil} />}
+          {mountedTabs.nutricion && (isAdmin ? <NutricionView perfil={perfil} /> : <ComingSoon label={t('nutrition')} />)}
         </div>
         <div style={{ display: activeTab === 'gym' ? 'block' : 'none' }}>
           {mountedTabs.gym && <GymView perfil={perfil} onStartSession={handleStartSession} sessionActive={sessionActive} sessionResult={sessionResult} onClearResult={() => { setSessionResult(null); }} />}
@@ -183,7 +214,7 @@ function AppContent() {
           {mountedTabs.comunidad && <ComunidadView perfil={perfil} />}
         </div>
         <div style={{ display: activeTab === 'graficos' ? 'block' : 'none' }}>
-          {mountedTabs.graficos && <GraficosView perfil={perfil} />}
+          {mountedTabs.graficos && (isAdmin ? <GraficosView perfil={perfil} /> : <ComingSoon label={t('stats')} />)}
         </div>
         <div style={{ display: activeTab === 'perfil' ? 'block' : 'none' }}>
           {mountedTabs.perfil && <PerfilView perfil={perfil} onLogout={handleLogout} />}

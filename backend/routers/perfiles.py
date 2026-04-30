@@ -16,12 +16,15 @@ def get_perfiles_endpoint(user: str = Depends(get_current_user)):
     return listar_perfiles()
 
 
+ADMIN_USERS = ["gonza"]
+
 @router.get("/perfil/{nombre}")
 def get_perfil_endpoint(nombre: str, user: str = Depends(get_current_user)):
     perfil = obtener_perfil(nombre)
     if perfil:
         memoria = obtener_memoria_perfil(nombre)
         perfil["memoria_viva"] = memoria["contexto_narrativo"] if memoria else "Sin contexto generado aún."
+        perfil["is_admin"] = nombre.lower() in ADMIN_USERS
         return {"status": "success", "perfil": perfil, "nombre": nombre}
     return {"status": "error", "error": "Perfil no encontrado"}
 

@@ -1,6 +1,5 @@
 import sys
 import os
-print(f"--- VORTICE STARTING FROM: {os.path.abspath(__file__)} ---")
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -23,17 +22,42 @@ async def lifespan(app: FastAPI):
     yield
 
 
+tags_metadata = [
+    {"name": "auth", "description": "Registro y login. Devuelve JWT para autenticar el resto de endpoints."},
+    {"name": "perfiles", "description": "Datos del usuario: peso, altura, avatar, nivel, EXP."},
+    {"name": "gym", "description": "Catálogo de ejercicios, rutinas, historial de workouts, récords."},
+    {"name": "nutricion", "description": "Registro de comidas, ayuno intermitente, alacena, recetas IA."},
+    {"name": "chat", "description": "Chat con el entrenador IA (Gemini Cloud + fallback local)."},
+    {"name": "general", "description": "Endpoints generales: deportes, comunidad, estadísticas."},
+]
+
 app = FastAPI(
-    title="Vórtice Health API",
-    description="API para la app Vórtice Health Coach (Modo Local + SQLite)",
-    lifespan=lifespan
+    title="Vórtice Elite API",
+    version="4.0.0",
+    openapi_tags=tags_metadata,
+    description="""
+## Vórtice Elite — API de Entrenamiento Personal
+
+Backend local-first que expone endpoints para:
+- **Auth**: Registro y login con JWT
+- **Gym**: Catálogo de +1300 ejercicios, rutinas, historial de workouts
+- **Nutrición**: Control de comidas, ayuno intermitente, alacena
+- **Perfiles**: Configuración física, avatar, idioma
+- **Comunidad**: Feed social, seguidores, compartir rutinas
+- **Chat IA**: Entrenador virtual con Gemini + fallback local
+
+Todos los endpoints requieren `Authorization: Bearer <token>` excepto `/api/auth/*`.
+""",
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 # CORS restringido a tus dominios reales
 ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:3000",
-    "https://vortice-fallback.vercel.app",
+    "https://vorticex.vercel.app",
 ]
 VERCEL_URL = os.getenv("VERCEL_URL")
 if VERCEL_URL:
