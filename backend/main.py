@@ -1,93 +1,54 @@
 import sys
 import os
-import json
 print(f"--- VORTICE STARTING FROM: {os.path.abspath(__file__)} ---")
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, UploadFile, File, Depends, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, HTMLResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
-from typing import Optional, List
-from datetime import timedelta
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Datos dinámicos (Persistencia en Nube o Local según DATABASE_MODE)
-from core.database import (
-    obtener_historial_chat, guardar_mensaje, borrar_historial_chat,
-    consultar_datos, guardar_log_set, guardar_evento,
-    obtener_alacena, guardar_en_alacena, eliminar_de_alacena_perfil,
-    obtener_entrenamientos_resumen, obtener_eventos_timeline, obtener_macros_hoy,
-    obtener_ayuno, actualizar_ayuno,
-    guardar_rutina, obtener_rutinas, eliminar_rutina_perfil,
-    obtener_comidas_hoy, eliminar_evento_perfil,
-    obtener_perfil, guardar_perfil, listar_perfiles, obtener_memoria_perfil
-)
+from routers import auth, perfiles, gym, nutricion, chat, general
+from core.database_sqlite import obtener_catalogo_completo
 
-# Catálogo estático (Siempre local para máximo rendimiento)
-from core.database_sqlite import (
-    buscar_ejercicio_por_id, obtener_catalogo_completo,
-    buscar_ejercicios_por_ids, buscar_ejercicios_textual
-)
-
-from core.ai import (
-    generar_rutina_inteligente,
-    estimar_nutricion_ollama, analizar_imagen_ollama, generar_receta_alacena
-)
-from personality.prompt_builder import build_system_prompt
-from personality.motor_memoria import generar_y_guardar_contexto
-from core.intelligence import semantic_search_exercises
-from core.auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
-from fastapi.security import OAuth2PasswordRequestForm
-import threading
-from vortice_discovery import run_tunnel
-
-def fix_gif_url(url: str):
-    if not url: return ""
-    if url.startswith("http"): return url
-    # Extraer ID del ejercicio de cualquier formato (/exercises/gifs/ID.gif o /api/exercises/gif/ID)
-    import re
-    match = re.search(r'(\d{4})', url)
-    if match:
-        return f"/gifs/{match.group(1)}.gif"
-    return url
 
 async def lifespan(app: FastAPI):
     print("[VORTICE] Iniciando Vórtice Health API (All-Local Mode)")
-    # Asegúrate de que la carpeta de datos existe
     os.makedirs(os.path.join(os.path.dirname(__file__), "data"), exist_ok=True)
     try:
         from scripts.init_final_db import init_final_db
         init_final_db()
     except Exception as e:
         print(f"[VORTICE] Error inicializando DB: {e}")
-    
-    # Lanzamos el Túnel de Auto-Descubrimiento en un hilo separado
-    # para que no bloquee el arranque del servidor.
-    print("[VORTICE] Lanzando túnel de auto-descubrimiento...")
-    discovery_thread = threading.Thread(target=run_tunnel, daemon=True)
-    discovery_thread.start()
-    
     yield
 
+
 app = FastAPI(
-    title="Vórtice Health API", 
+    title="Vórtice Health API",
     description="API para la app Vórtice Health Coach (Modo Local + SQLite)",
     lifespan=lifespan
 )
 
+# CORS restringido a tus dominios reales
+ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://vortice-fallback.vercel.app",
+]
+VERCEL_URL = os.getenv("VERCEL_URL")
+if VERCEL_URL:
+    ALLOWED_ORIGINS.append(f"https://{VERCEL_URL}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Montar GIFs estáticos para consumo ultra-rápido local
-# Usamos abspath para que no haya dudas de la ubicación
+# Montar GIFs estáticos
 base_path = os.path.dirname(os.path.abspath(__file__))
 gifs_path = os.path.join(base_path, "data", "exercises", "gifs")
 
@@ -97,404 +58,28 @@ if os.path.exists(gifs_path):
 else:
     print(f"[VORTICE] ADVERTENCIA: Carpeta de GIFs no encontrada en {gifs_path}")
 
+# Registrar routers
+app.include_router(auth.router)
+app.include_router(perfiles.router)
+app.include_router(gym.router)
+app.include_router(nutricion.router)
+app.include_router(chat.router)
+app.include_router(general.router)
+
+
 @app.get("/")
 def read_root():
-    return {"status": "ok", "message": "Vórtice v3.1 Elite Running"}
+    return {"status": "ok", "message": "Vórtice v4.0 Elite Running"}
+
 
 @app.get("/api/ping")
 def ping():
-    return {"version": "3.1", "db": "sqlite"}
+    return {"version": "4.0", "db": "sqlite"}
 
 
 # ============================================================
-# AUTENTICACIÓN Y ONBOARDING
+# ADMIN: Vista HTML del catálogo (sin auth, uso interno)
 # ============================================================
-
-class RegisterRequest(BaseModel):
-    nombre: str
-    password: str
-    edad: int
-    peso: float
-    meta: str
-    deporte: str
-
-@app.post("/api/auth/register")
-def register_user(req: RegisterRequest):
-    data = {
-        "descripcion": f"Edad: {req.edad}, Peso: {req.peso}kg. Meta principal: {req.meta}. Deporte: {req.deporte}",
-        "detalle": "Onboarding completado",
-        "objetivo_ia": req.meta,
-        "password": req.password 
-    }
-    guardar_perfil(req.nombre, data)
-    access_token = create_access_token(data={"sub": req.nombre})
-    return {"access_token": access_token, "token_type": "bearer", "status": "success"}
-
-@app.post("/api/auth/token")
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    # Intentamos encontrar el usuario tal cual, o con la primera letra capitalizada, o todo minúscula
-    nombres_a_probar = [form_data.username, form_data.username.capitalize(), form_data.username.lower()]
-    user = None
-    final_username = form_data.username
-    
-    for nombre in nombres_a_probar:
-        user = obtener_perfil(nombre)
-        if user:
-            final_username = nombre
-            break
-
-    if not user or user.get("password", "123456") != form_data.password:
-        return {"error": "Credenciales inválidas"}
-        
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": final_username}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer", "status": "success"}
-
-# ============================================================
-# PERFILES
-# ============================================================
-
-@app.get("/api/perfiles")
-def get_perfiles_endpoint():
-    return listar_perfiles()
-
-@app.get("/api/perfil/{nombre}")
-def get_perfil_endpoint(nombre: str):
-    perfil = obtener_perfil(nombre)
-    if perfil:
-        memoria = obtener_memoria_perfil(nombre)
-        perfil["memoria_viva"] = memoria["contexto_narrativo"] if memoria else "Sin contexto generado aún."
-        return {"status": "success", "perfil": perfil, "nombre": nombre}
-    return {"status": "error", "error": "Perfil no encontrado"}
-
-class PerfilUpdate(BaseModel):
-    descripcion: str
-    detalle: str
-    objetivo_ia: str
-
-@app.put("/api/perfil/{nombre}")
-def update_perfil_endpoint(nombre: str, data: PerfilUpdate):
-    try:
-        guardar_perfil(nombre, data.dict())
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-
-@app.get("/api/logs")
-def debug_audit(perfil: str):
-    """Retorna los últimos 50 eventos para diagnóstico UX."""
-    try:
-        logs = obtener_eventos_timeline(perfil, 50)
-        return {"status": "success", "logs": logs}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-# ============================================================
-# CHAT INTELIGENTE (Feature Estrella ⭐)
-# ============================================================
-
-class ChatRequest(BaseModel):
-    perfil: str
-    mensaje: str
-
-@app.post("/api/chat")
-def send_chat(req: ChatRequest):
-    try:
-        # Cargar perfiles desde Firestore
-        perfil_info = obtener_perfil(req.perfil) or {}
-
-        # 1. Recuperar contexto de corto plazo (últimos 5)
-        historial_dicts = obtener_historial_chat(req.perfil, limite=5)
-        hist_txt = "\n".join([f"{h['rol']}: {h['contenido']}" for h in historial_dicts])
-        
-        # 2. Recuperar Memoria Semántica (RAG)
-        from core.memoria_vectorial import buscar_memoria_semantica, guardar_chat_vectorial
-        contexto_rag = buscar_memoria_semantica(req.perfil, req.mensaje, limit=3)
-
-        # 3. Guardar mensaje del usuario (SQLite + Vectorial)
-        guardar_mensaje(req.perfil, "user", req.mensaje)
-        guardar_chat_vectorial(req.perfil, "user", req.mensaje)
-
-        # 4. LLAMADA UNIFICADA AL CEREBRO VÓRTICE (Una sola llamada a Gemini)
-        from core.ai import cerebro_vortice_unificado
-        resultado = cerebro_vortice_unificado(
-            mensaje=req.mensaje,
-            perfil_info=perfil_info.get("descripcion", ""),
-            historial_previo=hist_txt,
-            contexto_vectorial=contexto_rag
-        )
-        
-        tipo = resultado.get("tipo", "chat_normal")
-        respuesta_ia = resultado.get("respuesta", "Entendido, Gonzalo.")
-        
-        rutina_gen = None
-        nutricion_det = None
-
-        # 5. Actuar según la detección automática del Cerebro
-        if tipo == "nutricion" and resultado.get("nutricion"):
-            n = resultado["nutricion"]
-            nutricion_det = n
-            guardar_evento(req.perfil, "Nutricion", n.get('alimento','Comida'), "Auto", n.get('cal',0), n.get('prot',0), n.get('carb',0), n.get('gras',0))
-        
-        elif (tipo == "rutina" or tipo == "gym") and (resultado.get("rutina") or resultado.get("ejercicios")):
-            raw_rutina = resultado.get("rutina") or resultado.get("ejercicios", [])
-            rutina_gen = []
-            
-            # Cargar catálogo local para máxima velocidad y consistencia
-            from core.database_sqlite import buscar_ejercicio_por_id
-            
-            # Buscar info completa en el catálogo local para cada ID sugerido por la IA
-            for r in raw_rutina:
-                eid = r.get("id") or r.get("id_ejercicio")
-                if not eid: continue
-                
-                # Buscar en el catálogo local
-                orig = buscar_ejercicio_por_id(str(eid))
-                if orig:
-                    rutina_gen.append({
-                        "id_ejercicio": orig['id_ejercicio'],
-                        "nombre_es": orig['nombre_es'].capitalize(),
-                        "target": orig.get('target', ''),
-                        "body_part": UI_MUSCULO_ES.get(str(orig.get('target','')).lower(), str(orig.get('target','')).capitalize() or "General"),
-                        "gif_url": orig.get('gif_url', f"/gifs/{orig['id_ejercicio']}.gif"),
-                        "sets": [{"reps": r.get("reps", "12"), "kg": "", "done": False} for _ in range(r.get("series", 3))]
-                    })
-            
-        elif tipo == "alacena":
-            guardar_en_alacena(req.perfil, resultado.get("datos_extra", req.mensaje), "")
-            
-        # 6. Guardar y Responder
-        guardar_mensaje(req.perfil, "assistant", respuesta_ia)
-        guardar_chat_vectorial(req.perfil, "assistant", respuesta_ia)
-        
-        return {
-            "status": "success", 
-            "respuesta": respuesta_ia, 
-            "tipo_intencion": tipo,
-            "rutina_generada": rutina_gen,
-            "nutricion_detectada": nutricion_det,
-            "datos_extra": resultado.get("datos_extra", "")
-        }
-
-
-    except Exception as e:
-        import traceback; traceback.print_exc()
-        return {"status": "error", "error": str(e)}
-        
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return {"status": "error", "error": str(e)}
-
-
-from core.langchain_coach import chatear_con_langchain
-from core.memoria_vectorial import guardar_chat_vectorial, buscar_memoria_semantica
-
-def _chat_normal(req: ChatRequest, perfil_info: dict):
-    """Flujo de chat normal con memoria viva (SQLite) y profunda (ChromaDB) vía LangChain."""
-    
-    # 1. Recuperar contexto de corto plazo (SQLite)
-    historial_dicts = obtener_historial_chat(req.perfil, limite=5)
-    
-    # 2. Recuperar contexto narrativo (SQLite)
-    contexto_sqlite = build_system_prompt(req.perfil, perfil_info, consultar_datos("eventos", req.perfil))
-    
-    # 3. Recuperar memoria semántica (ChromaDB - RAG)
-    contexto_vectorial = buscar_memoria_semantica(req.perfil, req.mensaje, limit=3)
-    
-    # 4. Guardar mensaje del usuario en la memoria profunda
-    guardar_chat_vectorial(req.perfil, "user", req.mensaje)
-    
-    # 5. Generar respuesta usando LangChain
-    respuesta_ia = chatear_con_langchain(
-        perfil_actual=req.perfil,
-        ultima_pregunta=req.mensaje,
-        contexto_sqlite=contexto_sqlite,
-        contexto_vectorial=contexto_vectorial,
-        ultimos_mensajes=[{"role": x["rol"], "content": x["contenido"]} for x in historial_dicts]
-    )
-    
-    # 6. Guardar respuesta del asistente
-    guardar_mensaje(req.perfil, "assistant", respuesta_ia)
-    guardar_chat_vectorial(req.perfil, "assistant", respuesta_ia)
-    
-    return {"status": "success", "respuesta": respuesta_ia, "tipo_intencion": "chat_normal"}
-
-@app.get("/api/chat/historial")
-def get_chat_history(perfil: str):
-    hist = obtener_historial_chat(perfil, limite=30)
-    return {"historial": hist}
-
-@app.delete("/api/chat/historial")
-def delete_chat_history(perfil: str):
-    borrar_historial_chat(perfil)
-    guardar_evento(perfil, "Limpieza", "Se eliminó el historial de chat", "Neutro", 0)
-    return {"status": "success"}
-
-class UserStatsUpdate(BaseModel):
-    name: str
-    age: Optional[int] = None
-    weight: Optional[float] = None
-    height: Optional[float] = None
-    language: Optional[str] = 'es'
-
-class FeedbackRequest(BaseModel):
-    perfil: str
-    message: str
-
-@app.post("/api/perfil/{perfil}/update_stats")
-def update_user_stats(perfil: str, req: UserStatsUpdate):
-    try:
-        from core.database_sqlite import actualizar_perfil_elite
-        actualizar_perfil_elite(perfil, req.age, req.weight, req.height, req.language)
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.post("/api/feedback")
-def save_feedback(req: FeedbackRequest):
-    try:
-        from core.database_sqlite import guardar_feedback
-        guardar_feedback(req.perfil, req.message)
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.get("/api/gym/intensidad")
-def get_muscle_intensity(perfil: str):
-    try:
-        from core.database_sqlite import obtener_intensidad_muscular
-        intensidad = obtener_intensidad_muscular(perfil)
-        return {"status": "success", "intensidad": intensidad}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-class SesionGuardarRequest(BaseModel):
-    perfil: str
-    rutina: list
-
-class HistorialPesosRequest(BaseModel):
-    perfil: str
-    exercise_ids: list
-
-@app.post("/api/gym/sesion/guardar")
-def api_guardar_sesion(req: SesionGuardarRequest):
-    try:
-        from core.database_sqlite import guardar_sesion_gym
-        resultado = guardar_sesion_gym(req.perfil, req.rutina)
-        return resultado
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.post("/api/gym/historial/pesos")
-def api_historial_pesos(req: HistorialPesosRequest):
-    try:
-        from core.database_sqlite import obtener_ultimos_pesos
-        pesos = obtener_ultimos_pesos(req.perfil, req.exercise_ids)
-        return {"status": "success", "pesos": pesos}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-# ============================================================
-# GYM / ENTRENAMIENTOS
-# ============================================================
-
-class SetLog(BaseModel):
-    reps: str
-    kg: str
-    done: bool
-
-class EjercicioEdit(BaseModel):
-    id_ejercicio: str
-    target: str
-    sets: List[SetLog]
-
-class RutinaSaveRequest(BaseModel):
-    perfil: str
-    rutina: List[EjercicioEdit]
-
-class RutinaNuevaRequest(BaseModel):
-    perfil: str
-    nombre: str
-    ejercicios: list
-
-class RutinaUpdatePayload(BaseModel):
-    nombre: str
-    ejercicios: list
-
-@app.post("/api/gym/rutina/nueva")
-def api_nueva_rutina(req: RutinaNuevaRequest):
-    try:
-        from core.database_sqlite import guardar_rutina_template
-        rid = guardar_rutina_template(req.perfil, req.nombre, req.ejercicios)
-        return {"status": "success", "id_rutina": rid}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.delete("/api/gym/rutina/{rid}")
-def api_eliminar_rutina(rid: int):
-    try:
-        from core.database_sqlite import eliminar_rutina
-        eliminar_rutina(rid)
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.put("/api/gym/rutina/{rid}")
-def api_actualizar_rutina(rid: int, req: RutinaUpdatePayload):
-    try:
-        from core.database_sqlite import actualizar_rutina_template
-        actualizar_rutina_template(rid, req.nombre, req.ejercicios)
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.get("/api/gym/rutinas")
-def get_rutinas(perfil: str):
-    try:
-        from core.database_sqlite import obtener_rutinas_templates
-        rutinas = obtener_rutinas_templates(perfil)
-        return {"status": "success", "rutinas": rutinas}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.get("/api/exercises")
-def get_ejercicios_endpoint():
-    try:
-        rows = obtener_catalogo_completo()
-        return {"status": "success", "ejercicios": [
-            {"id_ejercicio": r['id_ejercicio'], "nombre_es": r['nombre_es'], 
-             "nombre_en": r.get('nombre_en', ""), "body_part": r.get('body_part'), 
-             "target": r.get('target'), "gif_url": r.get('gif_url'),
-             "equipment": r.get('equipment', ""), "instrucciones_es": r.get('instrucciones_es', [])} for r in rows
-        ]}
-    except Exception as e:
-        return {"status": "error", "ejercicios": [], "error": str(e)}
-
-@app.get("/api/exercises/search")
-def search_ejercicios_endpoint(q: str = ""):
-    import time
-    start = time.time()
-    print(f"[SEARCH] Iniciando búsqueda semántica para: '{q}'")
-    try:
-        from core.intelligence import semantic_search_exercises
-        from core.database_sqlite import buscar_ejercicios_por_ids
-        res = semantic_search_exercises(q, limit=10)
-        ids = res['ids'][0] if res and res['ids'] and len(res['ids']) > 0 else []
-        
-        ejercicios = buscar_ejercicios_por_ids(ids)
-        
-        duration = (time.time() - start) * 1000
-        print(f"[SEARCH] Completado en {duration:.2f}ms. Resultados: {len(ejercicios)}")
-        return {"status": "success", "ejercicios": ejercicios}
-    except Exception as e:
-        print(f"[SEARCH FALLBACK] Error semántico ({e}). Usando búsqueda textual...")
-        from core.database_sqlite import buscar_ejercicios_textual
-        return {"status": "success", "ejercicios": buscar_ejercicios_textual(q)}
-
 @app.get("/view/exercises", response_class=HTMLResponse)
 def view_exercises_html():
     try:
@@ -508,31 +93,20 @@ def view_exercises_html():
                     font-family: system-ui, sans-serif; background: #0f172a; color: white; 
                     margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
                 }
-                
                 .app-header { 
                     flex: 0 0 auto; background: #0f172a; padding: 20px;
                     border-bottom: 2px solid #1e293b; z-index: 100;
                 }
-                
-                .table-container { 
-                    flex: 1 1 auto; overflow-y: auto; padding: 0 20px;
-                }
-                
+                .table-container { flex: 1 1 auto; overflow-y: auto; padding: 0 20px; }
                 table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 50px; }
                 th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; word-wrap: break-word; }
-                
-                /* Anchos fijos premium */
                 th:nth-child(1), td:nth-child(1) { width: 100px; } 
                 th:nth-child(2), td:nth-child(2) { width: 60px; }  
                 th:nth-child(3), td:nth-child(3) { width: 220px; } 
                 th:nth-child(4), td:nth-child(4) { width: 180px; } 
                 th:nth-child(5), td:nth-child(5) { width: 100px; } 
                 th:nth-child(6), td:nth-child(6) { width: auto; }  
-
-                th { 
-                    background: #1e293b; color: #38bdf8; position: sticky; top: 0;
-                    z-index: 90; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                }
+                th { background: #1e293b; color: #38bdf8; position: sticky; top: 0; z-index: 90; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
                 img { width: 80px; height: 80px; border-radius: 8px; background: white; object-fit: contain; }
                 .badges { display: flex; gap: 8px; }
                 .badge { background: #38bdf8; color: black; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: bold; }
@@ -541,12 +115,8 @@ def view_exercises_html():
                 .diff-easy { background: #22c55e; color: white; }
                 .diff-medium { background: #eab308; color: black; }
                 .diff-hard { background: #ef4444; color: white; }
-                
                 .filters { margin: 15px 0 0 0; display: flex; gap: 10px; flex-wrap: wrap; }
-                .filter-btn { 
-                    background: #334155; color: #94a3b8; border: none; padding: 8px 16px; 
-                    border-radius: 20px; cursor: pointer; transition: 0.2s; font-weight: 600; 
-                }
+                .filter-btn { background: #334155; color: #94a3b8; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: 0.2s; font-weight: 600; }
                 .filter-btn:hover { background: #475569; color: white; }
                 .filter-btn.active { background: #38bdf8; color: #0f172a; }
             </style>
@@ -555,77 +125,49 @@ def view_exercises_html():
                     const rows = document.querySelectorAll('tr.exercise-row');
                     const btns = document.querySelectorAll('.filter-btn');
                     const counterSpan = document.getElementById('res-count');
-                    
                     btns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    
                     const muscleLower = muscle.toLowerCase();
                     let count = 0;
-                    
                     rows.forEach(row => {
-                        if (muscle === 'all') {
-                            row.style.display = '';
-                            count++;
-                        } else {
+                        if (muscle === 'all') { row.style.display = ''; count++; }
+                        else {
                             const bodyPart = (row.getAttribute('data-muscle') || '').toLowerCase();
                             const target = (row.getAttribute('data-target') || '').toLowerCase();
-                            
-                            // Búsqueda flexible ultra-mejorada
-                            const isMatch = bodyPart.includes(muscleLower) || 
-                                          target.includes(muscleLower) ||
-                                          (muscleLower === 'brazos' && (target.includes('bicep') || target.includes('tricep') || target.includes('arm'))) ||
-                                          (muscleLower === 'piernas' && (target.includes('quad') || target.includes('hamstring') || target.includes('glute') || target.includes('calf') || target.includes('calve') || target.includes('adductor') || target.includes('abductor'))) ||
-                                          (muscleLower === 'pecho' && target.includes('pectoral')) ||
-                                          (muscleLower === 'abdominales' && (target.includes('abs') || target.includes('core')));
-                            
-                            if (isMatch) {
-                                row.style.display = '';
-                                count++;
-                            } else {
-                                row.style.display = 'none';
-                            }
+                            const isMatch = bodyPart.includes(muscleLower) || target.includes(muscleLower) ||
+                                (muscleLower === 'brazos' && (target.includes('bicep') || target.includes('tricep') || target.includes('arm'))) ||
+                                (muscleLower === 'piernas' && (target.includes('quad') || target.includes('hamstring') || target.includes('glute') || target.includes('calf'))) ||
+                                (muscleLower === 'pecho' && target.includes('pectoral')) ||
+                                (muscleLower === 'abdominales' && (target.includes('abs') || target.includes('core')));
+                            if (isMatch) { row.style.display = ''; count++; } else { row.style.display = 'none'; }
                         }
                     });
                     counterSpan.innerText = count;
                 }
-
                 function sortTable(n) {
                     const table = document.getElementById("exerciseTable");
                     const tbody = table.querySelector("tbody");
                     const rows = Array.from(tbody.querySelectorAll("tr"));
                     const header = table.querySelectorAll("th")[n];
                     const isAsc = !header.classList.contains("asc");
-                    
-                    // Resetear clases de orden en otros encabezados
                     table.querySelectorAll("th").forEach(th => th.classList.remove("asc", "desc"));
                     header.classList.add(isAsc ? "asc" : "desc");
-
                     const weights = { "easy": 1, "medium": 2, "hard": 3 };
-                    
                     rows.sort((rowA, rowB) => {
                         let valA = rowA.cells[n].innerText.trim().toLowerCase();
                         let valB = rowB.cells[n].innerText.trim().toLowerCase();
-                        
-                        // Si es la columna de dificultad (col 4), usamos pesos
-                        if (n === 4) {
-                            valA = weights[valA] || 0;
-                            valB = weights[valB] || 0;
-                        }
-
+                        if (n === 4) { valA = weights[valA] || 0; valB = weights[valB] || 0; }
                         if (valA < valB) return isAsc ? -1 : 1;
                         if (valA > valB) return isAsc ? 1 : -1;
                         return 0;
                     });
-                    
-                    // Re-insertar filas ordenadas
                     rows.forEach(row => tbody.appendChild(row));
                 }
             </script>
         </head>
         <body>
             <div class="app-header">
-                <h1 style="margin:0">💪 Vórtice Admin <span>(Mostrando: <span id="res-count">{count}</span>)</span></h1>
-                
+                <h1 style="margin:0">Vórtice Admin <span>(Mostrando: <span id="res-count">{count}</span>)</span></h1>
                 <div class="filters">
                     <button class="filter-btn active" onclick="filterBy('all', this)">Todos</button>
                     <button class="filter-btn" onclick="filterBy('pecho', this)">Pecho</button>
@@ -636,22 +178,21 @@ def view_exercises_html():
                     <button class="filter-btn" onclick="filterBy('hombros', this)">Hombros</button>
                 </div>
             </div>
-            
             <div class="table-container">
                 <table id="exerciseTable">
                     <thead>
                         <tr>
                             <th>GIF</th>
-                            <th onclick="sortTable(1)" style="cursor:pointer">ID ↕</th>
-                            <th onclick="sortTable(2)" style="cursor:pointer">Nombre ↕</th>
-                            <th onclick="sortTable(3)" style="cursor:pointer">Músculo ↕</th>
-                            <th onclick="sortTable(4)" style="cursor:pointer">Dificultad ↕</th>
+                            <th onclick="sortTable(1)" style="cursor:pointer">ID</th>
+                            <th onclick="sortTable(2)" style="cursor:pointer">Nombre</th>
+                            <th onclick="sortTable(3)" style="cursor:pointer">Músculo</th>
+                            <th onclick="sortTable(4)" style="cursor:pointer">Dificultad</th>
                             <th>Instrucciones</th>
                         </tr>
                     </thead>
                     <tbody>
         """.replace("{count}", str(len(rows)))
-        
+
         for r in rows:
             insts = "<br>".join([f"- {i}" for i in r.get('instrucciones_es', [])[:2]])
             html_content += f"""
@@ -673,7 +214,7 @@ def view_exercises_html():
                     <td><small>{insts}...</small></td>
                 </tr>
             """
-            
+
         html_content += "</tbody></table></div></body></html>"
         return html_content
     except Exception as e:
@@ -682,362 +223,8 @@ def view_exercises_html():
         return f"<html><body><h1>Error al cargar</h1><pre>{str(e)}</pre></body></html>"
 
 
-@app.post("/api/gym/guardar")
-def guardar_sesion(req: RutinaSaveRequest):
-    try:
-        ejercicios_completados = 0
-        tot_kg = 0
-        for ej in req.rutina:
-            for i, s in enumerate(ej.sets):
-                if s.done:
-                    peso = float(s.kg) if s.kg else 0
-                    reps = int(s.reps) if s.reps else 0
-                    guardar_log_set(req.perfil, ej.id_ejercicio, i+1, peso, reps, target=ej.target)
-                    ejercicios_completados += 1
-                    tot_kg += peso * reps
-        
-        if ejercicios_completados > 0:
-            guardar_evento(req.perfil, "Gym", f"Sesión terminada: {ejercicios_completados} series. Volumen total: {tot_kg:.0f}kg", "Sólido", 300)
-            
-        return {"status": "success", "series": ejercicios_completados, "volumen": tot_kg}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-class RutinaTemplateRequest(BaseModel):
-    perfil: str
-    nombre: str
-    ejercicios: List[dict] # [{id_ejercicio, sets_count, reps_default}]
-
-@app.post("/api/gym/rutina/nueva")
-def crear_rutina_template(req: RutinaTemplateRequest):
-    try:
-        from core.database_sqlite import guardar_rutina_template
-        rid = guardar_rutina_template(req.perfil, req.nombre, req.ejercicios)
-        return {"status": "success", "id": rid}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.get("/api/gym/rutinas")
-def listar_rutinas_template(perfil: str):
-    try:
-        from core.database_sqlite import obtener_rutinas_templates
-        rutinas = obtener_rutinas_templates(perfil)
-        return {"status": "success", "rutinas": rutinas}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-
-class GymFeedbackRequest(BaseModel):
-    perfil: str
-    feedback: str
-    rating: int = 0
-    ejercicios: str = ""
-
-@app.post("/api/gym/feedback")
-def gym_feedback(req: GymFeedbackRequest):
-    """Guarda el feedback del entrenamiento como memoria del agente."""
-    try:
-        # Guardar como evento de tipo Feedback
-        guardar_evento(
-            req.perfil, "Feedback_Gym",
-            f"Rating: {req.rating}/5 | Ejercicios: {req.ejercicios} | Comentario: {req.feedback}",
-            "Feedback", 0
-        )
-        # Registrar el feedback como mensaje del sistema en el historial para que la IA lo lea
-        feedback_msg = f"[Sistema: El usuario acabó de entrenar ({req.ejercicios}) y dejó este feedback (rating {req.rating}/5): '{req.feedback}'. Tené esto en cuenta en la próxima conversación.]"
-        guardar_mensaje(req.perfil, "system", feedback_msg)
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-
-# ============================================================
-# NUTRICIÓN
-# ============================================================
-
-class NutricionTextoRequest(BaseModel):
-    perfil: str
-    alimento: str
-
-@app.post("/api/nutricion/analizar-texto")
-def analizar_texto(req: NutricionTextoRequest):
-    try:
-        resultado = estimar_nutricion_ollama(req.alimento)
-        if resultado:
-            guardar_evento(
-                req.perfil, "Nutricion", resultado["descripcion"], 
-                "Manual", resultado["calorias"], resultado["proteinas"], 
-                resultado["carbos"], resultado["grasas"]
-            )
-            return {"status": "success", "resultado": resultado}
-        return {"status": "error", "error": "No se pudo analizar"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.post("/api/nutricion/analizar-foto")
-async def analizar_foto(perfil: str, file: UploadFile = File(...)):
-    try:
-        contents = await file.read()
-        resultado = analizar_imagen_ollama(contents)
-        if resultado:
-            guardar_evento(
-                perfil, "Nutricion", f"{resultado['alimento']}: {resultado['descripcion']}", 
-                "Foto", resultado["calorias"], resultado["proteinas"], 
-                resultado["carbos"], resultado["grasas"]
-            )
-            return {"status": "success", "resultado": resultado}
-        return {"status": "error", "error": "No se pudo analizar la imagen"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.get("/api/nutricion/macros-hoy")
-def macros_hoy(perfil: str):
-    macros = obtener_macros_hoy(perfil)
-    return {"status": "success", "macros": macros}
-
-# ============================================================
-# AYUNO INTERMITENTE
-# ============================================================
-
-class AyunoRequest(BaseModel):
-    perfil: str
-    en_ayuno: bool
-    inicio_iso: Optional[str] = None
-    meta_horas: float = 16
-
-@app.get("/api/nutricion/ayuno")
-def get_ayuno(perfil: str):
-    datos = obtener_ayuno(perfil)
-    return {"status": "success", "ayuno": datos}
-
-@app.post("/api/nutricion/ayuno")
-def set_ayuno(req: AyunoRequest):
-    actualizar_ayuno(req.perfil, req.en_ayuno, req.inicio_iso, req.meta_horas)
-    return {"status": "success"}
-
-# ============================================================
-# ALACENA
-# ============================================================
-
-class AlacenaRequest(BaseModel):
-    perfil: str
-    ingrediente: str
-    cantidad: str = ""
-
-@app.get("/api/alacena")
-def get_alacena(perfil: str):
-    items = obtener_alacena(perfil)
-    return {"status": "success", "items": items}
-
-@app.post("/api/alacena")
-def add_alacena(req: AlacenaRequest):
-    try:
-        from core.ai import estimar_calorias_ingrediente
-        cals = estimar_calorias_ingrediente(req.ingrediente)
-        guardar_en_alacena(req.perfil, req.ingrediente, req.cantidad, calorias=cals)
-        # Auditoría manual
-        guardar_evento(req.perfil, "Audit", f"Alacena: Agregado {req.ingrediente}", "System", 0)
-        return {"status": "success", "calorias": cals}
-    except Exception as e:
-        print(f"[ERROR ALACENA] {e}")
-        # Intentar guardar sin IA si falla la IA
-        try:
-            guardar_en_alacena(req.perfil, req.ingrediente, req.cantidad, calorias=0)
-            return {"status": "success", "calorias": 0, "warning": "Cálculo IA falló"}
-        except:
-            return {"status": "error", "error": str(e)}
-
-@app.delete("/api/alacena/{item_id}")
-def delete_alacena(item_id: str, perfil: str):
-    eliminar_de_alacena_perfil(perfil, item_id)
-    return {"status": "success"}
-
-class AlacenaEditRequest(BaseModel):
-    ingrediente: str
-
-@app.put("/api/alacena/{item_id}")
-def edit_alacena(item_id: str, req: AlacenaEditRequest, perfil: str = ""):
-    # TODO: Implementar en base de datos SQLite si se usa
-    return {"status": "error", "error": "Not implemented in SQLite yet"}
-
-
-class RecetaRequest(BaseModel):
-    perfil: str
-
-@app.post("/api/alacena/receta")
-def generar_receta(req: RecetaRequest):
-    items = obtener_alacena(req.perfil)
-    if not items:
-        return {"status": "error", "error": "La alacena está vacía"}
-    receta = generar_receta_alacena(req.perfil, ingredientes)
-    return {"status": "success", "receta": receta}
-
-
-
-
-
-# ============================================================
-# RUTINAS IA (fix endpoint 404)
-# ============================================================
-
-class RutinaIARequest(BaseModel):
-    perfil: str
-    prompt: str
-
-@app.post("/api/rutinas/generar")
-def generar_rutina_endpoint(req: RutinaIARequest):
-    try:
-        perfil_info = obtener_perfil(req.perfil) or {}
-        rutina_generada, explicacion = generar_rutina_inteligente(
-            req.prompt,
-            req.perfil,
-            perfil_info.get("descripcion", "")
-        )
-        return {"status": "success", "rutina": rutina_generada, "explicacion": explicacion}
-    except Exception as e:
-        import traceback; traceback.print_exc()
-        return {"status": "error", "error": str(e)}
-
-class ReemplazoIARequest(BaseModel):
-    perfil: str
-    ejercicio_actual: str
-    target: str
-    motivo: Optional[str] = ""
-
-@app.post("/api/rutinas/reemplazar")
-def reemplazar_rutina_ia(req: ReemplazoIARequest):
-    try:
-        from core.ai import sugerir_reemplazo_ia, UI_MUSCULO_ES, TECNICO_MAP
-        res = sugerir_reemplazo_ia(req.ejercicio_actual, req.target, req.motivo)
-        if not res: return {"status": "error", "error": "IA no disponible"}
-        
-        id_nuevo = res.get("id_nuevo")
-        row = buscar_ejercicio_por_id(id_nuevo)
-        if not row: return {"status": "error", "error": f"ID {id_nuevo} no disponible en Firestore"}
-        
-        t_raw = (row.get('target') or "chest").lower()
-        t_tecnico = TECNICO_MAP.get(t_raw, t_raw)
-        
-        alternativa = {
-            "id": row.get('id_ejercicio'),
-            "id_ejercicio": row.get('id_ejercicio'),
-            "nombre_es": row.get('nombre_es'),
-            "target": t_tecnico,
-            "body_part": UI_MUSCULO_ES.get(t_tecnico, t_tecnico.capitalize()),
-            "gif_url": fix_gif_url(row.get('gif_url')),
-            "equipment": row.get('equipment')
-        }
-        
-        return {"status": "success", "alternativa": alternativa, "mensaje": res.get("mensaje")}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-
-# ============================================================
-# RUTINAS GUARDADAS Y PESOS
-# ============================================================
-
-@app.get("/api/rutinas/ultimo-peso")
-def ultimo_peso_endpoint(perfil: str, id_ejercicio: str):
-    try:
-        from core.database_sqlite import obtener_ultimo_peso
-        peso = obtener_ultimo_peso(perfil, id_ejercicio)
-        # Si no hay peso, devolvemos 0 para mantener la estructura pero indicando que no hay historial
-        return {"status": "success", "peso": peso if peso is not None else 0}
-    except Exception as e:
-        print(f"[ERROR ULTIMO PESO] {e}")
-        return {"status": "error", "error": str(e)}
-
-
-
-class GuardarRutinaRequest(BaseModel):
-    perfil: str
-    nombre: str
-    descripcion: str = ""
-    ejercicios: list
-
-@app.post("/api/rutinas/guardar")
-def guardar_rutina_endpoint(req: GuardarRutinaRequest):
-    try:
-        guardar_rutina(req.perfil, req.nombre, req.descripcion, req.ejercicios)
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-@app.get("/api/rutinas/mis-rutinas")
-def get_mis_rutinas(perfil: str):
-    try:
-        rutinas = obtener_rutinas(perfil)
-        return {"status": "success", "rutinas": rutinas}
-    except Exception as e:
-        return {"status": "error", "rutinas": [], "error": str(e)}
-
-@app.delete("/api/rutinas/{rutina_id}")
-def delete_rutina(rutina_id: str, perfil: str):
-    eliminar_rutina_perfil(perfil, rutina_id)
-    return {"status": "success"}
-
-
-# ============================================================
-# LOG DE COMIDAS HOY
-# ============================================================
-
-@app.get("/api/nutricion/comidas-hoy")
-def get_comidas_hoy(perfil: str):
-    try:
-        comidas = obtener_comidas_hoy(perfil)
-        return {"status": "success", "comidas": comidas}
-    except Exception as e:
-        return {"status": "error", "comidas": [], "error": str(e)}
-
-@app.delete("/api/nutricion/evento/{evento_id}")
-def delete_evento_nutricion(evento_id: str, perfil: str):
-    eliminar_evento_perfil(perfil, evento_id)
-    return {"status": "success"}
-
-# ============================================================
-# GRÁFICOS / ANALYTICS
-# ============================================================
-
-@app.get("/api/graficos/entrenamientos")
-def get_graficos_entrenamientos(perfil: str, dias: int = 30):
-    data_raw = obtener_entrenamientos_resumen(perfil, dias)
-    # Adaptar al formato que espera GraficosView.jsx
-    data = {
-        "por_dia": data_raw,
-        "por_musculo": [
-            {"name": "Pecho", "sets": 10},
-            {"name": "Espalda", "sets": 8},
-            {"name": "Piernas", "sets": 12},
-            {"name": "Brazos", "sets": 5}
-        ] # Por ahora mock para evitar crash hasta refact de DB
-    }
-    return {"status": "success", "data": data}
-
-@app.get("/api/graficos/timeline")
-def get_graficos_timeline(perfil: str, limit: int = 50):
-    eventos = obtener_eventos_timeline(perfil, limit)
-    return {"status": "success", "eventos": eventos}
-
-
-# ============================================================
-# MEMORIA
-# ============================================================
-
-@app.post("/api/memoria/refresh")
-def refresh_memoria(perfil: str):
-    """Fuerza la regeneración de la memoria viva."""
-    try:
-        generar_y_guardar_contexto(perfil)
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
-
-
 if __name__ == "__main__":
     import uvicorn
-    # En producción Render establece la variable de entorno PORT
     port = int(os.environ.get("PORT", 8000))
-    # Activamos reload=True para que el servidor se reinicie solo al detectar cambios
     print(f"[VORTICE] Iniciando en puerto {port} con AUTO-RELOAD activado...")
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)

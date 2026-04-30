@@ -1,32 +1,51 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Ultra Deep Dark Palette */
-  --bg-app: #0f1118;      
-  --bg-outer: #050508;    
-  --bg-card: #1a1d28;
-  --bg-glass: rgba(26, 29, 40, 0.7);
-  --bg-glass-heavy: rgba(15, 17, 24, 0.85);
-  
+  --accent-agent: #8b5cf6;
+  --accent-gym: #06b6d4;
+  --bg-app: #050508;
+  --bg-card: rgba(15, 23, 42, 0.6);
+  --bg-glass: rgba(15, 23, 42, 0.8);
+  --border-color: rgba(255, 255, 255, 0.08);
   --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  
-  /* Vibrant Accents */
-  --accent-agent: #22d3ee; /* Cyan */
-  --accent-nutri: #10b981; /* Emerald */
-  --accent-gym: #6366f1;   /* Indigo */
-  --accent-color: #38bdf8;
-  
-  --border-color: rgba(255, 255, 255, 0.08); 
-  --border-glass: rgba(255, 255, 255, 0.12);
-  --danger-color: #f43f5e;
-  
-  /* Shadows & Layout */
-  --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-premium: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  --text-muted: #94a3b8;
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
   --radius-xl: 1.5rem;
-  --radius-lg: 1.25rem;
+}
+
+/* MOBILE FIRST BASE */
+@media (max-width: 768px) {
+  :root {
+    --radius-xl: 1.25rem;
+  }
+  .elite-page {
+    padding: 0.85rem !important;
+  }
+  .routine-title-input {
+    font-size: 1.6rem !important;
+    letter-spacing: -1px !important;
+  }
+  .glass-card {
+    padding: 1.15rem !important;
+    border-radius: 20px !important;
+  }
+  .exercise-card-elite {
+    padding: 0.85rem !important;
+    border-radius: 18px !important;
+  }
+  .summary-card-elite {
+    padding: 1rem !important;
+    border-radius: 20px !important;
+  }
+  .label-elite {
+    font-size: 0.6rem !important;
+    letter-spacing: 1.5px !important;
+    margin-bottom: 0.4rem !important;
+  }
+  h2 {
+    font-size: 1.6rem !important;
+  }
 }
 
 * {
@@ -37,10 +56,14 @@
 }
 
 body {
-  background-color: var(--bg-outer);
+  background-color: var(--bg-main);
+  background-image: 
+    radial-gradient(circle at 0% 0%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
   color: var(--text-primary);
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  margin: 0;
   min-height: 100vh;
 }
 
@@ -68,13 +91,14 @@ body {
 /* --- NAVIGATION (Sticky Glass) --- */
 .tabs-nav {
   display: flex;
-  background: var(--bg-glass-heavy);
+  background: rgba(5, 5, 8, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid var(--border-glass);
-  padding: 0.75rem 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.6rem 0.5rem 0.5rem;
   justify-content: space-around;
-  position: relative;
+  position: sticky;
+  bottom: 0;
   z-index: 100;
 }
 
@@ -106,7 +130,7 @@ body {
 
 /* --- HEADER --- */
 .top-header {
-  padding: 1.5rem 1.25rem 0.75rem;
+  padding: 1rem 1.15rem 0.5rem;
   background: linear-gradient(180deg, var(--bg-app) 0%, transparent 100%);
   z-index: 10;
 }
@@ -326,4 +350,164 @@ body {
   animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   max-height: 90vh;
   overflow-y: auto;
+}
+
+/* Utils */
+.text-gradient {
+  background: linear-gradient(135deg, var(--accent-agent), var(--accent-gym));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-blur {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* --- VÓRTICE ELITE 4.0: REFACTOR ESTÉTICO --- */
+
+.btn-icon-elite {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-icon-elite:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--accent-gym);
+  transform: translateY(-2px);
+}
+
+.btn-icon-elite.danger {
+  color: #ef4444 !important;
+}
+
+.summary-card-elite {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  border-radius: 28px;
+  padding: 1.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.summary-card-elite:hover {
+  border-color: var(--accent-gym);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(6, 182, 212, 0.2);
+}
+
+.label-elite {
+  font-size: 0.75rem !important;
+  font-weight: 900 !important;
+  color: var(--accent-gym) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  margin-bottom: 0.75rem !important;
+  display: block !important;
+}
+
+.routine-title-input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid rgba(255,255,255,0.1) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  font-size: 2.8rem !important;
+  width: 100%;
+  outline: none;
+  padding: 0.5rem 0;
+  transition: all 0.3s;
+  letter-spacing: -2px;
+}
+
+.routine-title-input:focus {
+  border-bottom-color: var(--accent-gym) !important;
+}
+
+.glass-card {
+  background: rgba(15, 23, 42, 0.9) !important;
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.6);
+}
+
+.set-badge-elite {
+  height: 3.2rem;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: #000000 !important;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+
+.chip-folder-elite {
+  padding: 0.8rem 1.6rem !important;
+  border-radius: 20px !important;
+  font-size: 0.85rem !important;
+  font-weight: 900 !important;
+  background: rgba(255,255,255,0.06) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  transition: all 0.2s !important;
+  cursor: pointer !important;
+}
+
+.chip-folder-elite.active {
+  background: rgba(6, 182, 212, 0.25) !important;
+  border-color: var(--accent-gym) !important;
+  color: var(--accent-gym) !important;
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
+}
+
+/* ═══ GLOBAL VIEW CONTAINER ═══ */
+.view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0 0.85rem 5rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: #94a3b8;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.view-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 1.25rem;
 }

@@ -3,9 +3,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Modo de base de datos: 'local' (SQLite) o 'cloud' (Firebase)
-DATABASE_MODE = os.getenv("DATABASE_MODE", "local").lower()
-
 # BASE_DIR = backend/, DATA_DIR = backend/data/
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")

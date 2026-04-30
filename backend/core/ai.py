@@ -120,9 +120,6 @@ def consultar_gemini(mensajes, formato_json=False, modelo=MODELO_PRINCIPAL):
         if "401" in err_msg or "403" in err_msg: return "ERROR_AUTENTICACION"
         return None
 
-def consultar_ollama(mensajes, formato_json=False):
-    return consultar_gemini(mensajes, formato_json)
-
 # --- LOCALIZACIÓN ---
 UI_MUSCULO_ES = {
     "abdominals": "Abdominales", "chest": "Pecho", "biceps": "Bíceps", "triceps": "Tríceps", 
@@ -195,9 +192,6 @@ def estimar_nutricion_ollama(alimento):
     res = consultar_gemini([{"role": "user", "content": prompt}], formato_json=True)
     try: return json.loads(clean_json(res))
     except: return None
-
-def analizar_imagen_ollama(contents):
-    return "Analizador de imágenes no disponible en esta versión."
 
 def generar_receta_alacena(perfil, ings):
     prompt = f"Con estos ingredientes: {ings}, sugiere una receta rápida argentina con toda la onda."

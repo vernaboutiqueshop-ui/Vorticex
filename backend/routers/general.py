@@ -1,0 +1,309 @@
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+from typing import Optional
+
+from core.auth import get_current_user
+from core.database import (
+    obtener_perfil, guardar_evento,
+    obtener_alacena, guardar_en_alacena, eliminar_de_alacena_perfil,
+    obtener_entrenamientos_resumen, obtener_eventos_timeline,
+    guardar_rutina, obtener_rutinas, eliminar_rutina_perfil
+)
+from core.database_sqlite import (
+    obtener_catalogo_completo, buscar_ejercicios_por_ids,
+    buscar_ejercicios_textual, obtener_ultimo_peso
+)
+from core.intelligence import semantic_search_exercises
+from core.ai import generar_rutina_inteligente, generar_receta_alacena
+
+router = APIRouter(prefix="/api", tags=["general"])
+
+UI_MUSCULO_ES = {
+    "abdominals": "Abdominales", "chest": "Pecho", "biceps": "Bíceps", "triceps": "Tríceps",
+    "lats": "Espalda", "lower back": "Espalda Baja", "middle back": "Espalda",
+    "quadriceps": "Cuádriceps", "hamstrings": "Isquios", "calves": "Pantorrillas",
+    "shoulders": "Hombros", "glutes": "Glúteos", "traps": "Trapecios", "forearms": "Antebrazo"
+}
+
+
+# --- Ejercicios (catálogo y búsqueda) ---
+@router.get("/exercises")
+def get_ejercicios_endpoint():
+    try:
+        rows = obtener_catalogo_completo()
+        return {"status": "success", "ejercicios": [
+            {"id_ejercicio": r['id_ejercicio'], "nombre_es": r['nombre_es'],
+             "nombre_en": r.get('nombre_en', ""), "body_part": r.get('body_part'),
+             "target": r.get('target'), "gif_url": r.get('gif_url'),
+             "equipment": r.get('equipment', ""), "instrucciones_es": r.get('instrucciones_es', []),
+             "zone": r.get('zone'), "mechanic": r.get('mechanic'),
+             "difficulty": r.get('difficulty_level')} for r in rows
+        ]}
+    except Exception as e:
+        return {"status": "error", "ejercicios": [], "error": str(e)}
+
+
+@router.get("/exercises/search")
+def search_ejercicios_endpoint(q: str = ""):
+    import time
+    start = time.time()
+    try:
+        res = semantic_search_exercises(q, limit=10)
+        ids = res['ids'][0] if res and res['ids'] and len(res['ids']) > 0 else []
+        ejercicios = buscar_ejercicios_por_ids(ids)
+        duration = (time.time() - start) * 1000
+        print(f"[SEARCH] Completado en {duration:.2f}ms. Resultados: {len(ejercicios)}")
+        return {"status": "success", "ejercicios": ejercicios}
+    except Exception as e:
+        print(f"[SEARCH FALLBACK] Error semántico ({e}). Usando búsqueda textual...")
+        return {"status": "success", "ejercicios": buscar_ejercicios_textual(q)}
+
+
+# --- Rutinas IA ---
+class RutinaIARequest(BaseModel):
+    perfil: str
+    prompt: str
+
+
+@router.post("/rutinas/generar")
+def generar_rutina_endpoint(req: RutinaIARequest, user: str = Depends(get_current_user)):
+    try:
+        perfil_info = obtener_perfil(req.perfil) or {}
+        rutina_generada, explicacion = generar_rutina_inteligente(
+            req.prompt, req.perfil, perfil_info.get("descripcion", "")
+        )
+        return {"status": "success", "rutina": rutina_generada, "explicacion": explicacion}
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return {"status": "error", "error": str(e)}
+
+
+@router.get("/rutinas/ultimo-peso")
+def ultimo_peso_endpoint(perfil: str, id_ejercicio: str, user: str = Depends(get_current_user)):
+    try:
+        peso = obtener_ultimo_peso(perfil, id_ejercicio)
+        return {"status": "success", "peso": peso if peso is not None else 0}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+# --- Rutinas guardadas (legacy) ---
+class GuardarRutinaRequest(BaseModel):
+    perfil: str
+    nombre: str
+    descripcion: str = ""
+    ejercicios: list
+
+
+@router.post("/rutinas/guardar")
+def guardar_rutina_endpoint(req: GuardarRutinaRequest, user: str = Depends(get_current_user)):
+    try:
+        guardar_rutina(req.perfil, req.nombre, req.descripcion, req.ejercicios)
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+@router.get("/rutinas/mis-rutinas")
+def get_mis_rutinas(perfil: str, user: str = Depends(get_current_user)):
+    try:
+        rutinas = obtener_rutinas(perfil)
+        return {"status": "success", "rutinas": rutinas}
+    except Exception as e:
+        return {"status": "error", "rutinas": [], "error": str(e)}
+
+
+@router.delete("/rutinas/{rutina_id}")
+def delete_rutina(rutina_id: str, perfil: str, user: str = Depends(get_current_user)):
+    eliminar_rutina_perfil(perfil, rutina_id)
+    return {"status": "success"}
+
+
+# --- Alacena ---
+class AlacenaRequest(BaseModel):
+    perfil: str
+    ingrediente: str
+    cantidad: str = ""
+
+
+class RecetaRequest(BaseModel):
+    perfil: str
+
+
+@router.get("/alacena")
+def get_alacena(perfil: str, user: str = Depends(get_current_user)):
+    items = obtener_alacena(perfil)
+    return {"status": "success", "items": items}
+
+
+@router.post("/alacena")
+def add_alacena(req: AlacenaRequest, user: str = Depends(get_current_user)):
+    try:
+        guardar_en_alacena(req.perfil, req.ingrediente, req.cantidad, calorias=0)
+        guardar_evento(req.perfil, "Audit", f"Alacena: Agregado {req.ingrediente}", "System", 0)
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+@router.delete("/alacena/{item_id}")
+def delete_alacena(item_id: str, perfil: str, user: str = Depends(get_current_user)):
+    eliminar_de_alacena_perfil(perfil, item_id)
+    return {"status": "success"}
+
+
+@router.post("/alacena/receta")
+def generar_receta(req: RecetaRequest, user: str = Depends(get_current_user)):
+    items = obtener_alacena(req.perfil)
+    if not items:
+        return {"status": "error", "error": "La alacena está vacía"}
+    ingredientes_txt = ", ".join([i["ingrediente"] for i in items])
+    receta = generar_receta_alacena(req.perfil, ingredientes_txt)
+    return {"status": "success", "receta": receta}
+
+
+# --- Gráficos ---
+@router.get("/graficos/entrenamientos")
+def get_graficos_entrenamientos(perfil: str, dias: int = 30, user: str = Depends(get_current_user)):
+    data_raw = obtener_entrenamientos_resumen(perfil, dias)
+    from core.database_sqlite import obtener_intensidad_muscular
+    musculos = obtener_intensidad_muscular(perfil)
+    data = {
+        "por_dia": data_raw,
+        "por_musculo": musculos
+    }
+    return {"status": "success", "data": data}
+
+
+@router.get("/graficos/timeline")
+def get_graficos_timeline(perfil: str, limit: int = 50, user: str = Depends(get_current_user)):
+    eventos = obtener_eventos_timeline(perfil, limit)
+    return {"status": "success", "eventos": eventos}
+
+
+# --- Comunidad ---
+class PostCreate(BaseModel):
+    perfil: str
+    content: str
+    image_url: Optional[str] = None
+    routine_id: Optional[int] = None
+    media_type: Optional[str] = None
+
+
+class CommentCreate(BaseModel):
+    post_id: int
+    user: str
+    content: str
+
+
+@router.get("/comunidad/feed")
+def get_community_feed(user: str = "Anonymous", limit: int = 15, offset: int = 0, current_user: str = Depends(get_current_user)):
+    from core.database_sqlite import obtener_posts
+    result = obtener_posts(user, limit=limit, offset=offset)
+    return {"status": "success", "posts": result["posts"], "has_more": result["has_more"]}
+
+
+@router.post("/comunidad/post")
+def create_community_post(req: PostCreate, user: str = Depends(get_current_user)):
+    from core.database_sqlite import guardar_post
+    pid = guardar_post(req.perfil, req.content, req.image_url, req.routine_id, req.media_type)
+    return {"status": "success", "post_id": pid}
+
+
+@router.delete("/comunidad/post/{post_id}")
+def delete_community_post(post_id: int, user: str = "", current_user: str = Depends(get_current_user)):
+    from core.database_sqlite import eliminar_post
+    ok = eliminar_post(post_id, user or current_user)
+    if not ok:
+        return {"status": "error", "detail": "No se pudo eliminar"}
+    return {"status": "success"}
+
+
+@router.delete("/comunidad/comment/{comment_id}")
+def delete_community_comment(comment_id: int, user: str = "", current_user: str = Depends(get_current_user)):
+    from core.database_sqlite import eliminar_comentario
+    ok = eliminar_comentario(comment_id, user or current_user)
+    if not ok:
+        return {"status": "error", "detail": "No se pudo eliminar"}
+    return {"status": "success"}
+
+
+@router.post("/comunidad/clone-routine/{routine_id}")
+def clone_routine(routine_id: int, user: str = "", current_user: str = Depends(get_current_user)):
+    from core.database_sqlite import clonar_rutina
+    new_id = clonar_rutina(routine_id, user or current_user)
+    if not new_id:
+        return {"status": "error", "detail": "No se pudo clonar"}
+    return {"status": "success", "new_routine_id": new_id}
+
+
+@router.post("/comunidad/like/{post_id}")
+def like_community_post(post_id: int, user: str = "", current_user: str = Depends(get_current_user)):
+    from core.database_sqlite import toggle_like
+    liked = toggle_like(post_id, user or current_user)
+    return {"status": "success", "liked": liked}
+
+
+@router.get("/comunidad/post/{post_id}/comments")
+def get_post_comments(post_id: int):
+    from core.database_sqlite import obtener_comentarios
+    return {"status": "success", "comments": obtener_comentarios(post_id)}
+
+
+@router.post("/comunidad/comment")
+def add_community_comment(req: CommentCreate, user: str = Depends(get_current_user)):
+    from core.database_sqlite import guardar_comentario
+    cid = guardar_comentario(req.post_id, req.user, req.content)
+    return {"status": "success", "comment_id": cid}
+
+
+# --- Followers ---
+@router.post("/comunidad/follow/{target_user}")
+def follow_user(target_user: str, user: str = "", current_user: str = Depends(get_current_user)):
+    from core.database_sqlite import toggle_follow
+    followed = toggle_follow(user or current_user, target_user)
+    return {"status": "success", "following": followed}
+
+
+@router.get("/comunidad/followers/{target_user}")
+def get_followers(target_user: str):
+    from core.database_sqlite import obtener_seguidores
+    return {"status": "success", "followers": obtener_seguidores(target_user)}
+
+
+@router.get("/comunidad/following/{target_user}")
+def get_following(target_user: str):
+    from core.database_sqlite import obtener_seguidos
+    return {"status": "success", "following": obtener_seguidos(target_user)}
+
+
+@router.get("/comunidad/follow-counts/{target_user}")
+def get_follow_counts(target_user: str):
+    from core.database_sqlite import obtener_follow_counts
+    return {"status": "success", **obtener_follow_counts(target_user)}
+
+
+@router.get("/comunidad/is-following/{target_user}")
+def check_is_following(target_user: str, user: str = ""):
+    from core.database_sqlite import is_following
+    return {"status": "success", "is_following": is_following(user, target_user)}
+
+
+# --- Notifications ---
+@router.get("/comunidad/notifications")
+def get_notifications(user: str = "", current_user: str = Depends(get_current_user)):
+    from core.database_sqlite import obtener_notificaciones
+    return {"status": "success", "notifications": obtener_notificaciones(user or current_user)}
+
+
+@router.get("/comunidad/notifications/count")
+def get_unread_count(user: str = "", current_user: str = Depends(get_current_user)):
+    from core.database_sqlite import contar_notificaciones_no_leidas
+    return {"status": "success", "count": contar_notificaciones_no_leidas(user or current_user)}
+
+
+@router.post("/comunidad/notifications/read")
+def mark_notifications_read(user: str = "", current_user: str = Depends(get_current_user)):
+    from core.database_sqlite import marcar_notificaciones_leidas
+    marcar_notificaciones_leidas(user or current_user)
+    return {"status": "success"}

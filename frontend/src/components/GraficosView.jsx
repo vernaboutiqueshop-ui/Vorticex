@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Player } from '@lottiefiles/react-lottie-player';
 import { Trophy, Flame, Target, CalendarDays, Activity, ChevronRight } from 'lucide-react';
-import API from '../config';
+import { motion } from 'motion/react';
+import API, { authFetch } from '../config';
 import { useLanguage } from '../LanguageContext';
 
 export default function GraficosView({ perfil }) {
@@ -14,8 +15,8 @@ export default function GraficosView({ perfil }) {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${API}/api/perfil/${perfil}`).then(r => r.ok ? r.json() : {}),
-      fetch(`${API}/api/graficos/timeline?perfil=${perfil}&limit=1000`).then(r => r.ok ? r.json() : {})
+      authFetch(`${API}/api/perfil/${perfil}`).then(r => r.ok ? r.json() : {}),
+      authFetch(`${API}/api/graficos/timeline?perfil=${perfil}&limit=1000`).then(r => r.ok ? r.json() : {})
     ]).then(([profile, time]) => {
       if (profile.perfil) setUserData(profile.perfil);
       if (time.eventos) setTimeline(time.eventos);
@@ -68,10 +69,14 @@ export default function GraficosView({ perfil }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '5rem', maxWidth: '500px', margin: '0 auto' }}>
+    <div className="view-container">
       
       {/* 1. SECCIÓN DE GAMIFICACIÓN (EXP Y NIVEL) */}
-      <div className="hevy-card" style={{ padding: '2rem 1.5rem', position: 'relative', overflow: 'hidden' }}>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1.1rem', position: 'relative', overflow: 'hidden' }}>
         {/* Lottie Fire background sutil */}
         <div style={{ position: 'absolute', top: '-30px', right: '-30px', opacity: 0.1, transform: 'scale(1.5)' }}>
             <Player autoplay loop src="https://assets3.lottiefiles.com/packages/lf20_touohxv0.json" style={{ width: '150px', height: '150px' }} />
@@ -106,13 +111,17 @@ export default function GraficosView({ perfil }) {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* 2. CALENDARIO DE ENTRENAMIENTO (HEATMAP) */}
-      <div className="hevy-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-           <h3 style={{ color: 'white', fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-             <CalendarDays size={20} color="#10b981" /> Racha de Entrenamiento
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+           <h3 style={{ color: '#06b6d4', fontSize: '0.65rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0, letterSpacing: '0.5px' }}>
+             <CalendarDays size={14} color="#06b6d4" /> RACHA
            </h3>
            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>
              <button onClick={() => setHeatmapMonthOffset(prev => prev - 1)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center' }}><ChevronRight size={16} style={{ transform: 'rotate(180deg)' }} /></button>
@@ -124,8 +133,8 @@ export default function GraficosView({ perfil }) {
         </div>
         
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
-          {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map(d => (
-             <div key={d} style={{ textAlign: 'center', color: '#64748b', fontSize: '0.7rem', fontWeight: 800 }}>{d}</div>
+          {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((d, idx) => (
+             <div key={`${d}-${idx}`} style={{ textAlign: 'center', color: '#64748b', fontSize: '0.7rem', fontWeight: 800 }}>{d}</div>
           ))}
           
           {heatMapDays.map((dia, i) => {
@@ -145,27 +154,31 @@ export default function GraficosView({ perfil }) {
              )
           })}
         </div>
-        <p style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'center', marginTop: '1rem', marginBottom: 0 }}>
+        <p style={{ fontSize: '0.7rem', color: '#475569', textAlign: 'center', marginTop: '0.85rem', marginBottom: 0, fontWeight: 600 }}>
           Si no entrenás por más de 1 día perdés EXP, pero nunca tu nivel. ¡Mantené la racha!
         </p>
-      </div>
+      </motion.div>
 
       {/* 3. RANKING Y LOGROS */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-        <div className="hevy-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.5rem 1rem' }}>
-          <Player autoplay loop src="https://assets2.lottiefiles.com/packages/lf20_t24tpvcu.json" style={{ width: '80px', height: '80px', marginBottom: '0.5rem' }} />
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+        <div style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.1rem' }}>
+          <Player autoplay loop src="https://assets2.lottiefiles.com/packages/lf20_t24tpvcu.json" style={{ width: '70px', height: '70px', marginBottom: '0.4rem' }} />
           <h4 style={{ color: 'white', margin: '0', fontSize: '1rem', fontWeight: 900 }}>Top 5%</h4>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>En tu categoría de edad</span>
+          <span style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '0.2rem', fontWeight: 600 }}>En tu categoría de edad</span>
         </div>
 
-        <div className="hevy-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.5rem 1rem' }}>
-          <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(56, 189, 248, 0.1)', borderRadius: '50%', marginBottom: '0.5rem' }}>
-            <Activity size={40} color="#38bdf8" />
+        <div style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.1rem' }}>
+          <div style={{ width: '70px', height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(6,182,212,0.08)', borderRadius: '50%', marginBottom: '0.4rem' }}>
+            <Activity size={36} color="#06b6d4" />
           </div>
           <h4 style={{ color: 'white', margin: '0', fontSize: '1rem', fontWeight: 900 }}>{timeline.filter(e => e.type === 'GymSession').length} Sesiones</h4>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>Últimos 30 días</span>
+          <span style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '0.2rem', fontWeight: 600 }}>Últimos 30 días</span>
         </div>
-      </div>
+      </motion.div>
 
     </div>
   );

@@ -5,15 +5,8 @@ pydantic
 pydantic-settings
 httpx
 python-dotenv
-pandas
-deep-translator
 google-generativeai
 python-multipart
 python-jose[cryptography]
 watchfiles
-langchain-core
-langchain
-langchain-community
-langchain-google-genai
-requests
-firebase-admin
+bcrypt

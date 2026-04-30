@@ -1,0 +1,25 @@
+{
+  "name": "entrenador-ia",
+  "version": "1.0.0",
+  "description": "Vórtice es un asistente de entrenamiento y nutrición avanzado, diseñado para ser **privado, rápido y autónomo**. Utiliza una arquitectura **Local-First**, donde tú eres el dueño de tus datos en tu propio servidor (Mini PC, Raspberry Pi o tu PC personal).",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"cd backend && python main.py\" \"cd frontend && npm run dev\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vernaboutiqueshop-ui/Vorticex.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/vernaboutiqueshop-ui/Vorticex/issues"
+  },
+  "homepage": "https://github.com/vernaboutiqueshop-ui/Vorticex#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
