@@ -12,6 +12,7 @@ Qué hace:
 """
 
 import subprocess
+import threading
 import time
 import os
 import sys
@@ -39,6 +40,17 @@ signal.signal(signal.SIGINT, cleanup)
 signal.signal(signal.SIGTERM, cleanup)
 
 
+def _stream_output(proc, prefix="BACKEND"):
+    """Read lines from proc.stdout and print them."""
+    try:
+        for line in proc.stdout:
+            line = line.rstrip()
+            if line:
+                print(f"  [{prefix}] {line}")
+    except:
+        pass
+
+
 def iniciar_backend():
     print("[VORTICE] Iniciando backend FastAPI en :8000...")
     proc = subprocess.Popen(
@@ -49,10 +61,12 @@ def iniciar_backend():
         text=True,
         bufsize=1,
     )
+    # Stream backend output in background thread
+    t = threading.Thread(target=_stream_output, args=(proc, "BACKEND"), daemon=True)
+    t.start()
     time.sleep(3)
     if proc.poll() is not None:
-        out = proc.stdout.read()
-        print(f"[VORTICE] ERROR: Backend no arrancó:\n{out}")
+        print(f"[VORTICE] ERROR: Backend no arrancó (exit code {proc.returncode})")
         return None
     print("[VORTICE] Backend corriendo en http://localhost:8000")
     return proc

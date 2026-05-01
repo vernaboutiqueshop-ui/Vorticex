@@ -832,7 +832,7 @@ def guardar_feedback(perfil: str, message: str):
         uid = u["id"] if u else 1
         # Anti-spam: max 1 feedback per 60 seconds
         cur.execute(
-            "SELECT COUNT(*) as cnt FROM feedback WHERE user_id = ? AND created_at > datetime('now', '-60 seconds')",
+            "SELECT COUNT(*) as cnt FROM feedback WHERE user_id = ? AND timestamp > datetime('now', '-60 seconds')",
             (uid,),
         )
         if cur.fetchone()["cnt"] > 0:
@@ -848,11 +848,11 @@ def obtener_feedback_admin():
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute("""
-            SELECT f.id, f.message, f.created_at, f.admin_reply, f.replied_at,
+            SELECT f.id, f.message, f.timestamp as created_at, f.admin_reply, f.replied_at,
                    u.name as user_name, u.profile_pic as user_avatar
             FROM feedback f
             JOIN users u ON u.id = f.user_id
-            ORDER BY f.created_at DESC
+            ORDER BY f.timestamp DESC
             LIMIT 100
         """)
         return [dict(r) for r in cur.fetchall()]
