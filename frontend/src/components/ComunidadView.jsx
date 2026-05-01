@@ -99,7 +99,9 @@ export default function ComunidadView({ perfil }) {
 
   useEffect(() => {
     fetchPosts();
-    const iv = setInterval(() => fetchPosts(true), 30000);
+    const iv = setInterval(() => {
+      if (!document.hidden) fetchPosts(true);
+    }, 30000);
     return () => clearInterval(iv);
   }, [fetchPosts]);
 
