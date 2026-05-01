@@ -2,19 +2,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://confidence-scenes-warning-kijiji.trycloudflare.com/api/$1"
+      "dest": "https://compare-obsessed-stoke.ngrok-free.dev/api/$1"
     },
     {
       "src": "/exercises/(.*)",
-      "dest": "https://confidence-scenes-warning-kijiji.trycloudflare.com/exercises/$1"
+      "dest": "https://compare-obsessed-stoke.ngrok-free.dev/exercises/$1"
     },
     {
       "src": "/gifs/(.*)",
-      "dest": "https://confidence-scenes-warning-kijiji.trycloudflare.com/gifs/$1"
+      "dest": "https://compare-obsessed-stoke.ngrok-free.dev/gifs/$1"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "https://confidence-scenes-warning-kijiji.trycloudflare.com/uploads/$1"
+      "dest": "https://compare-obsessed-stoke.ngrok-free.dev/uploads/$1"
     },
     {
       "handle": "filesystem"

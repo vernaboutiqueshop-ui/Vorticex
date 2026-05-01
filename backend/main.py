@@ -65,7 +65,7 @@ if VERCEL_URL:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?|https://[a-zA-Z0-9-]+\.trycloudflare\.com|https://vorticex[a-zA-Z0-9-]*\.vercel\.app",
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?|https://[a-zA-Z0-9-]+\.trycloudflare\.com|https://vorticex[a-zA-Z0-9-]*\.vercel\.app|https://[a-zA-Z0-9-]+\.ngrok-free\.dev",
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],

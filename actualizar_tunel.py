@@ -1,27 +1,26 @@
 """
-VÓRTICE — Iniciar backend + túnel Cloudflare + auto-deploy a Vercel
+VÓRTICE — Iniciar backend + túnel ngrok (URL fija)
 
 Uso:
   python actualizar_tunel.py
 
 Qué hace:
   1. Inicia el backend FastAPI en localhost:8000
-  2. Inicia un túnel Cloudflare que expone localhost:8000
-  3. Captura la URL dinámica del túnel
-  4. Actualiza VITE_API_URL en Vercel via API (sin git push)
-  5. Triggerea redeploy en Vercel automáticamente
-  6. Mantiene backend + túnel vivos hasta Ctrl+C
+  2. Inicia ngrok con dominio estático fijo
+  3. Mantiene backend + túnel vivos hasta Ctrl+C
+  (No necesita git push ni redeploy — la URL nunca cambia)
 """
 
 import subprocess
-import re
-import json
 import time
 import os
 import sys
 import signal
+
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 BACKEND_DIR = os.path.join(ROOT_DIR, "backend")
+NGROK_PATH = os.path.join(os.path.expanduser("~"), "ngrok", "ngrok.exe")
+NGROK_DOMAIN = "compare-obsessed-stoke.ngrok-free.dev"
 
 backend_proc = None
 tunnel_proc = None
@@ -38,7 +37,6 @@ def cleanup(sig=None, frame=None):
 
 signal.signal(signal.SIGINT, cleanup)
 signal.signal(signal.SIGTERM, cleanup)
-
 
 
 def iniciar_backend():
@@ -61,77 +59,26 @@ def iniciar_backend():
 
 
 def iniciar_tunel():
-    print("[VORTICE] Iniciando túnel de Cloudflare...")
+    print(f"[VORTICE] Iniciando ngrok → {NGROK_DOMAIN}")
     proc = subprocess.Popen(
-        ["npx", "cloudflared", "tunnel", "--url", "http://localhost:8000"],
+        [NGROK_PATH, "http", "--domain", NGROK_DOMAIN, "8000"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
-        shell=True,
     )
-    url = None
-    start_time = time.time()
-    while time.time() - start_time < 30:
-        line = proc.stdout.readline()
-        if not line:
-            break
-        line = line.strip()
-        if line:
-            print(f"  {line}")
-        match = re.search(r"https://[a-zA-Z0-9-]+\.trycloudflare\.com", line)
-        if match:
-            url = match.group(0)
-            print(f"\n[VORTICE] Túnel activo: {url}")
-            break
-    return url, proc
-
-
-VERCEL_JSON_PATH = os.path.join(ROOT_DIR, "frontend", "vercel.json")
-
-
-def actualizar_vercel_json(nueva_url):
-    """Actualiza vercel.json con rewrites al tunnel."""
-    print(f"[VORTICE] Actualizando vercel.json → {nueva_url}")
-    data = {
-        "routes": [
-            {"src": "/api/(.*)", "dest": f"{nueva_url}/api/$1"},
-            {"src": "/exercises/(.*)", "dest": f"{nueva_url}/exercises/$1"},
-            {"src": "/gifs/(.*)", "dest": f"{nueva_url}/gifs/$1"},
-            {"src": "/uploads/(.*)", "dest": f"{nueva_url}/uploads/$1"},
-            {"handle": "filesystem"},
-            {"src": "/(.*)", "dest": "/index.html"},
-        ]
-    }
-    with open(VERCEL_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-        f.write("\n")
-    print(f"[VORTICE] vercel.json actualizado.")
-    return True
-
-
-def push_to_github():
-    """Commit + push vercel.json → Vercel redeploya automáticamente."""
-    print("[VORTICE] Pusheando a GitHub...")
-    try:
-        subprocess.run(["git", "add", VERCEL_JSON_PATH], cwd=ROOT_DIR, check=True)
-        result = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=ROOT_DIR)
-        if result.returncode == 0:
-            print("[VORTICE] Sin cambios.")
-            return
-        subprocess.run(
-            ["git", "commit", "-m", "tunnel: auto-update Cloudflare URL"],
-            cwd=ROOT_DIR, check=True,
-        )
-        subprocess.run(["git", "push", "origin", "main"], cwd=ROOT_DIR, check=True)
-        print("[VORTICE] Push OK → Vercel desplegará en ~1 min.")
-    except Exception as e:
-        print(f"[VORTICE] Error push: {e}")
+    time.sleep(3)
+    if proc.poll() is not None:
+        out = proc.stdout.read()
+        print(f"[VORTICE] ERROR: ngrok no arrancó:\n{out}")
+        return None
+    print(f"[VORTICE] Túnel activo: https://{NGROK_DOMAIN}")
+    return proc
 
 
 if __name__ == "__main__":
     print("=" * 55)
-    print("  VÓRTICE — Backend + Tunnel + Auto-Deploy")
+    print("  VÓRTICE — Backend + ngrok (URL fija)")
     print("=" * 55)
 
     # 1. Backend
@@ -140,20 +87,16 @@ if __name__ == "__main__":
         print("[VORTICE] Abortando: backend no arrancó.")
         sys.exit(1)
 
-    # 2. Túnel
-    url, tunnel_proc = iniciar_tunel()
-    if not url:
-        print("[VORTICE] No se pudo obtener URL del túnel.")
+    # 2. Túnel ngrok
+    tunnel_proc = iniciar_tunel()
+    if not tunnel_proc:
+        print("[VORTICE] Abortando: ngrok no arrancó.")
         cleanup()
 
-    # 3. Actualizar vercel.json + push
-    actualizar_vercel_json(url)
-    push_to_github()
-
-    # 4. Mantener vivo
+    # 3. Listo
     print("\n" + "=" * 55)
     print(f"  Backend:  http://localhost:8000")
-    print(f"  Túnel:    {url}")
+    print(f"  Túnel:    https://{NGROK_DOMAIN}")
     print(f"  Vercel:   https://vorticex.vercel.app")
     print(f"  Ctrl+C para detener todo")
     print("=" * 55 + "\n")
@@ -166,12 +109,9 @@ if __name__ == "__main__":
                 if not backend_proc:
                     cleanup()
             if tunnel_proc.poll() is not None:
-                print("[VORTICE] Túnel se cayó. Reiniciando...")
-                url, tunnel_proc = iniciar_tunel()
-                if url:
-                    actualizar_vercel_json(url)
-                    push_to_github()
-                else:
+                print("[VORTICE] ngrok se cayó. Reiniciando...")
+                tunnel_proc = iniciar_tunel()
+                if not tunnel_proc:
                     print("[VORTICE] No se pudo reconectar.")
                     cleanup()
             time.sleep(5)
