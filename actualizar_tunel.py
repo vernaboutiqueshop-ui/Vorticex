@@ -20,20 +20,8 @@ import time
 import os
 import sys
 import signal
-import urllib.request
-import urllib.error
-from dotenv import load_dotenv
-
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 BACKEND_DIR = os.path.join(ROOT_DIR, "backend")
-
-# Cargar .env de la raíz del proyecto
-load_dotenv(os.path.join(ROOT_DIR, ".env"))
-
-# Vercel API (leer desde .env)
-VERCEL_TOKEN = os.getenv("VERCEL_TOKEN", "")
-VERCEL_PROJECT_ID = os.getenv("VERCEL_PROJECT_ID", "")
-VERCEL_TEAM_ID = os.getenv("VERCEL_TEAM_ID", "")
 
 backend_proc = None
 tunnel_proc = None
@@ -51,22 +39,6 @@ def cleanup(sig=None, frame=None):
 signal.signal(signal.SIGINT, cleanup)
 signal.signal(signal.SIGTERM, cleanup)
 
-
-def vercel_api(method, path, body=None):
-    sep = "&" if "?" in path else "?"
-    url = f"https://api.vercel.com{path}{sep}teamId={VERCEL_TEAM_ID}"
-    data = json.dumps(body).encode() if body else None
-    req = urllib.request.Request(url, data=data, method=method)
-    req.add_header("Authorization", f"Bearer {VERCEL_TOKEN}")
-    if data:
-        req.add_header("Content-Type", "application/json")
-    try:
-        resp = urllib.request.urlopen(req)
-        return json.loads(resp.read())
-    except urllib.error.HTTPError as e:
-        err = e.read().decode()
-        print(f"  [VERCEL API] {method} {path} → {e.code}: {err[:200]}")
-        return None
 
 
 def iniciar_backend():
@@ -115,63 +87,46 @@ def iniciar_tunel():
     return url, proc
 
 
-def actualizar_vercel_env(nueva_url):
-    """Actualiza VITE_API_URL en Vercel via API y triggerea redeploy."""
-    print(f"[VORTICE] Seteando VITE_API_URL = {nueva_url}")
+VERCEL_JSON_PATH = os.path.join(ROOT_DIR, "frontend", "vercel.json")
 
-    # 1. Leer env vars existentes
-    envs = vercel_api("GET", f"/v9/projects/{VERCEL_PROJECT_ID}/env")
-    if not envs:
-        return False
 
-    env_id = None
-    current_value = None
-    for env in envs.get("envs", []):
-        if env.get("key") == "VITE_API_URL":
-            env_id = env["id"]
-            current_value = env.get("value", "")
-            break
-
-    if current_value == nueva_url:
-        print("[VORTICE] Variable ya actualizada. Sin cambios.")
-        return True
-
-    # 2. Actualizar o crear
-    if env_id:
-        result = vercel_api("PATCH", f"/v9/projects/{VERCEL_PROJECT_ID}/env/{env_id}", {
-            "value": nueva_url,
-        })
-    else:
-        result = vercel_api("POST", f"/v10/projects/{VERCEL_PROJECT_ID}/env", {
-            "key": "VITE_API_URL",
-            "value": nueva_url,
-            "type": "plain",
-            "target": ["production", "preview", "development"],
-        })
-
-    if not result:
-        return False
-
-    print("[VORTICE] Variable actualizada en Vercel.")
-
-    # 3. Triggerar redeploy
-    print("[VORTICE] Triggerando redeploy...")
-    deploy = vercel_api("POST", f"/v13/deployments", {
-        "name": "vorticex",
-        "project": VERCEL_PROJECT_ID,
-        "target": "production",
-        "gitSource": {
-            "type": "github",
-            "repoId": "1198785152",
-            "ref": "main",
-        },
-    })
-
-    if deploy and deploy.get("id"):
-        print(f"[VORTICE] Redeploy OK → https://vorticex.vercel.app (~1 min)")
-    else:
-        print("[VORTICE] Env actualizada, pero redeploy falló. Hacelo manual.")
+def actualizar_vercel_json(nueva_url):
+    """Actualiza vercel.json con rewrites al tunnel."""
+    print(f"[VORTICE] Actualizando vercel.json → {nueva_url}")
+    data = {
+        "routes": [
+            {"src": "/api/(.*)", "dest": f"{nueva_url}/api/$1"},
+            {"src": "/exercises/(.*)", "dest": f"{nueva_url}/exercises/$1"},
+            {"src": "/gifs/(.*)", "dest": f"{nueva_url}/gifs/$1"},
+            {"src": "/uploads/(.*)", "dest": f"{nueva_url}/uploads/$1"},
+            {"handle": "filesystem"},
+            {"src": "/(.*)", "dest": "/index.html"},
+        ]
+    }
+    with open(VERCEL_JSON_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+    print(f"[VORTICE] vercel.json actualizado.")
     return True
+
+
+def push_to_github():
+    """Commit + push vercel.json → Vercel redeploya automáticamente."""
+    print("[VORTICE] Pusheando a GitHub...")
+    try:
+        subprocess.run(["git", "add", VERCEL_JSON_PATH], cwd=ROOT_DIR, check=True)
+        result = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=ROOT_DIR)
+        if result.returncode == 0:
+            print("[VORTICE] Sin cambios.")
+            return
+        subprocess.run(
+            ["git", "commit", "-m", "tunnel: auto-update Cloudflare URL"],
+            cwd=ROOT_DIR, check=True,
+        )
+        subprocess.run(["git", "push", "origin", "main"], cwd=ROOT_DIR, check=True)
+        print("[VORTICE] Push OK → Vercel desplegará en ~1 min.")
+    except Exception as e:
+        print(f"[VORTICE] Error push: {e}")
 
 
 if __name__ == "__main__":
@@ -191,8 +146,9 @@ if __name__ == "__main__":
         print("[VORTICE] No se pudo obtener URL del túnel.")
         cleanup()
 
-    # 3. Actualizar Vercel env + redeploy
-    actualizar_vercel_env(url)
+    # 3. Actualizar vercel.json + push
+    actualizar_vercel_json(url)
+    push_to_github()
 
     # 4. Mantener vivo
     print("\n" + "=" * 55)
@@ -213,7 +169,8 @@ if __name__ == "__main__":
                 print("[VORTICE] Túnel se cayó. Reiniciando...")
                 url, tunnel_proc = iniciar_tunel()
                 if url:
-                    actualizar_vercel_env(url)
+                    actualizar_vercel_json(url)
+                    push_to_github()
                 else:
                     print("[VORTICE] No se pudo reconectar.")
                     cleanup()
