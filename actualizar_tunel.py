@@ -59,9 +59,12 @@ def iniciar_backend():
 
 
 def iniciar_tunel():
+    # Matar ngrok previo si quedó colgado
+    subprocess.run(["taskkill", "/F", "/IM", "ngrok.exe"], capture_output=True)
+    time.sleep(1)
     print(f"[VORTICE] Iniciando ngrok → {NGROK_DOMAIN}")
     proc = subprocess.Popen(
-        [NGROK_PATH, "http", "--domain", NGROK_DOMAIN, "8000"],
+        [NGROK_PATH, "http", "--url", NGROK_DOMAIN, "8000"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
