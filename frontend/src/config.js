@@ -21,3 +21,15 @@ export function authFetch(url, options = {}) {
   headers['ngrok-skip-browser-warning'] = 'true';
   return fetch(url, { ...options, headers });
 }
+
+/**
+ * Fire-and-forget analytics event.
+ */
+export function track(event, data = {}) {
+  const user = localStorage.getItem('vortice_user') || undefined;
+  fetch(`${API}/api/analytics/event`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+    body: JSON.stringify({ event, user, data }),
+  }).catch(() => {});
+}

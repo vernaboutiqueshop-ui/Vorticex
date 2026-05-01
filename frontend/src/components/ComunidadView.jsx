@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Heart, MessageCircle, Send, Image as ImageIcon, X, Dumbbell, Loader, UserPlus, UserCheck, Play, Trash2, Copy } from 'lucide-react';
 import { motion } from 'motion/react';
-import { API, authFetch } from '../config';
+import { API, authFetch, track } from '../config';
 
 const MAX_MEDIA_BYTES = 3 * 1024 * 1024;
 
@@ -180,6 +180,7 @@ export default function ComunidadView({ perfil }) {
       }
       return p;
     }));
+    track('like', { post: postId });
     try { await authFetch(`${API}/api/comunidad/like/${postId}?user=${perfil}`, { method: 'POST' }); }
     catch (err) { console.error(err); }
   };
@@ -187,6 +188,7 @@ export default function ComunidadView({ perfil }) {
   const handleFollow = async (targetUser) => {
     if (targetUser.toLowerCase() === perfil.toLowerCase()) return;
     setFollowState(prev => ({ ...prev, [targetUser]: !prev[targetUser] }));
+    track('follow', { target: targetUser });
     try { await authFetch(`${API}/api/comunidad/follow/${targetUser}?user=${perfil}`, { method: 'POST' }); }
     catch (err) { console.error(err); }
   };
@@ -220,6 +222,7 @@ export default function ComunidadView({ perfil }) {
         const comments = data2.comments || [];
         setCommentsData(prev => ({ ...prev, [postId]: comments }));
         setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: comments.length } : p));
+        track('comment', { post: postId });
       }
     } catch (e) { console.error(e); }
   };

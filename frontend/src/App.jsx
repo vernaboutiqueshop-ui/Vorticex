@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Apple, Activity, BarChart2, User, Zap, Send, X, Bell, Heart, MessageCircle, Lock, Download, Smartphone, Info, ChevronDown } from 'lucide-react';
-import { API, authFetch } from './config';
+import { API, authFetch, track } from './config';
 import WorkoutTracker from './components/WorkoutTracker';
 import GymView from './components/GymView';
 import NutricionView from './components/NutricionView';
@@ -108,9 +108,11 @@ function AppContent() {
   const handleLogin = (username, token) => {
     setAuthUser(username);
     setAuthToken(token);
+    track('login', { username });
   };
 
   const handleLogout = () => {
+    track('logout');
     localStorage.removeItem('vortice_user');
     localStorage.removeItem('vortice_token');
     setAuthUser(null);
@@ -305,7 +307,7 @@ function AppContent() {
             <button 
               key={tab.id}
               className={`tab-btn ${isActive ? 'active' : ''}`} 
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => { setActiveTab(tab.id); track('tab', { tab: tab.id }); }}
             >
               <Icon size={19} />
               <span>{tab.label}</span>

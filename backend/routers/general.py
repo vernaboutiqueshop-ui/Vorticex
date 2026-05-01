@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 from core.auth import get_current_user
 from core.database import (
@@ -307,3 +308,20 @@ def mark_notifications_read(user: str = "", current_user: str = Depends(get_curr
     from core.database_sqlite import marcar_notificaciones_leidas
     marcar_notificaciones_leidas(user or current_user)
     return {"status": "success"}
+
+
+# ── Analytics ──
+class AnalyticsEvent(BaseModel):
+    event: str
+    user: Optional[str] = None
+    data: Optional[dict] = None
+
+@router.post("/analytics/event")
+def track_event(ev: AnalyticsEvent, request: Request):
+    ts = datetime.now().strftime("%H:%M:%S")
+    user = ev.user or "anon"
+    extra = ""
+    if ev.data:
+        extra = " | " + " ".join(f"{k}={v}" for k, v in ev.data.items())
+    print(f"\033[36m[TRACK {ts}]\033[0m \033[1m{user}\033[0m → \033[33m{ev.event}\033[0m{extra}")
+    return {"status": "ok"}
