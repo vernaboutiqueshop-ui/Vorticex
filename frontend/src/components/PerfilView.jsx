@@ -145,7 +145,7 @@ export default function PerfilView({ perfil, onLogout }) {
         border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px',
         padding: '1.1rem', position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{ position: 'absolute', top: -40, right: -40, width: 120, height: 120, borderRadius: '50%', background: 'rgba(6,182,212,0.06)', filter: 'blur(30px)' }} />
+        <div style={{ position: 'absolute', top: -40, right: -40, width: 120, height: 120, borderRadius: '50%', background: 'rgba(6,182,212,0.06)', filter: 'blur(30px)', pointerEvents: 'none' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {/* Avatar */}
           <div onClick={() => fileInputRef.current.click()} style={{
