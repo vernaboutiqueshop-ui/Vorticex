@@ -58,6 +58,8 @@ const translations = {
     cancel: "Cancelar",
     confirm: "Confirmar",
     loading: "Cargando...",
+    install_title: "Instalá la app",
+    install_subtitle: "Mejor experiencia, acceso directo",
   },
   en: {
     gym: "Gym",
@@ -116,6 +118,8 @@ const translations = {
     cancel: "Cancel",
     confirm: "Confirm",
     loading: "Loading...",
+    install_title: "Install the app",
+    install_subtitle: "Better experience, direct access",
   }
 };
 

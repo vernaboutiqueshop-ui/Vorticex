@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Apple, Activity, BarChart2, User, Zap, Send, X, Bell, Heart, MessageCircle, Lock } from 'lucide-react';
+import { MessageSquare, Apple, Activity, BarChart2, User, Zap, Send, X, Bell, Heart, MessageCircle, Lock, Download, Smartphone, Info, ChevronDown } from 'lucide-react';
 import { API, authFetch } from './config';
 import WorkoutTracker from './components/WorkoutTracker';
 import GymView from './components/GymView';
@@ -75,6 +75,19 @@ function AppContent() {
   const [sessionRoutineId, setSessionRoutineId] = useState(null);
   const [sessionRoutineName, setSessionRoutineName] = useState('');
   const [sessionResult, setSessionResult] = useState(null);
+
+  // ── PWA Install Banner ──
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  const [showInstallBanner, setShowInstallBanner] = useState(() => {
+    if (isStandalone) return false;
+    return localStorage.getItem('vortice_hide_install') !== 'true';
+  });
+  const [installExpanded, setInstallExpanded] = useState(false);
+
+  const dismissInstallBanner = () => {
+    setShowInstallBanner(false);
+    localStorage.setItem('vortice_hide_install', 'true');
+  };
 
   // ── Notifications (must be before early returns) ──
   const [notifCount, setNotifCount] = useState(0);
@@ -185,6 +198,95 @@ function AppContent() {
           </div>
         </div>
       </header>
+
+      {/* ═══ PWA Install Banner ═══ */}
+      {showInstallBanner && (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(15,23,42,0.95) 100%)',
+          border: '1px solid rgba(6,182,212,0.2)', borderRadius: '14px',
+          margin: '0.5rem 0.75rem', padding: '0.7rem 0.85rem',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 10,
+              background: 'rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Smartphone size={16} color="#06b6d4" />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff', lineHeight: 1.3 }}>
+                {t('install_title') || 'Instalá la app'}
+              </div>
+              <div style={{ fontSize: '0.62rem', color: '#94a3b8', lineHeight: 1.3, marginTop: '0.1rem' }}>
+                {t('install_subtitle') || 'Mejor experiencia, acceso directo'}
+              </div>
+            </div>
+            <button
+              onClick={() => setInstallExpanded(!installExpanded)}
+              style={{
+                background: 'rgba(6,182,212,0.15)', border: '1px solid rgba(6,182,212,0.3)',
+                borderRadius: 8, width: 28, height: 28, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'transform 0.2s', transform: installExpanded ? 'rotate(180deg)' : 'none',
+              }}
+            >
+              <ChevronDown size={14} color="#06b6d4" />
+            </button>
+            <button
+              onClick={dismissInstallBanner}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem',
+              }}
+            >
+              <X size={14} color="#64748b" />
+            </button>
+          </div>
+
+          {installExpanded && (
+            <div style={{
+              marginTop: '0.7rem', paddingTop: '0.6rem',
+              borderTop: '1px solid rgba(255,255,255,0.06)',
+            }}>
+              {/iPhone|iPad|iPod/i.test(navigator.userAgent) ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                  {[
+                    { n: '1', text: 'Tocá el botón de compartir (□↑) en Safari' },
+                    { n: '2', text: '"Añadir a pantalla de inicio"' },
+                    { n: '3', text: 'Tocá "Agregar" y listo' },
+                  ].map(s => (
+                    <div key={s.n} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+                        background: 'rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.6rem', fontWeight: 900, color: '#06b6d4',
+                      }}>{s.n}</div>
+                      <span style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{s.text}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                  {[
+                    { n: '1', text: 'Tocá el menú (⋮) de Chrome' },
+                    { n: '2', text: '"Instalar app" o "Añadir a inicio"' },
+                    { n: '3', text: 'Confirmá y listo' },
+                  ].map(s => (
+                    <div key={s.n} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+                        background: 'rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.6rem', fontWeight: 900, color: '#06b6d4',
+                      }}>{s.n}</div>
+                      <span style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{s.text}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <nav className="tabs-nav">
         {tabs.map(tab => {
