@@ -51,6 +51,11 @@ import { API, authFetch } from "../config";
 import { useLanguage } from "../LanguageContext";
 import Fuse from "fuse.js";
 import SportsView, { SportIcon } from "./SportsView";
+import {
+  GiChestArmor, GiBackPain, GiShoulderArmor,
+  GiBiceps, GiLeg, GiAbdominalArmor, GiRunningShoe,
+} from "react-icons/gi";
+import { MdFitnessCenter, MdDirectionsRun } from "react-icons/md";
 
 /* ─────────────────────────── CONSTANTES ─────────────────────────── */
 
@@ -586,17 +591,17 @@ const ExerciseSelectorView = ({
   ];
 
   const MUSCLE_ICON = {
-    Bíceps: Dumbbell,
-    Tríceps: Dumbbell,
-    Antebrazos: Dumbbell,
-    Pecho: Shield,
-    Espalda: ArrowUpFromLine,
-    Hómbros: MoveHorizontal,
-    Cuádriceps: Footprints,
-    "Isquios/Glúteos": Footprints,
-    Pantorrillas: Footprints,
-    Abdominales: Flame,
-    Cardio: Heart,
+    Bíceps: GiBiceps,
+    Tríceps: GiBiceps,
+    Antebrazos: MdFitnessCenter,
+    Pecho: GiChestArmor,
+    Espalda: GiBackPain,
+    Hómbros: GiShoulderArmor,
+    Cuádriceps: GiLeg,
+    "Isquios/Glúteos": GiLeg,
+    Pantorrillas: GiRunningShoe,
+    Abdominales: GiAbdominalArmor,
+    Cardio: MdDirectionsRun,
   };
 
   const renderItem = (ej, idx) => {
