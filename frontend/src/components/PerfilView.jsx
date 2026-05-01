@@ -10,6 +10,13 @@ import API, { authFetch, track } from '../config';
 import BodyMap, { MUSCLE_SLUG_MAP, SLUG_LABELS } from './BodyMap';
 import { useLanguage } from '../LanguageContext';
 
+const sanitizeAvatar = (src) => {
+  if (!src) return null;
+  if (src === 'string' || src === 'null' || src === 'undefined') return null;
+  if (src.startsWith('data:image') || src.startsWith('http') || src.startsWith('/')) return src;
+  return null;
+};
+
 export default function PerfilView({ perfil, onLogout }) {
   const { t, lang, setLang } = useLanguage();
   const [userData, setUserData] = useState({
@@ -155,11 +162,11 @@ export default function PerfilView({ perfil, onLogout }) {
           {/* Avatar */}
           <div onClick={() => fileInputRef.current.click()} style={{
             width: 64, height: 64, borderRadius: 18, cursor: 'pointer', position: 'relative', overflow: 'hidden', flexShrink: 0,
-            background: userData.profile_pic ? `url(${userData.profile_pic}) center/cover` : 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+            background: sanitizeAvatar(userData.profile_pic) ? `url(${sanitizeAvatar(userData.profile_pic)}) center/cover no-repeat` : 'linear-gradient(135deg, #06b6d4, #3b82f6)',
             border: '2px solid rgba(6,182,212,0.25)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', fontWeight: 900, color: '#fff',
           }}>
-            {!userData.profile_pic && perfil.charAt(0).toUpperCase()}
+            {!sanitizeAvatar(userData.profile_pic) && perfil.charAt(0).toUpperCase()}
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', opacity: 0, transition: '0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               onMouseEnter={e => e.currentTarget.style.opacity = 1} onMouseLeave={e => e.currentTarget.style.opacity = 0}>
               <Camera size={16} color="#fff" />

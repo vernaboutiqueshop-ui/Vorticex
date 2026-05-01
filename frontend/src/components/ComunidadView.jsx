@@ -5,13 +5,21 @@ import { API, authFetch, track } from '../config';
 
 const MAX_MEDIA_BYTES = 3 * 1024 * 1024;
 
+const sanitizeAvatar = (src) => {
+  if (!src) return null;
+  if (src === 'string' || src === 'null' || src === 'undefined') return null;
+  if (src.startsWith('data:image') || src.startsWith('http') || src.startsWith('/')) return src;
+  return null;
+};
+
 const Avatar = ({ src, name, size = 36, level }) => {
+  src = sanitizeAvatar(src);
   const badgeSize = Math.max(14, size * 0.4);
   return (
     <div style={{ position: 'relative', flexShrink: 0, width: size, height: size }}>
       <div style={{
         width: size, height: size, borderRadius: size * 0.3,
-        background: src ? `url(${src}) center/cover` : 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+        background: src ? `url(${src}) center/cover no-repeat` : 'linear-gradient(135deg, #06b6d4, #3b82f6)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontWeight: 900, color: 'white', fontSize: size * 0.38,
         border: '2px solid rgba(6,182,212,0.25)',
