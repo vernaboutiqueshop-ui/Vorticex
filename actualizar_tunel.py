@@ -162,7 +162,7 @@ def actualizar_vercel_env(nueva_url):
         "target": "production",
         "gitSource": {
             "type": "github",
-            "repo": "vernaboutiqueshop-ui/Vorticex",
+            "repoId": "1198785152",
             "ref": "main",
         },
     })
