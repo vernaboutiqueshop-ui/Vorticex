@@ -4,59 +4,95 @@ import {
   Plus, X, Flame, Clock, Zap, Trophy, ChevronDown,
   Trash2, Activity, Timer, HelpCircle, Star, Calendar,
 } from "lucide-react";
+import {
+  MdSportsSoccer, MdSportsTennis, MdSportsBasketball, MdSportsRugby,
+  MdSportsGolf, MdSportsVolleyball, MdSportsHockey,
+  MdPool, MdDirectionsRun, MdDirectionsBike, MdSurfing,
+  MdSelfImprovement, MdFitnessCenter, MdHiking,
+  MdKayaking, MdDownhillSkiing, MdSportsMartialArts,
+  MdIceSkating, MdDirectionsWalk, MdSportsHandball,
+} from "react-icons/md";
+import { GiBoxingGlove, GiMountainClimbing } from "react-icons/gi";
 import { API, authFetch } from "../config";
 import { useLanguage } from "../LanguageContext";
 import MiniCalendar from "./MiniCalendar";
 
-const SPORT_ICONS = {
-  "natación": "🏊", "natacion": "🏊", "swimming": "🏊",
-  "fútbol": "⚽", "futbol": "⚽", "soccer": "⚽",
-  "rugby": "🏉",
-  "básquet": "🏀", "basquet": "🏀", "basketball": "🏀",
-  "tenis": "🎾", "tennis": "🎾",
-  "pádel": "🏓", "padel": "🏓",
-  "ciclismo": "🚴", "cycling": "🚴", "bicicleta": "🚴",
-  "correr": "🏃", "running": "🏃",
-  "caminar": "🚶", "walking": "🚶",
-  "boxeo": "🥊", "boxing": "🥊",
-  "yoga": "🧘",
-  "crossfit": "🏋️",
-  "escalada": "🧗", "climbing": "🧗",
-  "surf": "🏄",
-  "bailar": "💃", "dance": "💃", "baile": "💃",
-  "senderismo": "🥾", "hiking": "🥾", "trekking": "🥾",
-  "hockey": "🏒",
-  "voley": "🏐", "vóley": "🏐", "volleyball": "🏐",
+// ── SVG Sport Icon Map ──
+const SPORT_ICON_MAP = {
+  "natación": MdPool, "natacion": MdPool, "swimming": MdPool,
+  "fútbol": MdSportsSoccer, "futbol": MdSportsSoccer, "soccer": MdSportsSoccer,
+  "rugby": MdSportsRugby,
+  "básquet": MdSportsBasketball, "basquet": MdSportsBasketball, "basketball": MdSportsBasketball,
+  "tenis": MdSportsTennis, "tennis": MdSportsTennis,
+  "pádel": MdSportsTennis, "padel": MdSportsTennis,
+  "ciclismo": MdDirectionsBike, "cycling": MdDirectionsBike, "bicicleta": MdDirectionsBike,
+  "correr": MdDirectionsRun, "running": MdDirectionsRun,
+  "caminar": MdDirectionsWalk, "walking": MdDirectionsWalk,
+  "boxeo": GiBoxingGlove, "boxing": GiBoxingGlove,
+  "yoga": MdSelfImprovement,
+  "crossfit": MdFitnessCenter,
+  "escalada": GiMountainClimbing, "climbing": GiMountainClimbing,
+  "surf": MdSurfing,
+  "bailar": MdSportsHandball, "dance": MdSportsHandball, "baile": MdSportsHandball,
+  "senderismo": MdHiking, "hiking": MdHiking, "trekking": MdHiking,
+  "hockey": MdSportsHockey,
+  "voley": MdSportsVolleyball, "vóley": MdSportsVolleyball, "volleyball": MdSportsVolleyball,
+  "golf": MdSportsGolf,
+  "artes marciales": MdSportsMartialArts,
+  "patinaje": MdIceSkating,
+  "remo": MdKayaking, "kayak": MdKayaking,
+  "esquí": MdDownhillSkiing, "esqui": MdDownhillSkiing,
+  "ping pong": MdSportsTennis,
 };
 
+const SPORT_COLOR_MAP = {
+  "fútbol": "#22c55e", "futbol": "#22c55e",
+  "natación": "#06b6d4", "natacion": "#06b6d4",
+  "correr": "#f97316", "ciclismo": "#eab308",
+  "tenis": "#a3e635", "básquet": "#f97316", "basquet": "#f97316",
+  "boxeo": "#ef4444", "rugby": "#8b5cf6", "yoga": "#a78bfa",
+  "pádel": "#14b8a6", "padel": "#14b8a6", "crossfit": "#f43f5e",
+  "caminar": "#64748b", "hockey": "#38bdf8", "voley": "#facc15",
+  "surf": "#22d3ee", "escalada": "#a3a3a3", "senderismo": "#84cc16",
+  "bailar": "#e879f9", "artes marciales": "#dc2626", "patinaje": "#7dd3fc",
+  "remo": "#0ea5e9", "esquí": "#e0f2fe", "golf": "#16a34a", "ping pong": "#fb923c",
+};
+
+function SportIcon({ name, size = 22, color }) {
+  const lower = (name || "").toLowerCase();
+  const Comp = SPORT_ICON_MAP[lower] || Activity;
+  const c = color || SPORT_COLOR_MAP[lower] || "#06b6d4";
+  return <Comp size={size} color={c} />;
+}
+
 const QUICK_SPORTS = [
-  { name: "Fútbol", icon: "⚽", color: "#22c55e" },
-  { name: "Natación", icon: "🏊", color: "#06b6d4" },
-  { name: "Correr", icon: "🏃", color: "#f97316" },
-  { name: "Ciclismo", icon: "🚴", color: "#eab308" },
-  { name: "Tenis", icon: "🎾", color: "#a3e635" },
-  { name: "Básquet", icon: "🏀", color: "#f97316" },
-  { name: "Boxeo", icon: "🥊", color: "#ef4444" },
-  { name: "Rugby", icon: "🏉", color: "#8b5cf6" },
-  { name: "Yoga", icon: "🧘", color: "#a78bfa" },
-  { name: "Pádel", icon: "🏓", color: "#14b8a6" },
-  { name: "CrossFit", icon: "🏋️", color: "#f43f5e" },
-  { name: "Caminar", icon: "🚶", color: "#64748b" },
-  { name: "Hockey", icon: "🏒", color: "#38bdf8" },
-  { name: "Voley", icon: "🏐", color: "#facc15" },
-  { name: "Surf", icon: "🏄", color: "#22d3ee" },
-  { name: "Escalada", icon: "🧗", color: "#a3a3a3" },
-  { name: "Senderismo", icon: "🥾", color: "#84cc16" },
-  { name: "Bailar", icon: "💃", color: "#e879f9" },
-  { name: "Artes Marciales", icon: "🥋", color: "#dc2626" },
-  { name: "Patinaje", icon: "⛸️", color: "#7dd3fc" },
-  { name: "Remo", icon: "🚣", color: "#0ea5e9" },
-  { name: "Esquí", icon: "⛷️", color: "#e0f2fe" },
-  { name: "Golf", icon: "⛳", color: "#16a34a" },
-  { name: "Ping Pong", icon: "🏓", color: "#fb923c" },
+  { name: "Fútbol", color: "#22c55e" },
+  { name: "Natación", color: "#06b6d4" },
+  { name: "Correr", color: "#f97316" },
+  { name: "Ciclismo", color: "#eab308" },
+  { name: "Tenis", color: "#a3e635" },
+  { name: "Básquet", color: "#f97316" },
+  { name: "Boxeo", color: "#ef4444" },
+  { name: "Rugby", color: "#8b5cf6" },
+  { name: "Yoga", color: "#a78bfa" },
+  { name: "Pádel", color: "#14b8a6" },
+  { name: "CrossFit", color: "#f43f5e" },
+  { name: "Caminar", color: "#64748b" },
+  { name: "Hockey", color: "#38bdf8" },
+  { name: "Voley", color: "#facc15" },
+  { name: "Surf", color: "#22d3ee" },
+  { name: "Escalada", color: "#a3a3a3" },
+  { name: "Senderismo", color: "#84cc16" },
+  { name: "Bailar", color: "#e879f9" },
+  { name: "Artes Marciales", color: "#dc2626" },
+  { name: "Patinaje", color: "#7dd3fc" },
+  { name: "Remo", color: "#0ea5e9" },
+  { name: "Esquí", color: "#e0f2fe" },
+  { name: "Golf", color: "#16a34a" },
+  { name: "Ping Pong", color: "#fb923c" },
 ];
 
-const EMOJI_OPTIONS = ["⚡", "⚽", "🏊", "🏃", "🚴", "🎾", "🏀", "🥊", "🏉", "🧘", "🏋️", "🚶", "🏒", "🏐", "🏄", "🧗", "🥾", "💃", "🥋", "⛸️", "🚣", "⛷️", "⛳", "🎯", "🏹", "🤸", "🏇", "🤾", "🏌️", "🎿"];
+export { SportIcon, SPORT_ICON_MAP, SPORT_COLOR_MAP };
 
 const INTENSITY_LABELS = {
   es: ["", "Muy suave", "Suave", "Ligero", "Moderado", "Medio", "Intenso", "Fuerte", "Muy fuerte", "Máximo", "Extremo"],
@@ -64,8 +100,7 @@ const INTENSITY_LABELS = {
 };
 
 function getIconForSport(name) {
-  const lower = (name || "").toLowerCase();
-  return SPORT_ICONS[lower] || "⚡";
+  return (props) => <SportIcon name={name} {...props} />;
 }
 
 function intensityColor(n) {
@@ -285,15 +320,16 @@ export default function SportsView({ perfil }) {
                     cursor: "pointer",
                   }}
                 >
-                  <div
+                  <motion.div
+                    whileHover={{ rotate: [0, -8, 8, 0], transition: { duration: 0.4 } }}
                     style={{
                       width: "38px", height: "38px", borderRadius: "12px",
                       background: `${color}18`, border: `1px solid ${color}30`,
                       display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                     }}
                   >
-                    <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>{sport.icon || "⚡"}</span>
-                  </div>
+                    <SportIcon name={sport.name} size={22} color={color} />
+                  </motion.div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 900, fontSize: "1rem", color: "#fff" }}>{sport.name}</div>
                     {lastSession ? (
@@ -336,7 +372,7 @@ export default function SportsView({ perfil }) {
                   <motion.button
                     key={qs.name}
                     whileTap={{ scale: 0.92 }}
-                    onClick={() => addSport(qs.name, qs.icon, qs.color)}
+                    onClick={() => addSport(qs.name, "", qs.color)}
                     style={{
                       display: "flex", alignItems: "center", gap: "0.3rem",
                       padding: "0.35rem 0.55rem", borderRadius: "10px",
@@ -344,7 +380,7 @@ export default function SportsView({ perfil }) {
                       cursor: "pointer", fontSize: "0.68rem", fontWeight: 700, color: "#94a3b8",
                     }}
                   >
-                    <span style={{ fontSize: "0.85rem" }}>{qs.icon}</span> {qs.name}
+                    <SportIcon name={qs.name} size={16} color={qs.color} /> {qs.name}
                   </motion.button>
                 ))}
               </div>
@@ -368,19 +404,15 @@ export default function SportsView({ perfil }) {
                 {lang === "es" ? "O CREÁ UNO CUSTOM" : "OR CREATE A CUSTOM ONE"}
               </div>
               <div style={{ display: "flex", gap: "0.35rem", alignItems: "center" }}>
-                {/* Emoji picker button */}
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setShowEmojiPicker(p => !p)}
+                <div
                   style={{
                     width: "38px", height: "38px", borderRadius: "10px", flexShrink: 0,
-                    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                    cursor: "pointer", fontSize: "1.1rem",
+                    background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.2)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                 >
-                  {customIcon}
-                </motion.button>
+                  <Zap size={18} color="#06b6d4" />
+                </div>
                 <input
                   value={customName}
                   onChange={e => setCustomName(e.target.value)}
@@ -407,43 +439,6 @@ export default function SportsView({ perfil }) {
                   <Plus size={15} />
                 </motion.button>
               </div>
-              {/* Emoji grid */}
-              <AnimatePresence>
-                {showEmojiPicker && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 28 }}
-                    style={{ overflow: "hidden" }}
-                  >
-                    <div style={{
-                      display: "flex", flexWrap: "wrap", gap: "0.25rem",
-                      marginTop: "0.5rem", padding: "0.4rem",
-                      background: "rgba(255,255,255,0.02)", borderRadius: "10px",
-                      border: "1px solid rgba(255,255,255,0.06)",
-                    }}>
-                      {EMOJI_OPTIONS.map(em => (
-                        <motion.button
-                          key={em}
-                          whileTap={{ scale: 0.85 }}
-                          onClick={() => { setCustomIcon(em); setShowEmojiPicker(false); }}
-                          style={{
-                            width: "32px", height: "32px", borderRadius: "8px",
-                            background: customIcon === em ? "rgba(6,182,212,0.15)" : "transparent",
-                            border: customIcon === em ? "1px solid rgba(6,182,212,0.3)" : "1px solid transparent",
-                            cursor: "pointer", fontSize: "1rem",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                          }}
-                        >
-                          {em}
-                        </motion.button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
               {sports.length > 0 && (
                 <div style={{ marginTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "0.6rem" }}>
                   <div style={{ fontSize: "0.6rem", fontWeight: 900, color: "#475569", marginBottom: "0.4rem" }}>
@@ -457,7 +452,7 @@ export default function SportsView({ perfil }) {
                         background: "rgba(255,255,255,0.02)",
                       }}>
                         <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.75rem", color: "#e2e8f0", fontWeight: 700 }}>
-                          <span>{s.icon}</span> {s.name}
+                          <SportIcon name={s.name} size={16} color={s.color} /> {s.name}
                         </span>
                         <motion.button
                           whileTap={{ scale: 0.9 }}
@@ -634,7 +629,7 @@ export default function SportsView({ perfil }) {
                       transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                       style={{ marginBottom: "0.2rem", display: "flex", justifyContent: "center" }}
                     >
-                      <span style={{ fontSize: "2.8rem", lineHeight: 1 }}>{showSession.icon || "⚡"}</span>
+                      <SportIcon name={showSession.name} size={48} color={showSession.color || "#06b6d4"} />
                     </motion.div>
                     <h3 style={{ margin: 0, fontWeight: 900, color: "#fff", fontSize: "1.15rem" }}>
                       {showSession.name}
@@ -782,7 +777,7 @@ export default function SportsView({ perfil }) {
                     background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)",
                   }}
                 >
-                  <span style={{ fontSize: "1.15rem", flexShrink: 0, lineHeight: 1 }}>{icon}</span>
+                  <span style={{ flexShrink: 0, lineHeight: 1, display: "flex", alignItems: "center" }}><SportIcon name={s.sport_name} size={20} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
                       <span style={{ fontWeight: 800, color: "#e2e8f0", fontSize: "0.78rem" }}>{s.sport_name}</span>

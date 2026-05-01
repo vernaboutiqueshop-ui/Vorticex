@@ -50,7 +50,7 @@ import BodyMap, { SLUG_LABELS, MUSCLE_SLUG_MAP } from "./BodyMap";
 import { API, authFetch } from "../config";
 import { useLanguage } from "../LanguageContext";
 import Fuse from "fuse.js";
-import SportsView from "./SportsView";
+import SportsView, { SportIcon } from "./SportsView";
 
 /* ─────────────────────────── CONSTANTES ─────────────────────────── */
 
@@ -3760,9 +3760,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   const volMatch = desc.match(/Volumen:\s*([\d.]+)kg/);
                   const volumen = isGym ? (volMatch ? volMatch[1] : null) : null;
 
-                  // Sport-specific
-                  const sportEmojis = {"natación":"🏊","natacion":"🏊","fútbol":"⚽","futbol":"⚽","correr":"🏃","ciclismo":"🚴","tenis":"🎾","básquet":"🏀","basquet":"🏀","boxeo":"🥊","rugby":"🏉","yoga":"🧘","pádel":"🏓","padel":"🏓","crossfit":"🏋️","caminar":"🚶","hockey":"🏒","voley":"🏐","surf":"🏄","bailar":"💃","escalada":"🧗","senderismo":"🥾"};
-                  const sportIcon = isSport ? (sportEmojis[(session.sport_name || "").toLowerCase()] || "⚡") : null;
+                  // Sport-specific (uses SVG icons now)
 
                   return (
                     <motion.div
@@ -3787,7 +3785,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                         background: isGym ? "rgba(6,182,212,0.1)" : "rgba(249,115,22,0.1)",
                         border: `1px solid ${isGym ? "rgba(6,182,212,0.15)" : "rgba(249,115,22,0.2)"}`,
                       }}>
-                        {isSport ? <span style={{ fontSize: "1.2rem", lineHeight: 1 }}>{sportIcon}</span> : <Dumbbell size={18} color="#06b6d4" />}
+                        {isSport ? <SportIcon name={session.sport_name} size={18} /> : <Dumbbell size={18} color="#06b6d4" />}
                       </div>
 
                       {/* Center info */}
