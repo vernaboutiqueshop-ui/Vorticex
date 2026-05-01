@@ -18,5 +18,6 @@ export function authFetch(url, options = {}) {
   if (!headers['Content-Type'] && !(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
+  headers['ngrok-skip-browser-warning'] = 'true';
   return fetch(url, { ...options, headers });
 }

@@ -11,7 +11,7 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
   const [gifViewer, setGifViewer] = useState(null);
 
   useEffect(() => {
-    fetch(`${API}/api/gym/rutina/publica/${routineId}`)
+    fetch(`${API}/api/gym/rutina/publica/${routineId}`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') setRutina(data.rutina);
@@ -26,7 +26,7 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
     try {
       const res = await fetch(`${API}/api/gym/rutina/nueva`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify({ perfil, nombre: `${rutina.name} (Clonada)`, ejercicios: rutina.ejercicios, folder_id: null })
       });
       if (res.ok) { alert('Rutina guardada!'); if (onClone) onClone(); }

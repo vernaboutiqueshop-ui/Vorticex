@@ -51,7 +51,7 @@ export default function LoginView({ onLogin }) {
       form.append('password', loginData.password);
       const res = await fetch(`${API}/api/auth/token`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'ngrok-skip-browser-warning': 'true' },
         body: form,
       });
       const data = await res.json();
@@ -83,7 +83,7 @@ export default function LoginView({ onLogin }) {
       };
       const res = await fetch(`${API}/api/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
