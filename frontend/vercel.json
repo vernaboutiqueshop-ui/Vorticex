@@ -2,19 +2,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://prompt-interfaces-motherboard-sept.trycloudflare.com/api/$1"
+      "dest": "https://breathing-photographers-gcc-bargain.trycloudflare.com/api/$1"
     },
     {
       "src": "/exercises/(.*)",
-      "dest": "https://prompt-interfaces-motherboard-sept.trycloudflare.com/exercises/$1"
+      "dest": "https://breathing-photographers-gcc-bargain.trycloudflare.com/exercises/$1"
     },
     {
       "src": "/gifs/(.*)",
-      "dest": "https://prompt-interfaces-motherboard-sept.trycloudflare.com/gifs/$1"
+      "dest": "https://breathing-photographers-gcc-bargain.trycloudflare.com/gifs/$1"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "https://prompt-interfaces-motherboard-sept.trycloudflare.com/uploads/$1"
+      "dest": "https://breathing-photographers-gcc-bargain.trycloudflare.com/uploads/$1"
     },
     {
       "handle": "filesystem"
