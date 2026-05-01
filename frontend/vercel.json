@@ -2,19 +2,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://starting-widely-professional-bytes.trycloudflare.com/api/$1"
+      "dest": "https://easy-formats-outline-add.trycloudflare.com/api/$1"
     },
     {
       "src": "/exercises/(.*)",
-      "dest": "https://starting-widely-professional-bytes.trycloudflare.com/exercises/$1"
+      "dest": "https://easy-formats-outline-add.trycloudflare.com/exercises/$1"
     },
     {
       "src": "/gifs/(.*)",
-      "dest": "https://starting-widely-professional-bytes.trycloudflare.com/gifs/$1"
+      "dest": "https://easy-formats-outline-add.trycloudflare.com/gifs/$1"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "https://starting-widely-professional-bytes.trycloudflare.com/uploads/$1"
+      "dest": "https://easy-formats-outline-add.trycloudflare.com/uploads/$1"
     },
     {
       "handle": "filesystem"
