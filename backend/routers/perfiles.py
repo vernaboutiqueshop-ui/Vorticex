@@ -90,7 +90,7 @@ def update_user_avatar(perfil: str, req: AvatarUpdate, user: str = Depends(get_c
         return {"status": "error", "error": str(e)}
 
 
-@router.post("/feedback")
+@router.post("/perfil/feedback")
 def save_feedback(req: FeedbackRequest, user: str = Depends(get_current_user)):
     try:
         from core.database_sqlite import guardar_feedback

@@ -844,6 +844,44 @@ def guardar_feedback(perfil: str, message: str):
         return True
 
 
+def obtener_feedback_admin():
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT f.id, f.message, f.created_at, f.admin_reply, f.replied_at,
+                   u.name as user_name, u.profile_pic as user_avatar
+            FROM feedback f
+            JOIN users u ON u.id = f.user_id
+            ORDER BY f.created_at DESC
+            LIMIT 100
+        """)
+        return [dict(r) for r in cur.fetchall()]
+
+
+def responder_feedback(feedback_id: int, reply: str):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE feedback SET admin_reply = ?, replied_at = datetime('now') WHERE id = ?",
+            (reply, feedback_id),
+        )
+        if cur.rowcount == 0:
+            return None
+        # Get user to create notification
+        cur.execute("""
+            SELECT f.user_id, u.name FROM feedback f
+            JOIN users u ON u.id = f.user_id WHERE f.id = ?
+        """, (feedback_id,))
+        row = cur.fetchone()
+        if row:
+            cur.execute(
+                "INSERT INTO notifications (user_id, type, from_user, post_id, message) VALUES (?, ?, ?, ?, ?)",
+                (row["user_id"], "admin_reply", "Vórtice", 0, reply[:200]),
+            )
+        conn.commit()
+        return row["name"] if row else None
+
+
 def obtener_intensidad_muscular(perfil: str):
     with get_conn() as conn:
         cur = conn.cursor()

@@ -159,6 +159,18 @@ def init_final_db():
     except:
         pass
 
+    try:
+        cur.execute("ALTER TABLE feedback ADD COLUMN admin_reply TEXT DEFAULT NULL")
+        conn.commit()
+    except:
+        pass
+
+    try:
+        cur.execute("ALTER TABLE feedback ADD COLUMN replied_at DATETIME DEFAULT NULL")
+        conn.commit()
+    except:
+        pass
+
     print("[SUCCESS] Schema final consolidado.")
     conn.close()
 

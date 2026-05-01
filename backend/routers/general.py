@@ -310,6 +310,32 @@ def mark_notifications_read(user: str = "", current_user: str = Depends(get_curr
     return {"status": "success"}
 
 
+# ── Admin Feedback ──
+ADMIN_USERS = ["gonza"]
+
+@router.get("/admin/feedback")
+def get_all_feedback(current_user: str = Depends(get_current_user)):
+    if current_user.lower() not in ADMIN_USERS:
+        return {"status": "error", "detail": "No autorizado"}
+    from core.database_sqlite import obtener_feedback_admin
+    return {"status": "success", "feedback": obtener_feedback_admin()}
+
+
+class AdminReply(BaseModel):
+    feedback_id: int
+    reply: str
+
+@router.post("/admin/feedback/reply")
+def reply_to_feedback(req: AdminReply, current_user: str = Depends(get_current_user)):
+    if current_user.lower() not in ADMIN_USERS:
+        return {"status": "error", "detail": "No autorizado"}
+    from core.database_sqlite import responder_feedback
+    user = responder_feedback(req.feedback_id, req.reply)
+    if user is None:
+        return {"status": "error", "detail": "Feedback no encontrado"}
+    return {"status": "success", "user_notified": user}
+
+
 # ── Analytics ──
 class AnalyticsEvent(BaseModel):
     event: str

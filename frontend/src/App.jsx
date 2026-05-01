@@ -437,10 +437,12 @@ function NotificationsModal({ perfil, onClose }) {
                     <span style={{ fontWeight: 600, color: '#94a3b8' }}>
                       {n.type === 'like'
                         ? (lang === 'es' ? 'le dio ❤️ a tu post' : 'liked ❤️ your post')
+                        : n.type === 'admin_reply'
+                        ? (lang === 'es' ? 'respondió a tu sugerencia' : 'replied to your feedback')
                         : (lang === 'es' ? 'comentó en tu post' : 'commented on your post')}
                     </span>
                   </div>
-                  {n.type === 'comment' && n.message && (
+                  {(n.type === 'comment' || n.type === 'admin_reply') && n.message && (
                     <div style={{
                       fontSize: '0.68rem', color: '#64748b', fontWeight: 600,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem',
@@ -452,6 +454,8 @@ function NotificationsModal({ perfil, onClose }) {
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem', flexShrink: 0 }}>
                   {n.type === 'like'
                     ? <Heart size={14} color="#ef4444" fill="#ef4444" />
+                    : n.type === 'admin_reply'
+                    ? <Zap size={14} color="#f59e0b" />
                     : <MessageCircle size={14} color="#06b6d4" />
                   }
                   <span style={{ fontSize: '0.5rem', color: '#475569', fontWeight: 700 }}>{timeAgo(n.created_at)}</span>

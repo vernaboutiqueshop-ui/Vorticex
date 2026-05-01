@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { LogOut, Scale, Ruler, Calendar, Camera, Flame, Trophy, Zap, Users, ChevronDown, Activity, Clock } from 'lucide-react';
+import { LogOut, Scale, Ruler, Calendar, Camera, Flame, Trophy, Zap, Users, ChevronDown, Activity, Clock, MessageSquare, Send, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import API, { authFetch } from '../config';
+import API, { authFetch, track } from '../config';
 import BodyMap, { MUSCLE_SLUG_MAP, SLUG_LABELS } from './BodyMap';
 import { useLanguage } from '../LanguageContext';
 
@@ -513,7 +513,149 @@ export default function PerfilView({ perfil, onLogout }) {
         </div>
       </motion.div>
 
+      {/* ═══ Admin Feedback Panel ═══ */}
+      {perfil?.toLowerCase() === 'gonza' && <AdminFeedbackPanel />}
+
       <style>{`@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`}</style>
     </div>
+  );
+}
+
+
+function AdminFeedbackPanel() {
+  const [feedbackList, setFeedbackList] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [replyText, setReplyText] = useState({});
+  const [sending, setSending] = useState({});
+
+  const loadFeedback = async () => {
+    setLoading(true);
+    try {
+      const res = await authFetch(`${API}/api/admin/feedback`);
+      const data = await res.json();
+      if (data.status === 'success') setFeedbackList(data.feedback || []);
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { if (open) loadFeedback(); }, [open]);
+
+  const handleReply = async (id) => {
+    const txt = replyText[id];
+    if (!txt?.trim()) return;
+    setSending(prev => ({ ...prev, [id]: true }));
+    try {
+      const res = await authFetch(`${API}/api/admin/feedback/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback_id: id, reply: txt.trim() }),
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        setReplyText(prev => ({ ...prev, [id]: '' }));
+        loadFeedback();
+        track('admin_reply', { feedback_id: id });
+      }
+    } catch (e) { console.error(e); }
+    finally { setSending(prev => ({ ...prev, [id]: false })); }
+  };
+
+  const timeAgo = (ts) => {
+    if (!ts) return '';
+    const diff = (Date.now() - new Date(ts + 'Z').getTime()) / 1000;
+    if (diff < 60) return 'ahora';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+    return `${Math.floor(diff / 86400)}d`;
+  };
+
+  const card = {
+    background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: '16px', overflow: 'hidden',
+  };
+
+  return (
+    <motion.div style={{ ...card, margin: '0.75rem 0' }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width: '100%', padding: '0.85rem 1rem', background: 'none', border: 'none',
+          display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer',
+        }}
+      >
+        <MessageSquare size={18} color="#f59e0b" />
+        <span style={{ color: '#fff', fontWeight: 800, fontSize: '0.8rem', flex: 1, textAlign: 'left' }}>
+          FEEDBACK DE USUARIOS
+        </span>
+        <ChevronRight size={16} color="#64748b" style={{ transition: '0.2s', transform: open ? 'rotate(90deg)' : 'none' }} />
+      </button>
+
+      {open && (
+        <div style={{ padding: '0 0.85rem 0.85rem', maxHeight: '60vh', overflowY: 'auto' }}>
+          {loading && <div style={{ color: '#64748b', fontSize: '0.7rem', textAlign: 'center', padding: '1rem' }}>Cargando...</div>}
+          {!loading && feedbackList.length === 0 && (
+            <div style={{ color: '#475569', fontSize: '0.7rem', textAlign: 'center', padding: '1rem' }}>Sin feedback aún</div>
+          )}
+          {feedbackList.map(fb => (
+            <div key={fb.id} style={{
+              padding: '0.7rem', borderRadius: 12, marginBottom: '0.5rem',
+              background: fb.admin_reply ? 'rgba(16,185,129,0.06)' : 'rgba(255,255,255,0.03)',
+              border: fb.admin_reply ? '1px solid rgba(16,185,129,0.15)' : '1px solid rgba(255,255,255,0.04)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                <div style={{
+                  width: 24, height: 24, borderRadius: 8,
+                  background: fb.user_avatar ? `url(${fb.user_avatar}) center/cover` : 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+                  flexShrink: 0,
+                }} />
+                <span style={{ color: '#06b6d4', fontWeight: 800, fontSize: '0.72rem' }}>{fb.user_name}</span>
+                <span style={{ color: '#475569', fontSize: '0.6rem', marginLeft: 'auto' }}>{timeAgo(fb.created_at)}</span>
+              </div>
+              <div style={{ color: '#e2e8f0', fontSize: '0.73rem', lineHeight: 1.5, marginBottom: '0.4rem' }}>
+                {fb.message}
+              </div>
+
+              {fb.admin_reply ? (
+                <div style={{
+                  background: 'rgba(16,185,129,0.08)', borderRadius: 8, padding: '0.45rem 0.6rem',
+                  borderLeft: '3px solid #10b981',
+                }}>
+                  <div style={{ fontSize: '0.6rem', color: '#10b981', fontWeight: 800, marginBottom: '0.15rem' }}>TU RESPUESTA</div>
+                  <div style={{ fontSize: '0.7rem', color: '#cbd5e1' }}>{fb.admin_reply}</div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.3rem' }}>
+                  <input
+                    value={replyText[fb.id] || ''}
+                    onChange={e => setReplyText(prev => ({ ...prev, [fb.id]: e.target.value }))}
+                    placeholder="Respondé..."
+                    style={{
+                      flex: 1, height: '2rem', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8,
+                      background: 'rgba(255,255,255,0.03)', padding: '0 0.5rem', color: '#fff',
+                      fontSize: '0.7rem', outline: 'none', fontFamily: 'inherit',
+                    }}
+                    onKeyDown={e => e.key === 'Enter' && handleReply(fb.id)}
+                  />
+                  <button
+                    onClick={() => handleReply(fb.id)}
+                    disabled={sending[fb.id]}
+                    style={{
+                      width: '2rem', height: '2rem', borderRadius: 8,
+                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      border: 'none', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      opacity: sending[fb.id] ? 0.5 : 1,
+                    }}
+                  >
+                    <Send size={12} color="#fff" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
   );
 }
