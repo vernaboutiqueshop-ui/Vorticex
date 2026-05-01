@@ -2,19 +2,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://peterson-wagner-conservative-greeting.trycloudflare.com/api/$1"
+      "dest": "https://api.trycloudflare.com/api/$1"
     },
     {
       "src": "/exercises/(.*)",
-      "dest": "https://peterson-wagner-conservative-greeting.trycloudflare.com/exercises/$1"
+      "dest": "https://api.trycloudflare.com/exercises/$1"
     },
     {
       "src": "/gifs/(.*)",
-      "dest": "https://peterson-wagner-conservative-greeting.trycloudflare.com/gifs/$1"
+      "dest": "https://api.trycloudflare.com/gifs/$1"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "https://peterson-wagner-conservative-greeting.trycloudflare.com/uploads/$1"
+      "dest": "https://api.trycloudflare.com/uploads/$1"
     },
     {
       "handle": "filesystem"
