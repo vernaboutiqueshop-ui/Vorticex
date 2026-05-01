@@ -2,19 +2,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://assigned-trainers-cliff-wonder.trycloudflare.com/api/$1"
+      "dest": "https://scripting-texture-processed-paragraphs.trycloudflare.com/api/$1"
     },
     {
       "src": "/exercises/(.*)",
-      "dest": "https://assigned-trainers-cliff-wonder.trycloudflare.com/exercises/$1"
+      "dest": "https://scripting-texture-processed-paragraphs.trycloudflare.com/exercises/$1"
     },
     {
       "src": "/gifs/(.*)",
-      "dest": "https://assigned-trainers-cliff-wonder.trycloudflare.com/gifs/$1"
+      "dest": "https://scripting-texture-processed-paragraphs.trycloudflare.com/gifs/$1"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "https://assigned-trainers-cliff-wonder.trycloudflare.com/uploads/$1"
+      "dest": "https://scripting-texture-processed-paragraphs.trycloudflare.com/uploads/$1"
     },
     {
       "handle": "filesystem"
