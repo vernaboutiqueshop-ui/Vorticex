@@ -2,19 +2,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://processes-understanding-webcast-referring.trycloudflare.com/api/$1"
+      "dest": "https://cpu-legends-guaranteed-resort.trycloudflare.com/api/$1"
     },
     {
       "src": "/exercises/(.*)",
-      "dest": "https://processes-understanding-webcast-referring.trycloudflare.com/exercises/$1"
+      "dest": "https://cpu-legends-guaranteed-resort.trycloudflare.com/exercises/$1"
     },
     {
       "src": "/gifs/(.*)",
-      "dest": "https://processes-understanding-webcast-referring.trycloudflare.com/gifs/$1"
+      "dest": "https://cpu-legends-guaranteed-resort.trycloudflare.com/gifs/$1"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "https://processes-understanding-webcast-referring.trycloudflare.com/uploads/$1"
+      "dest": "https://cpu-legends-guaranteed-resort.trycloudflare.com/uploads/$1"
     },
     {
       "handle": "filesystem"
