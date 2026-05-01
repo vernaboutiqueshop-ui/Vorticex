@@ -196,3 +196,45 @@ def estimar_nutricion_ollama(alimento):
 def generar_receta_alacena(perfil, ings):
     prompt = f"Con estos ingredientes: {ings}, sugiere una receta rápida argentina con toda la onda."
     return consultar_gemini([{"role": "user", "content": prompt}])
+
+
+def analizar_foto_gemini(image_bytes):
+    """Analyze a food photo using Gemini Vision and return nutrition estimate."""
+    try:
+        if not client:
+            inicializar_cliente()
+            if not client:
+                return None
+
+        import base64
+        b64 = base64.b64encode(image_bytes).decode('utf-8')
+
+        prompt = (
+            "Sos un nutricionista argentino experto. Analizá esta foto de comida.\n"
+            "Respondé ÚNICAMENTE en JSON con este formato exacto:\n"
+            '{"alimento": "nombre del plato", "descripcion": "breve desc", '
+            '"calorias": 0, "proteinas": 0, "carbos": 0, "grasas": 0}\n'
+            "Estimá los macros lo más preciso posible para una porción normal."
+        )
+
+        config = types.GenerateContentConfig(
+            temperature=0.3,
+            response_mime_type="application/json"
+        )
+
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=[
+                types.Content(parts=[
+                    types.Part.from_text(text=prompt),
+                    types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+                ])
+            ],
+            config=config
+        )
+
+        result = json.loads(clean_json(response.text))
+        return result
+    except Exception as e:
+        print(f"[IA ERROR foto]: {e}")
+        return None

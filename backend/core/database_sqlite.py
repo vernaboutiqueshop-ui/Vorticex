@@ -1849,3 +1849,229 @@ def obtener_historial_deportes(perfil: str, limit: int = 30):
             ORDER BY al.timestamp DESC LIMIT ?
         """, (perfil, limit))
         return [dict(r) for r in cur.fetchall()]
+
+
+# ── NUTRITION GOALS ──
+def _ensure_nutrition_goals_table():
+    with get_conn() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS nutrition_goals (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL UNIQUE,
+                cal_goal REAL DEFAULT 2200,
+                prot_goal REAL DEFAULT 150,
+                carb_goal REAL DEFAULT 250,
+                fat_goal REAL DEFAULT 70,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        conn.commit()
+
+_ensure_nutrition_goals_table()
+
+
+def obtener_metas_nutricion(perfil: str):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT ng.cal_goal, ng.prot_goal, ng.carb_goal, ng.fat_goal
+            FROM nutrition_goals ng
+            JOIN users u ON u.id = ng.user_id
+            WHERE LOWER(u.name) = LOWER(?)
+        """, (perfil,))
+        row = cur.fetchone()
+        if row:
+            return dict(row)
+        return {"cal_goal": 2200, "prot_goal": 150, "carb_goal": 250, "fat_goal": 70}
+
+
+def guardar_metas_nutricion(perfil: str, cal: float, prot: float, carb: float, fat: float):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
+        user = cur.fetchone()
+        if not user:
+            return
+        uid = user["id"]
+        cur.execute("""
+            INSERT INTO nutrition_goals (user_id, cal_goal, prot_goal, carb_goal, fat_goal)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE SET
+                cal_goal=excluded.cal_goal, prot_goal=excluded.prot_goal,
+                carb_goal=excluded.carb_goal, fat_goal=excluded.fat_goal,
+                updated_at=CURRENT_TIMESTAMP
+        """, (uid, cal, prot, carb, fat))
+        conn.commit()
+
+
+# ── WATER TRACKING ──
+def _ensure_water_table():
+    with get_conn() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS water_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                glasses INTEGER DEFAULT 0,
+                date TEXT NOT NULL,
+                UNIQUE(user_id, date),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        conn.commit()
+
+_ensure_water_table()
+
+
+def obtener_agua_hoy(perfil: str):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT w.glasses FROM water_log w
+            JOIN users u ON u.id = w.user_id
+            WHERE LOWER(u.name) = LOWER(?) AND w.date = ?
+        """, (perfil, _today()))
+        row = cur.fetchone()
+        return row["glasses"] if row else 0
+
+
+def agregar_agua(perfil: str, glasses: int = 1):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
+        user = cur.fetchone()
+        if not user:
+            return 0
+        uid = user["id"]
+        cur.execute("""
+            INSERT INTO water_log (user_id, glasses, date)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id, date) DO UPDATE SET glasses = glasses + ?
+        """, (uid, glasses, _today(), glasses))
+        conn.commit()
+        cur.execute("SELECT glasses FROM water_log WHERE user_id = ? AND date = ?", (uid, _today()))
+        return cur.fetchone()["glasses"]
+
+
+def resetear_agua(perfil: str):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            UPDATE water_log SET glasses = 0
+            WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?))
+            AND date = ?
+        """, (perfil, _today()))
+        conn.commit()
+        return 0
+
+
+# ── NUTRITION HISTORY (weekly) ──
+def obtener_historial_nutricion(perfil: str, dias: int = 7):
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT date(timestamp) as fecha,
+                   SUM(val1) as calorias,
+                   SUM(val2) as proteinas,
+                   SUM(val3) as carbos,
+                   SUM(val4) as grasas,
+                   COUNT(*) as comidas
+            FROM activity_logs
+            WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?))
+            AND type = 'Nutricion'
+            AND timestamp >= date('now', ?)
+            GROUP BY date(timestamp)
+            ORDER BY fecha
+        """, (perfil, f"-{dias} days"))
+        return [dict(r) for r in cur.fetchall()]
+
+
+# ── ALIMENTOS CACHE (Normalized to 100g/100ml) ──
+def _ensure_alimentos_cache_table():
+    with get_conn() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS alimentos_cache (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER DEFAULT NULL,
+                nombre TEXT NOT NULL,
+                marca TEXT DEFAULT '',
+                porcion_desc TEXT DEFAULT '100g',
+                cal_100 REAL DEFAULT 0,
+                prot_100 REAL DEFAULT 0,
+                carb_100 REAL DEFAULT 0,
+                fat_100 REAL DEFAULT 0,
+                fibra_100 REAL DEFAULT 0,
+                source TEXT DEFAULT 'manual',
+                barcode TEXT DEFAULT '',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        """)
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_alimentos_nombre
+            ON alimentos_cache(nombre COLLATE NOCASE)
+        """)
+        conn.commit()
+
+_ensure_alimentos_cache_table()
+
+
+def buscar_alimentos_cache(perfil: str, query: str, limit: int = 15):
+    """Search cache: global (user_id IS NULL) + user's private entries only."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
+        user = cur.fetchone()
+        uid = user["id"] if user else -1
+
+        cur.execute("""
+            SELECT * FROM alimentos_cache
+            WHERE (user_id IS NULL OR user_id = ?)
+            AND (nombre LIKE ? OR marca LIKE ?)
+            ORDER BY
+                CASE WHEN nombre LIKE ? THEN 0 ELSE 1 END,
+                nombre
+            LIMIT ?
+        """, (uid, f"%{query}%", f"%{query}%", f"{query}%", limit))
+        return [dict(r) for r in cur.fetchall()]
+
+
+def guardar_alimento_cache(
+    perfil: str, nombre: str, marca: str,
+    cal_100: float, prot_100: float, carb_100: float, fat_100: float,
+    fibra_100: float = 0, source: str = "manual", barcode: str = "",
+    global_entry: bool = False
+):
+    """Save a food to cache. global_entry=True -> user_id=NULL (admin only)."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        uid = None
+        if not global_entry:
+            cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
+            user = cur.fetchone()
+            uid = user["id"] if user else 1
+
+        cur.execute("""
+            INSERT INTO alimentos_cache
+            (user_id, nombre, marca, cal_100, prot_100, carb_100, fat_100, fibra_100, source, barcode)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (uid, nombre, marca, round(cal_100, 1), round(prot_100, 1),
+              round(carb_100, 1), round(fat_100, 1), round(fibra_100, 1), source, barcode))
+        conn.commit()
+        return cur.lastrowid
+
+
+def obtener_alimento_por_id(perfil: str, alimento_id: int):
+    """Get food by ID, respecting ownership (global or own)."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
+        user = cur.fetchone()
+        uid = user["id"] if user else -1
+
+        cur.execute("""
+            SELECT * FROM alimentos_cache
+            WHERE id = ? AND (user_id IS NULL OR user_id = ?)
+        """, (alimento_id, uid))
+        row = cur.fetchone()
+        return dict(row) if row else None

@@ -11,5 +11,9 @@ from core.database_sqlite import (
     guardar_rutina, obtener_rutinas, eliminar_rutina_perfil,
     obtener_comidas_hoy, eliminar_evento_perfil,
     obtener_perfil, guardar_perfil, listar_perfiles, obtener_memoria_perfil,
-    verificar_password, obtener_password_hash
+    verificar_password, obtener_password_hash,
+    obtener_metas_nutricion, guardar_metas_nutricion,
+    obtener_agua_hoy, agregar_agua, resetear_agua,
+    obtener_historial_nutricion,
+    buscar_alimentos_cache, guardar_alimento_cache, obtener_alimento_por_id
 )
