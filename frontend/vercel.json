@@ -2,19 +2,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://calendar-ent-brothers-athens.trycloudflare.com/api/$1"
+      "dest": "https://allow-prefix-reynolds-cooling.trycloudflare.com/api/$1"
     },
     {
       "src": "/exercises/(.*)",
-      "dest": "https://calendar-ent-brothers-athens.trycloudflare.com/exercises/$1"
+      "dest": "https://allow-prefix-reynolds-cooling.trycloudflare.com/exercises/$1"
     },
     {
       "src": "/gifs/(.*)",
-      "dest": "https://calendar-ent-brothers-athens.trycloudflare.com/gifs/$1"
+      "dest": "https://allow-prefix-reynolds-cooling.trycloudflare.com/gifs/$1"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "https://calendar-ent-brothers-athens.trycloudflare.com/uploads/$1"
+      "dest": "https://allow-prefix-reynolds-cooling.trycloudflare.com/uploads/$1"
     },
     {
       "handle": "filesystem"
