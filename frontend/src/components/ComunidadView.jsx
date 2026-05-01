@@ -97,7 +97,11 @@ export default function ComunidadView({ perfil }) {
     }
   }, [perfil]);
 
-  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+  useEffect(() => {
+    fetchPosts();
+    const iv = setInterval(() => fetchPosts(true), 30000);
+    return () => clearInterval(iv);
+  }, [fetchPosts]);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
@@ -211,8 +215,9 @@ export default function ComunidadView({ perfil }) {
         setNewComment(prev => ({ ...prev, [postId]: "" }));
         const res2 = await authFetch(`${API}/api/comunidad/post/${postId}/comments`);
         const data2 = await res2.json();
-        setCommentsData(prev => ({ ...prev, [postId]: data2.comments }));
-        setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: p.comments_count + 1 } : p));
+        const comments = data2.comments || [];
+        setCommentsData(prev => ({ ...prev, [postId]: comments }));
+        setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: comments.length } : p));
       }
     } catch (e) { console.error(e); }
   };
