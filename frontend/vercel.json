@@ -2,19 +2,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://api.trycloudflare.com/api/$1"
+      "dest": "https://prompt-interfaces-motherboard-sept.trycloudflare.com/api/$1"
     },
     {
       "src": "/exercises/(.*)",
-      "dest": "https://api.trycloudflare.com/exercises/$1"
+      "dest": "https://prompt-interfaces-motherboard-sept.trycloudflare.com/exercises/$1"
     },
     {
       "src": "/gifs/(.*)",
-      "dest": "https://api.trycloudflare.com/gifs/$1"
+      "dest": "https://prompt-interfaces-motherboard-sept.trycloudflare.com/gifs/$1"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "https://api.trycloudflare.com/uploads/$1"
+      "dest": "https://prompt-interfaces-motherboard-sept.trycloudflare.com/uploads/$1"
     },
     {
       "handle": "filesystem"
