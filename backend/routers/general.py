@@ -342,12 +342,42 @@ class AnalyticsEvent(BaseModel):
     user: Optional[str] = None
     data: Optional[dict] = None
 
+# Color palette for users (ANSI 256-color)
+_USER_COLORS = [
+    "\033[38;5;87m",   # cyan
+    "\033[38;5;213m",  # pink
+    "\033[38;5;118m",  # green
+    "\033[38;5;208m",  # orange
+    "\033[38;5;141m",  # purple
+    "\033[38;5;226m",  # yellow
+    "\033[38;5;196m",  # red
+    "\033[38;5;51m",   # bright cyan
+]
+_user_color_map: dict[str, str] = {}
+
+_EVENT_ICONS = {
+    "login": ">>", "logout": "<<", "tab": "--",
+    "like": "<3", "comment": "#", "follow": "+",
+    "admin_reply": "!!", "post": "**",
+}
+R = "\033[0m"
+BOLD = "\033[1m"
+DIM = "\033[2m"
+
+def _color_for(user: str) -> str:
+    key = user.lower()
+    if key not in _user_color_map:
+        _user_color_map[key] = _USER_COLORS[len(_user_color_map) % len(_USER_COLORS)]
+    return _user_color_map[key]
+
 @router.post("/analytics/event")
 def track_event(ev: AnalyticsEvent, request: Request):
     ts = datetime.now().strftime("%H:%M:%S")
     user = ev.user or "anon"
+    uc = _color_for(user)
+    icon = _EVENT_ICONS.get(ev.event, "  ")
     extra = ""
     if ev.data:
-        extra = " | " + " ".join(f"{k}={v}" for k, v in ev.data.items())
-    print(f"\033[36m[TRACK {ts}]\033[0m \033[1m{user}\033[0m → \033[33m{ev.event}\033[0m{extra}")
+        extra = f" {DIM}| " + " ".join(f"{k}={v}" for k, v in ev.data.items()) + R
+    print(f"{DIM}{ts}{R}  {icon}  {uc}{BOLD}{user:>12}{R}  \033[33m{ev.event}{R}{extra}")
     return {"status": "ok"}
