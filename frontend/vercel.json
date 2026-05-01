@@ -2,19 +2,19 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://munich-wonderful-trail-purse.trycloudflare.com/api/$1"
+      "dest": "https://scoop-louise-kim-inf.trycloudflare.com/api/$1"
     },
     {
       "src": "/exercises/(.*)",
-      "dest": "https://munich-wonderful-trail-purse.trycloudflare.com/exercises/$1"
+      "dest": "https://scoop-louise-kim-inf.trycloudflare.com/exercises/$1"
     },
     {
       "src": "/gifs/(.*)",
-      "dest": "https://munich-wonderful-trail-purse.trycloudflare.com/gifs/$1"
+      "dest": "https://scoop-louise-kim-inf.trycloudflare.com/gifs/$1"
     },
     {
       "src": "/uploads/(.*)",
-      "dest": "https://munich-wonderful-trail-purse.trycloudflare.com/uploads/$1"
+      "dest": "https://scoop-louise-kim-inf.trycloudflare.com/uploads/$1"
     },
     {
       "handle": "filesystem"
