@@ -2141,12 +2141,13 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   background: "rgba(255,255,255,0.04)", padding: "0.15rem 0.4rem", borderRadius: "6px",
                   pointerEvents: "none",
                 }}>
-                  ✏️
+                  <Edit2 size={11} color="#475569" />
                 </span>
               )}
             </div>
             {/* Folder toggle button */}
-            <button
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={() => setShowFolderDropdown?.(!showFolderDropdown)}
               style={{
                 background: selectedFolderId ? "rgba(6,182,212,0.12)" : "rgba(255,255,255,0.04)",
@@ -2154,15 +2155,23 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 borderRadius: "10px", padding: "0.35rem 0.5rem", cursor: "pointer",
                 display: "flex", alignItems: "center", gap: "0.3rem",
                 color: selectedFolderId ? "#06b6d4" : "#64748b",
-                transition: "all 0.2s",
               }}
             >
-              <Folder size={14} />
-              <ChevronDown size={12} style={{
-                transform: showFolderDropdown ? "rotate(180deg)" : "rotate(0deg)",
-                transition: "transform 0.2s",
-              }} />
-            </button>
+              <motion.div
+                animate={{ rotate: showFolderDropdown ? 15 : 0 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                style={{ display: "flex", alignItems: "center" }}
+              >
+                <Folder size={14} style={{ strokeWidth: 2.5 }} />
+              </motion.div>
+              <motion.div
+                animate={{ rotate: showFolderDropdown ? 180 : 0 }}
+                transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                style={{ display: "flex", alignItems: "center" }}
+              >
+                <ChevronDown size={12} style={{ strokeWidth: 2.5 }} />
+              </motion.div>
+            </motion.button>
           </header>
 
           {/* Folder dropdown - animated */}
@@ -2188,22 +2197,27 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   >
                     {t('no_folder')}
                   </button>
-                  {folders.map((f) => (
-                    <button
-                      key={f.id}
-                      onClick={() => { setSelectedFolderId(f.id); setShowFolderDropdown(false); }}
-                      style={{
-                        padding: "0.35rem 0.75rem", borderRadius: "10px", fontSize: "0.7rem", fontWeight: 800,
-                        cursor: "pointer", border: "1px solid", transition: "all 0.15s",
-                        display: "flex", alignItems: "center", gap: "0.3rem",
-                        background: selectedFolderId === f.id ? "rgba(6,182,212,0.15)" : "rgba(255,255,255,0.04)",
-                        borderColor: selectedFolderId === f.id ? "#06b6d4" : "rgba(255,255,255,0.1)",
-                        color: selectedFolderId === f.id ? "#06b6d4" : "#64748b",
-                      }}
-                    >
-                      <Folder size={11} /> {f.name}
-                    </button>
-                  ))}
+                  {folders.map((f) => {
+                    const fc = f.color || "#06b6d4";
+                    const isActive = selectedFolderId === f.id;
+                    return (
+                      <button
+                        key={f.id}
+                        onClick={() => { setSelectedFolderId(f.id); setShowFolderDropdown(false); }}
+                        style={{
+                          padding: "0.35rem 0.75rem", borderRadius: "10px", fontSize: "0.7rem", fontWeight: 800,
+                          cursor: "pointer", border: "1px solid", transition: "all 0.15s",
+                          display: "flex", alignItems: "center", gap: "0.35rem",
+                          background: isActive ? `${fc}20` : "rgba(255,255,255,0.04)",
+                          borderColor: isActive ? `${fc}60` : "rgba(255,255,255,0.1)",
+                          color: isActive ? fc : "#94a3b8",
+                        }}
+                      >
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: fc, flexShrink: 0 }} />
+                        {f.name}
+                      </button>
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
@@ -3128,7 +3142,13 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                           >
                             <ChevronRight size={15} color={fColor} />
                           </motion.div>
-                          <Folder size={15} color={fColor} style={{ opacity: 0.8 }} />
+                          <motion.div
+                            animate={{ rotate: isFolderOpen ? 15 : 0 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                            style={{ display: "flex", alignItems: "center" }}
+                          >
+                            <Folder size={15} color={fColor} style={{ opacity: 0.8 }} />
+                          </motion.div>
                           <span
                             style={{
                               fontWeight: 900,

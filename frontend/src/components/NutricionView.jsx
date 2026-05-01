@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Player } from '@lottiefiles/react-lottie-player';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Camera, Search, Plus, X, ChefHat, Loader2, Flame, Clock, Play, Square, Settings, Pencil, Check, Info } from 'lucide-react';
+import { Camera, Search, Plus, X, Loader2 } from 'lucide-react';
+import { GiFlame, GiCookingPot, GiMeal, GiHourglass, GiCheckMark } from 'react-icons/gi';
+import { MdOutlineTimer, MdOutlineSettings, MdOutlineSearch, MdOutlineCameraAlt } from 'react-icons/md';
+import { IoNutritionOutline } from 'react-icons/io5';
+import { FiCheck } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'motion/react';
 import API, { authFetch } from '../config';
 
@@ -433,11 +437,11 @@ export default function NutricionView({ perfil }) {
         style={{ background: 'rgba(15,23,42,0.95)', border: ayuno.en_ayuno ? '1px solid rgba(6,182,212,0.4)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{fontSize: '0.65rem', fontWeight: 900, display:'flex', alignItems:'center', gap:'0.4rem', color: '#06b6d4', letterSpacing: '0.5px'}}>
-            <Clock size={14} /> AYUNO
+            <MdOutlineTimer size={14} /> AYUNO
           </h3>
           <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
             <button onClick={() => setShowAyunoSettings(s => !s)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--text-muted)', borderRadius: '8px', padding: '0.4rem' }}>
-              <Settings size={14} />
+              <MdOutlineSettings size={14} />
             </button>
             <button onClick={toggleAyuno} className="btn-elite" style={{ padding:'0.4rem 0.8rem', background: ayuno.en_ayuno ? '#ef4444' : 'var(--accent-gym)', color:'black', fontSize: '0.75rem' }}>
               {ayuno.en_ayuno ? 'PARAR' : 'INICIAR'}
@@ -490,7 +494,7 @@ export default function NutricionView({ perfil }) {
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}
               >
                 <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${dia.completado ? 'var(--accent-gym)' : 'rgba(255,255,255,0.05)'}`, background: dia.completado ? 'rgba(6,182,212,0.1)' : 'transparent', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  {dia.completado && <Check size={12} color="#06b6d4" />}
+                  {dia.completado && <FiCheck size={12} color="#06b6d4" />}
                 </div>
                 <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: 800 }}>{DIAS_LABEL[new Date(dia.fecha + 'T12:00:00').getDay()]}</span>
               </motion.div>
@@ -520,7 +524,7 @@ export default function NutricionView({ perfil }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.descripcion}</div>
                   <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <Flame size={11} color="#ef4444" /> {Math.round(c.calorias)} KCAL · P: {Math.round(c.proteinas)}g
+                    <GiFlame size={11} color="#ef4444" /> {Math.round(c.calorias)} KCAL · P: {Math.round(c.proteinas)}g
                   </div>
                 </div>
                 <button onClick={() => eliminarComida(c.id)} className="btn-icon-elite danger" style={{ width: '32px', height: '32px' }}><X size={14} /></button>
@@ -551,7 +555,7 @@ export default function NutricionView({ perfil }) {
 
       {/* 5. ALACENA */}
       <div style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem', borderLeft: '3px solid #f59e0b' }}>
-        <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#f59e0b', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><ChefHat size={14} color="#f59e0b" /> ALACENA</h3>
+        <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#f59e0b', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><GiCookingPot size={14} color="#f59e0b" /> ALACENA</h3>
         <div style={{display:'flex', gap:'0.5rem', marginTop:'0.75rem'}}>
           <input value={newIngrediente} onChange={e => setNewIngrediente(e.target.value)} onKeyDown={e => e.key === 'Enter' && agregarAlacena()} className="premium-input" placeholder="Nuevo..." style={{ flex: 1, height: '2.8rem', fontSize: '0.85rem' }} />
           <button className="btn-elite" style={{width:'2.8rem', height:'2.8rem', padding: 0}} onClick={agregarAlacena}><Plus size={18} /></button>
@@ -573,7 +577,7 @@ export default function NutricionView({ perfil }) {
         </div>
         {alacena.length > 0 && (
           <button className="btn-elite" style={{ marginTop: '0.75rem', width: '100%', height: '2.8rem', background: 'rgba(245,158,11,0.1)', color: '#f59e0b', borderColor: '#f59e0b' }} onClick={pedirReceta} disabled={loadingReceta}>
-            {loadingReceta ? <Loader2 size={16} className="spin" /> : <><ChefHat size={16} /> RECETA</>}
+            {loadingReceta ? <Loader2 size={16} className="spin" /> : <><GiMeal size={16} /> RECETA</>}
           </button>
         )}
         {receta && <div style={{ marginTop: '0.75rem', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '12px', fontSize: '0.8rem', color: '#cbd5e1', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{receta}</div>}
@@ -585,7 +589,7 @@ export default function NutricionView({ perfil }) {
 const NutriResult = ({ data, label }) => (
   <div style={{ marginTop: '0.75rem', background: 'rgba(6,182,212,0.05)', borderRadius: '12px', padding: '0.75rem', border: '1px solid rgba(6,182,212,0.1)' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
-      <Flame size={14} color="#ef4444" />
+      <GiFlame size={14} color="#ef4444" />
       <span style={{ fontWeight: 900, fontSize: '0.75rem', color: 'white' }}>{label}: {data.alimento.toUpperCase()}</span>
     </div>
     <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>

@@ -1,5 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { LogOut, Scale, Ruler, Calendar, Camera, Flame, Trophy, Zap, Users, ChevronDown, Activity, Clock, MessageSquare, Send, ChevronRight } from 'lucide-react';
+import { LogOut, Scale, Ruler, Calendar, Camera, ChevronDown, ChevronRight, Send } from 'lucide-react';
+import { GiFlame, GiTrophy, GiMuscleUp, GiHeartBeats } from 'react-icons/gi';
+import { MdGroups, MdFeedback, MdOutlineFitnessCenter } from 'react-icons/md';
+import { IoCalendarOutline, IoScaleOutline, IoBodyOutline } from 'react-icons/io5';
+import { HiOutlineClock } from 'react-icons/hi';
+import { FiZap } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'motion/react';
 import API, { authFetch, track } from '../config';
 import BodyMap, { MUSCLE_SLUG_MAP, SLUG_LABELS } from './BodyMap';
@@ -151,7 +156,7 @@ export default function PerfilView({ perfil, onLogout }) {
           <div onClick={() => fileInputRef.current.click()} style={{
             width: 64, height: 64, borderRadius: 18, cursor: 'pointer', position: 'relative', overflow: 'hidden', flexShrink: 0,
             background: userData.profile_pic ? `url(${userData.profile_pic}) center/cover` : 'linear-gradient(135deg, #06b6d4, #3b82f6)',
-            border: '2px solid rgba(6,182,212,0.25)', boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+            border: '2px solid rgba(6,182,212,0.25)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', fontWeight: 900, color: '#fff',
           }}>
             {!userData.profile_pic && perfil.charAt(0).toUpperCase()}
@@ -232,10 +237,14 @@ export default function PerfilView({ perfil, onLogout }) {
         {/* Stats row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginTop: '0.85rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)' }}>
           {[
-            { icon: Flame, label: lang === 'es' ? 'RACHA' : 'STREAK', value: `${gymStats.current_streak}d`, color: '#f59e0b' },
-            { icon: Trophy, label: lang === 'es' ? 'RÉCORD' : 'RECORD', value: `${gymStats.best_streak}d`, color: '#06b6d4' },
-            { icon: Zap, label: lang === 'es' ? 'ENTRENOS' : 'WORKOUTS', value: gymStats.total_workouts, color: '#22c55e' },
-            { icon: Users, label: lang === 'es' ? 'SEGUIDORES' : 'FOLLOWERS', value: followCounts.followers, color: '#8b5cf6' },
+            { icon: GiFlame, label: lang === 'es' ? 'RACHA' : 'STREAK', value: `${gymStats.current_streak}d`, color: '#f59e0b',
+              anim: { scale: [1, 1.15, 1], rotate: [0, -5, 5, 0] }, timing: { repeat: Infinity, duration: 1.8, ease: 'easeInOut' } },
+            { icon: GiTrophy, label: lang === 'es' ? 'RÉCORD' : 'RECORD', value: `${gymStats.best_streak}d`, color: '#06b6d4',
+              anim: { y: [0, -3, 0], scale: [1, 1.08, 1] }, timing: { repeat: Infinity, duration: 2.5, ease: 'easeInOut' } },
+            { icon: MdOutlineFitnessCenter, label: lang === 'es' ? 'ENTRENOS' : 'WORKOUTS', value: gymStats.total_workouts, color: '#22c55e',
+              anim: { rotate: [0, -15, 15, 0] }, timing: { repeat: Infinity, duration: 2, ease: 'easeInOut' } },
+            { icon: MdGroups, label: lang === 'es' ? 'SEGUIDORES' : 'FOLLOWERS', value: followCounts.followers, color: '#8b5cf6',
+              anim: { scale: [1, 1.1, 1], opacity: [0.85, 1, 0.85] }, timing: { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } },
           ].map((s, i) => (
             <motion.div
               key={i}
@@ -245,12 +254,23 @@ export default function PerfilView({ perfil, onLogout }) {
               style={{ textAlign: 'center' }}
             >
               <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.3 + i * 0.1, type: "spring", stiffness: 500, damping: 15 }}
-                style={{ display: 'inline-flex', margin: '0 auto 0.2rem' }}
+                style={{
+                  display: 'inline-flex', margin: '0 auto 0.3rem',
+                  width: 32, height: 32, borderRadius: '50%',
+                  background: `${s.color}18`, alignItems: 'center', justifyContent: 'center',
+                  boxShadow: `0 0 12px ${s.color}30`,
+                }}
               >
-                <s.icon size={15} color={s.color} />
+                <motion.div
+                  animate={s.anim}
+                  transition={s.timing}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <s.icon size={17} color={s.color} />
+                </motion.div>
               </motion.div>
               <div style={{ fontWeight: 900, fontSize: '1.05rem', color: '#fff', lineHeight: 1 }}>{s.value}</div>
               <div style={{ fontSize: '0.5rem', color: '#64748b', fontWeight: 800, marginTop: '0.15rem', letterSpacing: '0.5px' }}>{s.label}</div>
@@ -271,24 +291,41 @@ export default function PerfilView({ perfil, onLogout }) {
         {/* Header row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Activity size={14} color="#06b6d4" />
+            <motion.div
+              animate={{ scale: [1, 1.2, 1, 1.15, 1] }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: 'easeInOut' }}
+              style={{ display: 'flex', alignItems: 'center' }}
+            >
+              <GiHeartBeats size={14} color="#06b6d4" />
+            </motion.div>
             <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#06b6d4', letterSpacing: '0.5px' }}>
               {lang === 'es' ? 'MAPA MUSCULAR' : 'MUSCLE MAP'}
             </span>
           </div>
           {/* Gender toggle */}
-          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.04)', borderRadius: '10px', padding: '2px', gap: '2px' }}>
+          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: '12px', padding: '3px', gap: '2px', position: 'relative' }}>
             {[
-              { id: 'male', label: '♂', title: lang === 'es' ? 'Hombre' : 'Male' },
-              { id: 'female', label: '♀', title: lang === 'es' ? 'Mujer' : 'Female' },
+              { id: 'male', title: lang === 'es' ? 'Hombre' : 'Male' },
+              { id: 'female', title: lang === 'es' ? 'Mujer' : 'Female' },
             ].map(g => (
-              <button key={g.id} title={g.title} onClick={() => { setBodyGender(g.id); localStorage.setItem('vortice_body_gender', g.id); }} style={{
-                background: bodyGender === g.id ? 'rgba(6,182,212,0.2)' : 'transparent',
-                border: bodyGender === g.id ? '1px solid rgba(6,182,212,0.4)' : '1px solid transparent',
-                borderRadius: '8px', padding: '0.25rem 0.5rem', cursor: 'pointer',
-                color: bodyGender === g.id ? '#06b6d4' : '#475569',
-                fontSize: '0.85rem', fontWeight: 900, lineHeight: 1, transition: 'all 0.2s',
-              }}>{g.label}</button>
+              <motion.button
+                key={g.id}
+                title={g.title}
+                whileTap={{ scale: 0.8, rotate: g.id === 'male' ? -10 : 10 }}
+                onClick={() => { setBodyGender(g.id); localStorage.setItem('vortice_body_gender', g.id); }}
+                style={{
+                  background: bodyGender === g.id ? 'rgba(6,182,212,0.18)' : 'transparent',
+                  border: bodyGender === g.id ? '1px solid rgba(6,182,212,0.35)' : '1px solid transparent',
+                  borderRadius: '9px', padding: '0.3rem 0.55rem', cursor: 'pointer',
+                  color: bodyGender === g.id ? '#06b6d4' : '#475569',
+                  fontSize: '0.6rem', fontWeight: 800, lineHeight: 1,
+                  letterSpacing: '0.3px', transition: 'background 0.3s, border-color 0.3s, color 0.3s',
+                }}
+              >{g.id === 'male' ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="10" cy="14" r="6"/><path d="M20 4l-6 6"/><path d="M20 4h-5"/><path d="M20 4v5"/></svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="6"/><path d="M12 14v7"/><path d="M9 18h6"/></svg>
+              )}</motion.button>
             ))}
           </div>
         </div>
@@ -433,9 +470,9 @@ export default function PerfilView({ perfil, onLogout }) {
                         {/* Stats row */}
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem' }}>
                           {[
-                            { label: lang === 'es' ? 'Series' : 'Sets', value: m.total_sets, icon: Zap },
-                            { label: lang === 'es' ? 'Sesiones' : 'Sessions', value: m.sessions, icon: Trophy },
-                            { label: lang === 'es' ? 'Últ. vez' : 'Last', value: m.days_since_last === 0 ? (lang === 'es' ? 'Hoy' : 'Today') : `${m.days_since_last}d`, icon: Clock },
+                            { label: lang === 'es' ? 'Series' : 'Sets', value: m.total_sets, icon: FiZap },
+                            { label: lang === 'es' ? 'Sesiones' : 'Sessions', value: m.sessions, icon: GiTrophy },
+                            { label: lang === 'es' ? 'Últ. vez' : 'Last', value: m.days_since_last === 0 ? (lang === 'es' ? 'Hoy' : 'Today') : `${m.days_since_last}d`, icon: HiOutlineClock },
                           ].map((s, si) => (
                             <div key={si} style={{ textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', padding: '0.4rem' }}>
                               <s.icon size={12} color="#475569" style={{ margin: '0 auto 0.15rem' }} />
@@ -472,9 +509,9 @@ export default function PerfilView({ perfil, onLogout }) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.6rem' }}>
           {[
-            { id: 'age', label: t('age'), icon: Calendar, value: userData.age, unit: lang === 'es' ? 'años' : 'yrs' },
-            { id: 'weight', label: t('weight'), icon: Scale, value: userData.weight, unit: 'kg' },
-            { id: 'height', label: t('height'), icon: Ruler, value: userData.height, unit: 'cm' },
+            { id: 'age', label: t('age'), icon: IoCalendarOutline, value: userData.age, unit: lang === 'es' ? 'años' : 'yrs' },
+            { id: 'weight', label: t('weight'), icon: IoScaleOutline, value: userData.weight, unit: 'kg' },
+            { id: 'height', label: t('height'), icon: IoBodyOutline, value: userData.height, unit: 'cm' },
           ].map((f, idx) => (
             <motion.div
               key={f.id}
@@ -584,7 +621,7 @@ function AdminFeedbackPanel() {
           display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer',
         }}
       >
-        <MessageSquare size={18} color="#f59e0b" />
+        <MdFeedback size={18} color="#f59e0b" />
         <span style={{ color: '#fff', fontWeight: 800, fontSize: '0.8rem', flex: 1, textAlign: 'left' }}>
           FEEDBACK DE USUARIOS
         </span>

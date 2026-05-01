@@ -116,15 +116,37 @@ export default function BodyMap({ targets = [], bodyData: externalBodyData, scal
   if (profileMode) {
     return (
       <>
-        <div style={{
+        <div className="bodymap-profile" style={{
           display: 'flex', justifyContent: 'center', gap: '0.25rem', alignItems: 'center',
-          filter: hasHighlights ? 'drop-shadow(0 0 8px rgba(6,182,212,0.25))' : 'none',
-          animation: hasHighlights ? 'bodyGlow 3s ease-in-out infinite' : 'none',
+          animation: 'bodyFadeIn 0.8s ease-out',
         }}>
           <Body {...bodyProps} side="front" scale={scale} />
           <Body {...bodyProps} side="back" scale={scale} />
         </div>
-        <style>{`@keyframes bodyGlow { 0%,100%{filter:drop-shadow(0 0 6px rgba(6,182,212,0.2))} 50%{filter:drop-shadow(0 0 14px rgba(6,182,212,0.4))} }`}</style>
+        <style>{`
+          @keyframes bodyFadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(8px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+          }
+          @keyframes musclePulse {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 4px rgba(6,182,212,0.15)); }
+            50%      { filter: brightness(1.2) drop-shadow(0 0 10px rgba(6,182,212,0.35)); }
+          }
+          @keyframes bodyBreathe {
+            0%, 100% { transform: scale(1); }
+            50%      { transform: scale(1.008); }
+          }
+          .bodymap-profile {
+            animation: bodyFadeIn 0.8s ease-out, bodyBreathe 4s ease-in-out infinite 0.8s;
+          }
+          .bodymap-profile svg path[fill="#38bdf8"],
+          .bodymap-profile svg path[fill="#06b6d4"],
+          .bodymap-profile svg path[fill="#f59e0b"] {
+            animation: musclePulse 2.5s ease-in-out infinite;
+          }
+          .bodymap-profile svg path[fill="#06b6d4"] { animation-delay: 0.3s; }
+          .bodymap-profile svg path[fill="#f59e0b"] { animation-delay: 0.6s; }
+        `}</style>
       </>
     );
   }

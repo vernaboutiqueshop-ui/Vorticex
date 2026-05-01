@@ -181,7 +181,6 @@ function AppContent() {
         <div className="title-main">
           <Zap size={22} color="var(--accent-gym)" />
           <span>Vórtice</span>
-          <span style={{fontWeight: 400, color: 'var(--text-secondary)', fontSize: '0.85rem', marginLeft: '0.25rem'}}>v4.0 Elite</span>
           <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'0.5rem'}}>
             <button onClick={() => setShowNotifs(true)} style={{
               position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: '0.3rem',
