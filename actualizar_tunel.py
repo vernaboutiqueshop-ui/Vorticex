@@ -78,7 +78,9 @@ def iniciar_tunel():
     time.sleep(1)
     print(f"[VORTICE] Iniciando ngrok → {NGROK_DOMAIN}")
     proc = subprocess.Popen(
-        [NGROK_PATH, "http", "--url", NGROK_DOMAIN, "8000"],
+        [NGROK_PATH, "http", "--url", NGROK_DOMAIN,
+         "--request-header-add", "ngrok-skip-browser-warning:true",
+         "8000"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,

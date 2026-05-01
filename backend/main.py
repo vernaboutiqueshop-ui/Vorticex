@@ -23,12 +23,12 @@ async def lifespan(app: FastAPI):
 
 
 tags_metadata = [
-    {"name": "auth", "description": "Registro y login. Devuelve JWT para autenticar el resto de endpoints."},
-    {"name": "perfiles", "description": "Datos del usuario: peso, altura, avatar, nivel, EXP."},
-    {"name": "gym", "description": "Catálogo de ejercicios, rutinas, historial de workouts, récords."},
-    {"name": "nutricion", "description": "Registro de comidas, ayuno intermitente, alacena, recetas IA."},
-    {"name": "chat", "description": "Chat con el entrenador IA (Gemini Cloud + fallback local)."},
-    {"name": "general", "description": "Endpoints generales: deportes, comunidad, estadísticas."},
+    {"name": "auth", "description": "🔐 Registro y login. **Empezá acá** — devuelve el JWT que necesitás para todo lo demás."},
+    {"name": "perfiles", "description": "👤 Datos del usuario: peso, altura, avatar, nivel, EXP, género."},
+    {"name": "gym", "description": "💪 Catálogo de +1300 ejercicios, rutinas personalizadas, historial de workouts y récords personales."},
+    {"name": "nutricion", "description": "🥗 Búsqueda híbrida de alimentos (cache + Open Food Facts + Gemini IA), registro de comidas por gramos, ayuno intermitente, metas diarias, hidratación, historial semanal."},
+    {"name": "chat", "description": "🤖 Chat con el entrenador IA (Gemini Cloud + fallback local). Entiende lenguaje natural."},
+    {"name": "general", "description": "📊 Deportes, comunidad, estadísticas, alacena, recetas IA."},
 ]
 
 app = FastAPI(
@@ -36,17 +36,50 @@ app = FastAPI(
     version="4.0.0",
     openapi_tags=tags_metadata,
     description="""
-## Vórtice Elite — API de Entrenamiento Personal
+## Vórtice Elite — API de Entrenamiento Personal con IA
 
-Backend local-first que expone endpoints para:
-- **Auth**: Registro y login con JWT
-- **Gym**: Catálogo de +1300 ejercicios, rutinas, historial de workouts
-- **Nutrición**: Control de comidas, ayuno intermitente, alacena
-- **Perfiles**: Configuración física, avatar, idioma
-- **Comunidad**: Feed social, seguidores, compartir rutinas
-- **Chat IA**: Entrenador virtual con Gemini + fallback local
+### 🚀 Cómo empezar en 3 pasos
 
-Todos los endpoints requieren `Authorization: Bearer <token>` excepto `/api/auth/*`.
+**1. Registrarse** → `POST /api/auth/register`
+```json
+{
+  "nombre": "Gonza",
+  "password": "test1234",
+  "edad": 28,
+  "peso": 80.0,
+  "altura": 178.0,
+  "meta": "Ganar masa muscular",
+  "deportes": ["Musculación"]
+}
+```
+
+**2. Obtener token** → `POST /api/auth/token`
+- En Swagger: usar el botón **Authorize 🔓** arriba a la derecha
+- `username`: tu nombre, `password`: tu contraseña
+
+**3. Usar los endpoints** → Todos requieren `Authorization: Bearer <token>` excepto `/api/auth/*`
+
+---
+
+### 📋 Funcionalidades principales
+
+| Área | Endpoints clave |
+|------|----------------|
+| 🥗 Nutrición | `POST /api/nutricion/buscar` · `POST /api/nutricion/analizar-texto` |
+| 💧 Agua | `GET /api/nutricion/agua` · `POST /api/nutricion/agua` |
+| 🎯 Metas | `GET /api/nutricion/metas` · `POST /api/nutricion/metas` |
+| 💪 Gym | `GET /api/gym/ejercicios` · `POST /api/gym/log` |
+| 🤖 Chat IA | `POST /api/chat` |
+| 📊 Historial | `GET /api/nutricion/historial` · `GET /api/graficos/timeline` |
+
+---
+
+### 🔍 Búsqueda de alimentos — Pipeline inteligente
+1. **⚡ Cache local SQLite** — instantáneo
+2. **🌍 Open Food Facts** — base de datos global real
+3. **🤖 Gemini IA** — fallback con estimación inteligente
+
+Todos los macros se normalizan a **100g** antes de guardarse.
 """,
     lifespan=lifespan,
     docs_url="/docs",

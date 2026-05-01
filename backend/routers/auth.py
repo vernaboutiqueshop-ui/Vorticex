@@ -21,6 +21,20 @@ class RegisterRequest(BaseModel):
     deportes: List[str] = []
     profile_pic: Optional[str] = None
 
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "nombre": "Gonza",
+                "password": "test1234",
+                "edad": 28,
+                "peso": 80.0,
+                "altura": 178.0,
+                "meta": "Ganar masa muscular",
+                "deportes": ["Musculación", "Running"]
+            }
+        }
+    }
+
 
 @router.post("/register")
 def register_user(req: RegisterRequest):

@@ -22,6 +22,10 @@ router = APIRouter(prefix="/api/nutricion", tags=["nutricion"])
 class NutricionTextoRequest(BaseModel):
     perfil: str
     alimento: str
+    model_config = {"json_schema_extra": {"example": {
+        "perfil": "Gonza",
+        "alimento": "2 huevos revueltos con tostada integral"
+    }}}
 
 
 class AyunoRequest(BaseModel):
@@ -29,12 +33,23 @@ class AyunoRequest(BaseModel):
     en_ayuno: bool
     inicio_iso: Optional[str] = None
     meta_horas: float = 16
+    model_config = {"json_schema_extra": {"example": {
+        "perfil": "Gonza",
+        "en_ayuno": True,
+        "inicio_iso": "2025-05-01T20:00:00",
+        "meta_horas": 16
+    }}}
 
 
 class AlacenaRequest(BaseModel):
     perfil: str
     ingrediente: str
     cantidad: str = ""
+    model_config = {"json_schema_extra": {"example": {
+        "perfil": "Gonza",
+        "ingrediente": "Pechuga de pollo",
+        "cantidad": "500g"
+    }}}
 
 
 class AlacenaEditRequest(BaseModel):
@@ -43,6 +58,7 @@ class AlacenaEditRequest(BaseModel):
 
 class RecetaRequest(BaseModel):
     perfil: str
+    model_config = {"json_schema_extra": {"example": {"perfil": "Gonza"}}}
 
 
 class MetasNutricionRequest(BaseModel):
@@ -51,16 +67,31 @@ class MetasNutricionRequest(BaseModel):
     prot_goal: float = 150
     carb_goal: float = 250
     fat_goal: float = 70
+    model_config = {"json_schema_extra": {"example": {
+        "perfil": "Gonza",
+        "cal_goal": 2400,
+        "prot_goal": 180,
+        "carb_goal": 260,
+        "fat_goal": 65
+    }}}
 
 
 class WaterRequest(BaseModel):
     perfil: str
     glasses: int = 1
+    model_config = {"json_schema_extra": {"example": {
+        "perfil": "Gonza",
+        "glasses": 1
+    }}}
 
 
 class FoodSearchRequest(BaseModel):
     perfil: str
     query: str
+    model_config = {"json_schema_extra": {"example": {
+        "perfil": "Gonza",
+        "query": "arroz integral"
+    }}}
 
 
 class LogFromCacheRequest(BaseModel):
@@ -72,6 +103,15 @@ class LogFromCacheRequest(BaseModel):
     carb_100: float = 0
     fat_100: float = 0
     gramos: float = 100
+    model_config = {"json_schema_extra": {"example": {
+        "perfil": "Gonza",
+        "nombre": "Arroz integral cocido",
+        "cal_100": 123,
+        "prot_100": 2.7,
+        "carb_100": 25.6,
+        "fat_100": 1.0,
+        "gramos": 200
+    }}}
 
 
 # --- Hybrid food search ---
