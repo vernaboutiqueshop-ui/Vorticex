@@ -3,6 +3,7 @@
     { "source": "/api/:path*", "destination": "https://compare-obsessed-stoke.ngrok-free.dev/api/:path*" },
     { "source": "/exercises/:path*", "destination": "https://compare-obsessed-stoke.ngrok-free.dev/exercises/:path*" },
     { "source": "/gifs/:path*", "destination": "https://compare-obsessed-stoke.ngrok-free.dev/gifs/:path*" },
-    { "source": "/uploads/:path*", "destination": "https://compare-obsessed-stoke.ngrok-free.dev/uploads/:path*" }
+    { "source": "/uploads/:path*", "destination": "https://compare-obsessed-stoke.ngrok-free.dev/uploads/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

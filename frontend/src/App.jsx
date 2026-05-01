@@ -83,6 +83,9 @@ function AppContent() {
     return localStorage.getItem('vortice_hide_install') !== 'true';
   });
   const [installExpanded, setInstallExpanded] = useState(false);
+  const [installPlatform, setInstallPlatform] = useState(() =>
+    /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'android'
+  );
 
   const dismissInstallBanner = () => {
     setShowInstallBanner(false);
@@ -248,41 +251,47 @@ function AppContent() {
               marginTop: '0.7rem', paddingTop: '0.6rem',
               borderTop: '1px solid rgba(255,255,255,0.06)',
             }}>
-              {/iPhone|iPad|iPod/i.test(navigator.userAgent) ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                  {[
-                    { n: '1', text: 'Tocá el botón de compartir (□↑) en Safari' },
-                    { n: '2', text: '"Añadir a pantalla de inicio"' },
-                    { n: '3', text: 'Tocá "Agregar" y listo' },
-                  ].map(s => (
-                    <div key={s.n} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <div style={{
-                        width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-                        background: 'rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '0.6rem', fontWeight: 900, color: '#06b6d4',
-                      }}>{s.n}</div>
-                      <span style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{s.text}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                  {[
-                    { n: '1', text: 'Tocá el menú (⋮) de Chrome' },
-                    { n: '2', text: '"Instalar app" o "Añadir a inicio"' },
-                    { n: '3', text: 'Confirmá y listo' },
-                  ].map(s => (
-                    <div key={s.n} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <div style={{
-                        width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-                        background: 'rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '0.6rem', fontWeight: 900, color: '#06b6d4',
-                      }}>{s.n}</div>
-                      <span style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{s.text}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* Platform toggle */}
+              <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.6rem' }}>
+                {[
+                  { id: 'ios', label: '🍎 iPhone' },
+                  { id: 'android', label: '🤖 Android / Chrome' },
+                ].map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => setInstallPlatform(p.id)}
+                    style={{
+                      flex: 1, padding: '0.35rem', borderRadius: 8, fontSize: '0.65rem', fontWeight: 800,
+                      cursor: 'pointer', transition: '0.15s',
+                      background: installPlatform === p.id ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.04)',
+                      border: installPlatform === p.id ? '1px solid rgba(6,182,212,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                      color: installPlatform === p.id ? '#06b6d4' : '#64748b',
+                    }}
+                  >{p.label}</button>
+                ))}
+              </div>
+
+              {/* Steps */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                {(installPlatform === 'ios' ? [
+                  { n: '1', text: 'Abrí en Safari y tocá el botón compartir (□↑)' },
+                  { n: '2', text: '"Añadir a pantalla de inicio"' },
+                  { n: '3', text: 'Tocá "Agregar" y listo' },
+                ] : [
+                  { n: '1', text: 'Tocá el menú (⋮) arriba a la derecha en Chrome' },
+                  { n: '2', text: '"Instalar app" o "Añadir a inicio"' },
+                  { n: '3', text: 'Confirmá y listo' },
+                ]).map(s => (
+                  <div key={s.n} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{
+                      width: 20, height: 20, borderRadius: 6, flexShrink: 0,
+                      background: 'rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.6rem', fontWeight: 900, color: '#06b6d4',
+                    }}>{s.n}</div>
+                    <span style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{s.text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
