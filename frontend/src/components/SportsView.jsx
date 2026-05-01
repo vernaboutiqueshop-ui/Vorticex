@@ -506,7 +506,20 @@ export default function SportsView({ perfil }) {
               }}
               className="no-scrollbar"
             >
-              <div style={{ width: "40px", height: "4px", background: "rgba(255,255,255,0.15)", borderRadius: "99px", margin: "0 auto" }} />
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                <div style={{ width: "40px", height: "4px", background: "rgba(255,255,255,0.15)", borderRadius: "99px" }} />
+                <button
+                  onClick={() => { setShowSession(null); setSessionResult(null); }}
+                  style={{
+                    position: "absolute", right: 0, top: "-0.25rem",
+                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "10px", width: 28, height: 28, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#94a3b8", fontSize: "1rem", lineHeight: 1, padding: 0,
+                  }}
+                  aria-label="Cerrar"
+                >✕</button>
+              </div>
 
               {sessionResult ? (
                 /* ═══ Resultado con animaciones ═══ */

@@ -1142,6 +1142,14 @@ def _crear_notificacion(conn, post_id: int, from_user: str, ntype: str, message:
     from_row = cur.fetchone()
     if not from_row or from_row["id"] == owner_id:
         return
+    # Evitar notificaciones duplicadas de like del mismo usuario al mismo post
+    if ntype == "like":
+        cur.execute(
+            "SELECT id FROM notifications WHERE user_id = ? AND type = ? AND from_user = ? AND post_id = ?",
+            (owner_id, ntype, from_user, post_id),
+        )
+        if cur.fetchone():
+            return
     cur.execute(
         "INSERT INTO notifications (user_id, type, from_user, post_id, message) VALUES (?, ?, ?, ?, ?)",
         (owner_id, ntype, from_user, post_id, message),
