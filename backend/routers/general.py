@@ -325,7 +325,7 @@ class AdminReply(BaseModel):
     feedback_id: int
     reply: str
 
-@router.post(\"/admin/feedback/reply\")
+@router.post("/admin/feedback/reply")
 def reply_to_feedback(req: AdminReply, current_user: str = Depends(get_current_user)):
     if current_user.lower() not in ADMIN_USERS:
         return {"status": "error", "detail": "No autorizado"}
