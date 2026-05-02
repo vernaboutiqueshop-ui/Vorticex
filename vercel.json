@@ -1,10 +1,13 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "public": true,
-  "github": {
-    "enabled": false
-  },
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/api/:path*" },
+    { "source": "/exercises/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/exercises/:path*" },
+    { "source": "/gifs/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/gifs/:path*" },
+    { "source": "/uploads/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/uploads/:path*" },
+    { "source": "/(.*)", "destination": "/frontend/dist/index.html" }
+  ],
   "builds": [
     {
       "src": "frontend/package.json",
@@ -13,12 +16,5 @@
         "distDir": "frontend/dist"
       }
     }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "https://peaceful-latter-evans-mold.trycloudflare.com/api/$1" },
-    { "src": "/exercises/(.*)", "dest": "https://peaceful-latter-evans-mold.trycloudflare.com/exercises/$1" },
-    { "src": "/gifs/(.*)", "dest": "https://peaceful-latter-evans-mold.trycloudflare.com/gifs/$1" },
-    { "src": "/uploads/(.*)", "dest": "https://peaceful-latter-evans-mold.trycloudflare.com/uploads/$1" },
-    { "src": "/(.*)", "dest": "/frontend/dist/index.html" }
   ]
 }
