@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from routers import auth, perfiles, gym, nutricion, chat, general
+from routers import auth, perfiles, gym, nutricion, chat, general, system
 from core.database_sqlite import obtener_catalogo_completo
 
 
@@ -112,6 +112,7 @@ app.include_router(gym.router)
 app.include_router(nutricion.router)
 app.include_router(chat.router)
 app.include_router(general.router)
+app.include_router(system.router)
 
 
 @app.get("/")
