@@ -1,11 +1,13 @@
 {
   "version": 2,
   "public": true,
+  "redirects": [
+    { "source": "/api/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/api/:path*", "permanent": false },
+    { "source": "/exercises/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/exercises/:path*", "permanent": false },
+    { "source": "/gifs/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/gifs/:path*", "permanent": false },
+    { "source": "/uploads/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/uploads/:path*", "permanent": false }
+  ],
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/api/:path*" },
-    { "source": "/exercises/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/exercises/:path*" },
-    { "source": "/gifs/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/gifs/:path*" },
-    { "source": "/uploads/:path*", "destination": "https://peaceful-latter-evans-mold.trycloudflare.com/uploads/:path*" },
     { "source": "/(.*)", "destination": "/frontend/dist/index.html" }
   ],
   "builds": [
