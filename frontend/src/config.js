@@ -1,5 +1,4 @@
-const currentAPI = import.meta.env.VITE_API_URL
-  || (import.meta.env.PROD ? '' : 'http://localhost:8000');
+const currentAPI = 'https://peaceful-latter-evans-mold.trycloudflare.com';
 
 export const API = currentAPI;
 export default API;
