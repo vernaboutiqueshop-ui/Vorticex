@@ -7,24 +7,17 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Deploy to VPS via SSH
+    - name: Pull latest code on VPS
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.VPS_HOST }}
         username: root
         password: ${{ secrets.VPS_PASSWORD }}
         port: 5414
+        command_timeout: 60s
         script: |
-          set -e
-          cd /root/vortice
-          git pull origin main
-          source /root/vortice/backend/venv/bin/activate
-          pip install -q -r backend/requirements.txt
-          pkill -f "actualizar_tunel.py" || true
-          sleep 2
-          setsid bash -c 'cd /root/vortice && source backend/venv/bin/activate && python3 actualizar_tunel.py >> /tmp/vortice.log 2>&1' < /dev/null > /dev/null 2>&1 &
-          sleep 4
-          echo "✅ Deploy OK en $(date)"
-          tail -8 /tmp/vortice.log || echo "(log vacio)"
+          cd /root/vortice && git pull origin main
+          /root/vortice/backend/venv/bin/pip install -q -r /root/vortice/backend/requirements.txt
+          echo "Deploy OK: $(date)"
