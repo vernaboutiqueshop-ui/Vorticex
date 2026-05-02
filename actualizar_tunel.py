@@ -18,9 +18,30 @@ import os
 import sys
 import signal
 
+IS_WINDOWS = sys.platform == "win32"
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 BACKEND_DIR = os.path.join(ROOT_DIR, "backend")
-NGROK_PATH = os.path.join(os.path.expanduser("~"), "ngrok", "ngrok.exe")
+
+# Buscar ngrok automáticamente
+def find_ngrok():
+    if IS_WINDOWS:
+        paths = [
+            os.path.join(os.path.expanduser("~"), "ngrok", "ngrok.exe"),
+            "ngrok.exe"
+        ]
+    else:
+        paths = [
+            os.path.join(os.path.expanduser("~"), "ngrok"),
+            "/usr/local/bin/ngrok",
+            "ngrok"
+        ]
+    
+    for p in paths:
+        if os.path.exists(p) or (not os.path.isabs(p) and subprocess.run(["which" if not IS_WINDOWS else "where", p], capture_output=True).returncode == 0):
+            return p
+    return "ngrok.exe" if IS_WINDOWS else "ngrok"
+
+NGROK_PATH = find_ngrok()
 NGROK_DOMAIN = "compare-obsessed-stoke.ngrok-free.dev"
 
 backend_proc = None
@@ -74,7 +95,11 @@ def iniciar_backend():
 
 def iniciar_tunel():
     # Matar ngrok previo si quedó colgado
-    subprocess.run(["taskkill", "/F", "/IM", "ngrok.exe"], capture_output=True)
+    if IS_WINDOWS:
+        subprocess.run(["taskkill", "/F", "/IM", "ngrok.exe"], capture_output=True)
+    else:
+        subprocess.run(["pkill", "-9", "ngrok"], capture_output=True)
+    
     time.sleep(1)
     print(f"[VORTICE] Iniciando ngrok → {NGROK_DOMAIN}")
     proc = subprocess.Popen(
