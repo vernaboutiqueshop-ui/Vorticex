@@ -18,7 +18,7 @@ load_dotenv()
 from core.intelligence import recall_nutrition, learn_nutrition
 
 # --- CONFIGURACIÓN DE MOTORES ---
-MODELO_PRINCIPAL = "gemini-2.0-flash"
+MODELO_PRINCIPAL = "gemini-2.5-flash-lite"
 api_key = os.getenv("GEMINI_API_KEY")
 # Buscar archivo JSON de cuenta de servicio (probamos varios nombres posibles)
 JSON_POSIBLES = [
@@ -223,7 +223,7 @@ def analizar_foto_gemini(image_bytes):
         )
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash-lite",
             contents=[
                 types.Content(parts=[
                     types.Part.from_text(text=prompt),
