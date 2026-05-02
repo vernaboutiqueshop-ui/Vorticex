@@ -1,14 +1,14 @@
 """
-VÓRTICE — Iniciar backend + túnel ngrok (URL fija)
+VÓRTICE — Iniciar backend + túnel Cloudflare (Auto-Update Vercel)
 
 Uso:
   python actualizar_tunel.py
 
 Qué hace:
   1. Inicia el backend FastAPI en localhost:8000
-  2. Inicia ngrok con dominio estático fijo
-  3. Mantiene backend + túnel vivos hasta Ctrl+C
-  (No necesita git push ni redeploy — la URL nunca cambia)
+  2. Inicia cloudflared tunnel (trycloudflare.com)
+  3. Captura la URL y actualiza vercel.json automáticamente
+  4. Hace git push para que Vercel se actualice solo
 """
 
 import subprocess
@@ -17,33 +17,19 @@ import time
 import os
 import sys
 import signal
+import re
+import json
 
 IS_WINDOWS = sys.platform == "win32"
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 BACKEND_DIR = os.path.join(ROOT_DIR, "backend")
 
-# Buscar ngrok automáticamente
-def find_ngrok():
+def find_cloudflared():
     if IS_WINDOWS:
-        paths = [
-            os.path.join(os.path.expanduser("~"), "ngrok", "ngrok.exe"),
-            "ngrok.exe"
-        ]
-    else:
-        paths = [
-            os.path.join(os.path.expanduser("~"), "ngrok"),
-            "/usr/local/bin/ngrok",
-            "ngrok"
-        ]
-    
-    for p in paths:
-        if os.path.exists(p) or (not os.path.isabs(p) and subprocess.run(["which" if not IS_WINDOWS else "where", p], capture_output=True).returncode == 0):
-            return p
-    return "ngrok.exe" if IS_WINDOWS else "ngrok"
+        return "cloudflared.exe"
+    return "cloudflared"
 
-NGROK_PATH = find_ngrok()
-NGROK_DOMAIN = "compare-obsessed-stoke.ngrok-free.dev"
-
+CLOUDFLARED_PATH = find_cloudflared()
 backend_proc = None
 tunnel_proc = None
 
@@ -62,7 +48,6 @@ signal.signal(signal.SIGTERM, cleanup)
 
 
 def _stream_output(proc, prefix="BACKEND"):
-    """Read lines from proc.stdout and print them."""
     try:
         for line in proc.stdout:
             line = line.rstrip()
@@ -74,90 +59,129 @@ def _stream_output(proc, prefix="BACKEND"):
 
 def iniciar_backend():
     print("[VORTICE] Iniciando backend FastAPI en :8000...")
+    # Usar el ejecutable de python del venv si existe
+    python_exe = sys.executable
+    if not IS_WINDOWS:
+        venv_python = os.path.join(BACKEND_DIR, "venv", "bin", "python")
+        if os.path.exists(venv_python):
+            python_exe = venv_python
+
     proc = subprocess.Popen(
-        [sys.executable, "main.py"],
+        [python_exe, "main.py"],
         cwd=BACKEND_DIR,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
     )
-    # Stream backend output in background thread
     t = threading.Thread(target=_stream_output, args=(proc, "BACKEND"), daemon=True)
     t.start()
     time.sleep(3)
     if proc.poll() is not None:
-        print(f"[VORTICE] ERROR: Backend no arrancó (exit code {proc.returncode})")
         return None
     print("[VORTICE] Backend corriendo en http://localhost:8000")
     return proc
 
 
-def iniciar_tunel():
-    # Matar ngrok previo si quedó colgado
-    if IS_WINDOWS:
-        subprocess.run(["taskkill", "/F", "/IM", "ngrok.exe"], capture_output=True)
-    else:
-        subprocess.run(["pkill", "-9", "ngrok"], capture_output=True)
+def actualizar_vercel_y_push(url):
+    print(f"[VORTICE] Actualizando Vercel con la nueva URL: {url}")
+    vercel_path = os.path.join(ROOT_DIR, "vercel.json")
     
-    time.sleep(1)
-    print(f"[VORTICE] Iniciando ngrok → {NGROK_DOMAIN}")
+    try:
+        with open(vercel_path, 'r') as f:
+            data = json.load(f)
+        
+        # Actualizar destinos en routes
+        modified = False
+        for route in data.get('routes', []):
+            if 'dest' in route and ('trycloudflare.com' in route['dest'] or '179.43.120.62' in route['dest']):
+                # Extraer el path original (/api/, /gifs/, etc)
+                path_match = re.search(r'(/api/|/exercises/|/gifs/|/uploads/)', route['dest'])
+                if path_match:
+                    path = path_match.group(1)
+                    new_dest = f"{url.rstrip('/')}{path}$1"
+                    if route['dest'] != new_dest:
+                        route['dest'] = new_dest
+                        modified = True
+        
+        if modified:
+            with open(vercel_path, 'w') as f:
+                json.dump(data, f, indent=2)
+            print("[VORTICE] vercel.json actualizado.")
+            
+            # Auto-Push
+            print("[VORTICE] Realizando Auto-Push a GitHub...")
+            subprocess.run(["git", "add", "vercel.json"], cwd=ROOT_DIR)
+            subprocess.run(["git", "commit", "-m", f"vps: update tunnel url to {url}"], cwd=ROOT_DIR)
+            subprocess.run(["git", "push", "origin", "main"], cwd=ROOT_DIR)
+            print("[VORTICE] GitHub actualizado. Vercel se está redeployeando.")
+        else:
+            print("[VORTICE] La URL es la misma, no se requiere push.")
+            
+    except Exception as e:
+        print(f"[VORTICE] Error en auto-update: {e}")
+
+
+def iniciar_tunel():
+    if IS_WINDOWS:
+        subprocess.run(["taskkill", "/F", "/IM", "cloudflared.exe"], capture_output=True)
+    else:
+        subprocess.run(["pkill", "-9", "cloudflared"], capture_output=True)
+    
+    print("[VORTICE] Iniciando Cloudflare Quick Tunnel...")
     proc = subprocess.Popen(
-        [NGROK_PATH, "http", "--url", NGROK_DOMAIN,
-         "--request-header-add", "ngrok-skip-browser-warning:true",
-         "8000"],
+        [CLOUDFLARED_PATH, "tunnel", "--url", "http://localhost:8000"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
     )
-    time.sleep(3)
-    if proc.poll() is not None:
-        out = proc.stdout.read()
-        print(f"[VORTICE] ERROR: ngrok no arrancó:\n{out}")
-        return None
-    print(f"[VORTICE] Túnel activo: https://{NGROK_DOMAIN}")
-    return proc
+    
+    url = None
+    # Esperar y capturar la URL de los logs
+    for _ in range(20):
+        line = proc.stdout.readline()
+        if line:
+            print(f"  [TUNNEL] {line.strip()}")
+            match = re.search(r'https://[a-z0-9-]+\.trycloudflare\.com', line)
+            if match:
+                url = match.group(0)
+                break
+        time.sleep(0.5)
+        
+    if url:
+        print(f"[VORTICE] ¡Túnel Listo! URL: {url}")
+        actualizar_vercel_y_push(url)
+        return proc, url
+    
+    return None, None
 
 
 if __name__ == "__main__":
     print("=" * 55)
-    print("  VÓRTICE — Backend + ngrok (URL fija)")
+    print("  VÓRTICE CLOUD — Autogestión 24/7")
     print("=" * 55)
 
-    # 1. Backend
     backend_proc = iniciar_backend()
     if not backend_proc:
-        print("[VORTICE] Abortando: backend no arrancó.")
+        print("[VORTICE] Error: Backend no arrancó.")
         sys.exit(1)
 
-    # 2. Túnel ngrok
-    tunnel_proc = iniciar_tunel()
+    tunnel_proc, tunnel_url = iniciar_tunel()
     if not tunnel_proc:
-        print("[VORTICE] Abortando: ngrok no arrancó.")
+        print("[VORTICE] Error: Tunnel no arrancó.")
         cleanup()
 
-    # 3. Listo
     print("\n" + "=" * 55)
-    print(f"  Backend:  http://localhost:8000")
-    print(f"  Túnel:    https://{NGROK_DOMAIN}")
+    print(f"  Túnel:    {tunnel_url}")
     print(f"  Vercel:   https://vorticex.vercel.app")
-    print(f"  Ctrl+C para detener todo")
+    print(f"  Estado:   Sincronizado con GitHub")
     print("=" * 55 + "\n")
 
     try:
         while True:
             if backend_proc.poll() is not None:
-                print("[VORTICE] Backend se detuvo. Reiniciando...")
                 backend_proc = iniciar_backend()
-                if not backend_proc:
-                    cleanup()
-            if tunnel_proc.poll() is not None:
-                print("[VORTICE] ngrok se cayó. Reiniciando...")
-                tunnel_proc = iniciar_tunel()
-                if not tunnel_proc:
-                    print("[VORTICE] No se pudo reconectar.")
-                    cleanup()
-            time.sleep(5)
+            time.sleep(10)
     except KeyboardInterrupt:
         cleanup()
