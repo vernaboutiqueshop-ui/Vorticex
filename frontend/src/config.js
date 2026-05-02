@@ -1,6 +1,7 @@
-const currentAPI = import.meta.env.PROD 
-  ? '' 
-  : 'http://localhost:8000';
+const currentAPI = import.meta.env.VITE_API_URL
+  || (import.meta.env.PROD
+    ? 'https://compare-obsessed-stoke.ngrok-free.dev'
+    : 'http://localhost:8000');
 
 export const API = currentAPI;
 export default API;
