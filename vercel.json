@@ -2,10 +2,10 @@
   "version": 2,
   "public": true,
   "redirects": [
-    { "source": "/api/:path*", "destination": "https://minutes-organisation-agree-proportion.trycloudflare.com/api/:path*", "permanent": false },
-    { "source": "/exercises/:path*", "destination": "https://minutes-organisation-agree-proportion.trycloudflare.com/exercises/:path*", "permanent": false },
-    { "source": "/gifs/:path*", "destination": "https://minutes-organisation-agree-proportion.trycloudflare.com/gifs/:path*", "permanent": false },
-    { "source": "/uploads/:path*", "destination": "https://minutes-organisation-agree-proportion.trycloudflare.com/uploads/:path*", "permanent": false }
+    { "source": "/api/:path*", "destination": "https://members-drive-justin-treat.trycloudflare.com/api/:path*", "permanent": false },
+    { "source": "/exercises/:path*", "destination": "https://members-drive-justin-treat.trycloudflare.com/exercises/:path*", "permanent": false },
+    { "source": "/gifs/:path*", "destination": "https://members-drive-justin-treat.trycloudflare.com/gifs/:path*", "permanent": false },
+    { "source": "/uploads/:path*", "destination": "https://members-drive-justin-treat.trycloudflare.com/uploads/:path*", "permanent": false }
   ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/frontend/dist/index.html" }
