@@ -325,7 +325,7 @@ class AdminReply(BaseModel):
     feedback_id: int
     reply: str
 
-@router.post("/admin/feedback/reply")
+@router.post(\"/admin/feedback/reply\")
 def reply_to_feedback(req: AdminReply, current_user: str = Depends(get_current_user)):
     if current_user.lower() not in ADMIN_USERS:
         return {"status": "error", "detail": "No autorizado"}
@@ -334,6 +334,91 @@ def reply_to_feedback(req: AdminReply, current_user: str = Depends(get_current_u
     if user is None:
         return {"status": "error", "detail": "Feedback no encontrado"}
     return {"status": "success", "user_notified": user}
+
+
+@router.get("/admin/ai-stats")
+def get_ai_stats(periodo: str = "hoy", current_user: str = Depends(get_current_user)):
+    """
+    Estadísticas de uso de Gemini.
+    periodo: 'hoy' | 'semana' | 'mes' | 'todo'
+    """
+    if current_user.lower() not in ADMIN_USERS:
+        return {"status": "error", "detail": "No autorizado"}
+    from core.ai import get_ai_stats_hoy
+    import sqlite3, os
+    from datetime import datetime, timedelta
+
+    DB_PATH = os.path.join(os.path.dirname(__file__), "..", "core", "..", "data", "vortice_elite.db")
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            hoy = datetime.now().strftime("%Y-%m-%d")
+
+            if periodo == "hoy":
+                filtro = f"{hoy}%"
+                label_sql = "strftime('%H:00', ts)"
+            elif periodo == "semana":
+                desde = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+                filtro = f"{desde}%"  # no usamos LIKE aquí
+                label_sql = "strftime('%Y-%m-%d', ts)"
+            elif periodo == "mes":
+                desde = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+                filtro = f"{desde}%"
+                label_sql = "strftime('%Y-%m-%d', ts)"
+            else:  # todo
+                filtro = "%"
+                label_sql = "strftime('%Y-%m', ts)"
+
+            # WHERE dinámico
+            where = "ts LIKE ?" if periodo == "hoy" else "ts >= ?"
+            param = filtro if periodo == "hoy" else filtro.rstrip("%")
+
+            total = conn.execute(
+                f"SELECT COUNT(*) as calls, COALESCE(SUM(tokens_estimados),0) as tokens, "
+                f"COALESCE(SUM(CASE WHEN exito=0 THEN 1 ELSE 0 END),0) as errores "
+                f"FROM ai_calls WHERE {where}", (param,)
+            ).fetchone()
+
+            por_usuario = conn.execute(
+                f"SELECT usuario, COUNT(*) as calls, COALESCE(SUM(tokens_estimados),0) as tokens "
+                f"FROM ai_calls WHERE {where} GROUP BY usuario ORDER BY calls DESC",
+                (param,)
+            ).fetchall()
+
+            por_modelo = conn.execute(
+                f"SELECT modelo, COUNT(*) as calls, COALESCE(SUM(tokens_estimados),0) as tokens "
+                f"FROM ai_calls WHERE {where} GROUP BY modelo ORDER BY calls DESC",
+                (param,)
+            ).fetchall()
+
+            timeline = conn.execute(
+                f"SELECT {label_sql} as label, COUNT(*) as calls, COALESCE(SUM(tokens_estimados),0) as tokens "
+                f"FROM ai_calls WHERE {where} GROUP BY label ORDER BY label ASC",
+                (param,)
+            ).fetchall()
+
+            ultimas = conn.execute(
+                f"SELECT ts, modelo, usuario, tokens_estimados, exito FROM ai_calls "
+                f"WHERE {where} ORDER BY id DESC LIMIT 20",
+                (param,)
+            ).fetchall()
+
+            return {
+                "status": "success",
+                "periodo": periodo,
+                "resumen": {
+                    "total_calls": total["calls"],
+                    "total_tokens": total["tokens"],
+                    "errores": total["errores"],
+                    "tasa_exito": f"{((total['calls'] - total['errores']) / max(total['calls'], 1)) * 100:.1f}%"
+                },
+                "por_usuario": [dict(r) for r in por_usuario],
+                "por_modelo": [dict(r) for r in por_modelo],
+                "timeline": [dict(r) for r in timeline],
+                "ultimas_llamadas": [dict(r) for r in ultimas]
+            }
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 
 # ── Analytics ──

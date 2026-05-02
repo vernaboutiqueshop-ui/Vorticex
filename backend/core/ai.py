@@ -5,7 +5,9 @@ Optimizado para google-genai (Soporte total para Vertex AI y AI Studio).
 import os
 import json
 import re
+import sqlite3
 import warnings
+from datetime import datetime
 from google import genai
 from google.genai import types
 from google.oauth2 import service_account
@@ -16,6 +18,108 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 load_dotenv()
 
 from core.intelligence import recall_nutrition, learn_nutrition
+
+# --- TRACKING DE LLAMADAS A GEMINI ---
+_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "vortice_elite.db")
+
+def _init_ai_tracking():
+    """Crea la tabla de tracking si no existe."""
+    try:
+        with sqlite3.connect(_DB_PATH) as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS ai_calls (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ts TEXT DEFAULT (datetime('now', 'localtime')),
+                    modelo TEXT,
+                    usuario TEXT DEFAULT 'sistema',
+                    prompt_chars INTEGER DEFAULT 0,
+                    respuesta_chars INTEGER DEFAULT 0,
+                    tokens_estimados INTEGER DEFAULT 0,
+                    exito INTEGER DEFAULT 1
+                )
+            """)
+            conn.commit()
+    except Exception as e:
+        print(f"[AI TRACK] Error init: {e}")
+
+_init_ai_tracking()
+
+# Variables globales de tracking en memoria (para logs en tiempo real)
+_ai_calls_hoy = 0
+_ai_tokens_hoy = 0
+_ai_usuario_actual = "sistema"  # se puede setear desde el chat router
+
+def set_ai_usuario(usuario: str):
+    """Permite al router de chat indicar qué usuario está haciendo la consulta."""
+    global _ai_usuario_actual
+    _ai_usuario_actual = usuario
+
+def _registrar_llamada_ai(modelo: str, prompt: str, respuesta: str, exito: bool = True):
+    """Registra cada llamada a Gemini en la DB y en memoria."""
+    global _ai_calls_hoy, _ai_tokens_hoy
+    prompt_chars = len(prompt) if prompt else 0
+    respuesta_chars = len(respuesta) if respuesta else 0
+    # Estimación: ~4 chars por token (aprox)
+    tokens_estimados = (prompt_chars + respuesta_chars) // 4
+    _ai_calls_hoy += 1
+    _ai_tokens_hoy += tokens_estimados
+    # Colores ANSI para el log
+    C_CYAN = "\033[38;5;87m"
+    C_YELLOW = "\033[38;5;226m"
+    C_GREEN = "\033[38;5;118m"
+    C_RED = "\033[38;5;196m"
+    C_DIM = "\033[2m"
+    C_BOLD = "\033[1m"
+    R = "\033[0m"
+    status_color = C_GREEN if exito else C_RED
+    status_icon = "✓" if exito else "✗"
+    ts = datetime.now().strftime("%H:%M:%S")
+    print(
+        f"{C_DIM}{ts}{R}  "
+        f"{C_CYAN}🤖 GEMINI{R}  "
+        f"{C_BOLD}{modelo}{R}  "
+        f"{C_DIM}usuario={R}{C_YELLOW}{_ai_usuario_actual}{R}  "
+        f"{C_DIM}tokens≈{R}{C_BOLD}{tokens_estimados}{R}  "
+        f"{C_DIM}[hoy: {_ai_calls_hoy} calls / {_ai_tokens_hoy} tokens]{R}  "
+        f"{status_color}{status_icon}{R}"
+    )
+    try:
+        with sqlite3.connect(_DB_PATH) as conn:
+            conn.execute(
+                "INSERT INTO ai_calls (modelo, usuario, prompt_chars, respuesta_chars, tokens_estimados, exito) VALUES (?, ?, ?, ?, ?, ?)",
+                (modelo, _ai_usuario_actual, prompt_chars, respuesta_chars, tokens_estimados, 1 if exito else 0)
+            )
+            conn.commit()
+    except Exception as e:
+        print(f"[AI TRACK] Error guardando: {e}")
+
+def get_ai_stats_hoy() -> dict:
+    """Devuelve estadísticas de uso de Gemini para hoy."""
+    try:
+        with sqlite3.connect(_DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            hoy = datetime.now().strftime("%Y-%m-%d")
+            rows = conn.execute(
+                "SELECT modelo, usuario, COUNT(*) as calls, SUM(tokens_estimados) as tokens FROM ai_calls WHERE ts LIKE ? GROUP BY modelo, usuario ORDER BY calls DESC",
+                (f"{hoy}%",)
+            ).fetchall()
+            total = conn.execute(
+                "SELECT COUNT(*) as calls, SUM(tokens_estimados) as tokens FROM ai_calls WHERE ts LIKE ?",
+                (f"{hoy}%",)
+            ).fetchone()
+            ultimas = conn.execute(
+                "SELECT ts, modelo, usuario, tokens_estimados, exito FROM ai_calls WHERE ts LIKE ? ORDER BY id DESC LIMIT 10",
+                (f"{hoy}%",)
+            ).fetchall()
+            return {
+                "hoy": hoy,
+                "total_calls": total["calls"] or 0,
+                "total_tokens": total["tokens"] or 0,
+                "por_usuario": [dict(r) for r in rows],
+                "ultimas_10": [dict(r) for r in ultimas]
+            }
+    except Exception as e:
+        return {"error": str(e)}
 
 # --- CONFIGURACIÓN DE MOTORES ---
 MODELO_PRINCIPAL = "gemini-2.5-flash-lite"
@@ -81,13 +185,14 @@ def clean_json(text):
 
 # --- MOTOR DE IA ---
 def consultar_gemini(mensajes, formato_json=False, modelo=MODELO_PRINCIPAL):
+    prompt_completo = " ".join(str(m.get("content", "")) for m in mensajes)
     try:
         if not client:
             inicializar_cliente()
-            if not client: return "ERROR_CONFIG"
+            if not client:
+                _registrar_llamada_ai(modelo, prompt_completo, "", exito=False)
+                return "ERROR_CONFIG"
 
-        print(f"[IA] Consultando {modelo} ({MODO_ACTIVO})...")
-        
         # Traducir mensajes al formato de google-genai
         system_instruction = ""
         contents = []
@@ -111,11 +216,12 @@ def consultar_gemini(mensajes, formato_json=False, modelo=MODELO_PRINCIPAL):
             contents=contents,
             config=config
         )
-        
+        _registrar_llamada_ai(modelo, prompt_completo, response.text or "", exito=True)
         return response.text
     except Exception as e:
         err_msg = str(e).lower()
         print(f"[IA ERROR]: {e}")
+        _registrar_llamada_ai(modelo, prompt_completo, str(e), exito=False)
         if "429" in err_msg or "quota" in err_msg: return "ERROR_CUOTA"
         if "401" in err_msg or "403" in err_msg: return "ERROR_AUTENTICACION"
         return None
