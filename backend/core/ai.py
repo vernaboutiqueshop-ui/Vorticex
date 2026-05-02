@@ -185,7 +185,14 @@ def clean_json(text):
 
 # --- MOTOR DE IA ---
 def consultar_gemini(mensajes, formato_json=False, modelo=MODELO_PRINCIPAL):
-    prompt_completo = " ".join(str(m.get("content", "")) for m in mensajes)
+    # Normalizar entrada: si es un string, lo convertimos a lista de mensajes
+    if isinstance(mensajes, str):
+        lista_mensajes = [{"role": "user", "content": mensajes}]
+    else:
+        lista_mensajes = mensajes
+
+    prompt_completo = " ".join(str(m.get("content", "")) for m in lista_mensajes if isinstance(m, dict))
+    
     try:
         if not client:
             inicializar_cliente()
@@ -196,7 +203,8 @@ def consultar_gemini(mensajes, formato_json=False, modelo=MODELO_PRINCIPAL):
         # Traducir mensajes al formato de google-genai
         system_instruction = ""
         contents = []
-        for msg in mensajes:
+        for msg in lista_mensajes:
+            if not isinstance(msg, dict): continue
             role = msg.get("role", "user")
             content = str(msg.get("content", ""))
             if role == "system":
@@ -224,7 +232,7 @@ def consultar_gemini(mensajes, formato_json=False, modelo=MODELO_PRINCIPAL):
         _registrar_llamada_ai(modelo, prompt_completo, str(e), exito=False)
         if "429" in err_msg or "quota" in err_msg: return "ERROR_CUOTA"
         if "401" in err_msg or "403" in err_msg: return "ERROR_AUTENTICACION"
-        return None
+        return f"Error: {str(e)}"
 
 # --- LOCALIZACIÓN ---
 UI_MUSCULO_ES = {
