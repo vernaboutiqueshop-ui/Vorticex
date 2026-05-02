@@ -1,4 +1,4 @@
-const currentAPI = 'https://peaceful-latter-evans-mold.trycloudflare.com';
+const currentAPI = 'https://district-inside-ships-acute.trycloudflare.com';
 
 export const API = currentAPI;
 export default API;
