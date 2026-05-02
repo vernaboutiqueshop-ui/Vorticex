@@ -1,0 +1,25 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to VPS via SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: root
+        password: ${{ secrets.VPS_PASSWORD }}
+        port: 5414
+        script: |
+          cd /root/vortice
+          git pull origin main
+          # Reiniciar el servicio de vortice
+          pkill -f "python3 actualizar_tunel.py" || true
+          nohup python3 actualizar_tunel.py > /tmp/vortice.log 2>&1 &
+          echo "Deploy completado en $(date)"
