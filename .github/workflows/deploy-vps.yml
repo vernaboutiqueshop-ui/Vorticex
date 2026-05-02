@@ -17,14 +17,14 @@ jobs:
         password: ${{ secrets.VPS_PASSWORD }}
         port: 5414
         script: |
+          set -e
           cd /root/vortice
           git pull origin main
           source /root/vortice/backend/venv/bin/activate
           pip install -q -r backend/requirements.txt
           pkill -f "actualizar_tunel.py" || true
           sleep 2
-          nohup bash -c 'cd /root/vortice && source backend/venv/bin/activate && python3 actualizar_tunel.py' > /tmp/vortice.log 2>&1 &
-          disown
-          sleep 3
-          echo "✅ Deploy completado en $(date)"
-          echo "📋 Log: $(tail -5 /tmp/vortice.log)"
+          setsid bash -c 'cd /root/vortice && source backend/venv/bin/activate && python3 actualizar_tunel.py >> /tmp/vortice.log 2>&1' < /dev/null > /dev/null 2>&1 &
+          sleep 4
+          echo "✅ Deploy OK en $(date)"
+          tail -8 /tmp/vortice.log || echo "(log vacio)"
