@@ -232,7 +232,7 @@ def consultar_gemini(mensajes, formato_json=False, modelo=MODELO_PRINCIPAL):
         _registrar_llamada_ai(modelo, prompt_completo, str(e), exito=False)
         if "429" in err_msg or "quota" in err_msg: return "ERROR_CUOTA"
         if "401" in err_msg or "403" in err_msg: return "ERROR_AUTENTICACION"
-        return f"Error: {str(e)}"
+        return f"Error de IA (verificar saldo/cuota): {str(e)}"
 
 # --- LOCALIZACIÓN ---
 UI_MUSCULO_ES = {
