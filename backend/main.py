@@ -86,27 +86,13 @@ Todos los macros se normalizan a **100g** antes de guardarse.
     redoc_url="/redoc",
 )
 
-# CORS restringido a tus dominios reales
-ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:3000",
-    "https://vorticex.vercel.app",
-]
-VERCEL_URL = os.getenv("VERCEL_URL")
-if VERCEL_URL:
-    ALLOWED_ORIGINS.append(f"https://{VERCEL_URL}")
-
+# --- CORS CONFIGURATION (MUST BE AT THE TOP) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://vorticex.vercel.app",
-        "http://localhost:5173",
-        "https://pointing-planned-transformation-cemetery.trycloudflare.com"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"],
 )
 
 # Montar GIFs estáticos
