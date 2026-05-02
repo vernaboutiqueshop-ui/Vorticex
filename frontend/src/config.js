@@ -1,4 +1,4 @@
-const currentAPI = 'https://adds-conducting-collectible-electronics.trycloudflare.com';
+const currentAPI = 'https://pointing-planned-transformation-cemetery.trycloudflare.com';
 
 export const API = currentAPI;
 export default API;
