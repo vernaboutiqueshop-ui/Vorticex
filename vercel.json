@@ -2,10 +2,10 @@
   "version": 2,
   "public": true,
   "redirects": [
-    { "source": "/api/:path*", "destination": "https://district-inside-ships-acute.trycloudflare.com/api/:path*", "permanent": false },
-    { "source": "/exercises/:path*", "destination": "https://district-inside-ships-acute.trycloudflare.com/exercises/:path*", "permanent": false },
-    { "source": "/gifs/:path*", "destination": "https://district-inside-ships-acute.trycloudflare.com/gifs/:path*", "permanent": false },
-    { "source": "/uploads/:path*", "destination": "https://district-inside-ships-acute.trycloudflare.com/uploads/:path*", "permanent": false }
+    { "source": "/api/:path*", "destination": "https://adds-conducting-collectible-electronics.trycloudflare.com/api/:path*", "permanent": false },
+    { "source": "/exercises/:path*", "destination": "https://adds-conducting-collectible-electronics.trycloudflare.com/exercises/:path*", "permanent": false },
+    { "source": "/gifs/:path*", "destination": "https://adds-conducting-collectible-electronics.trycloudflare.com/gifs/:path*", "permanent": false },
+    { "source": "/uploads/:path*", "destination": "https://adds-conducting-collectible-electronics.trycloudflare.com/uploads/:path*", "permanent": false }
   ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/frontend/dist/index.html" }
