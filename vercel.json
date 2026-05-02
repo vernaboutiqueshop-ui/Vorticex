@@ -15,10 +15,10 @@
     }
   ],
   "routes": [
-    { "src": "/api/(.*)", "dest": "http://179.43.120.62:8000/api/$1" },
-    { "src": "/exercises/(.*)", "dest": "http://179.43.120.62:8000/exercises/$1" },
-    { "src": "/gifs/(.*)", "dest": "http://179.43.120.62:8000/gifs/$1" },
-    { "src": "/uploads/(.*)", "dest": "http://179.43.120.62:8000/uploads/$1" },
+    { "src": "/api/(.*)", "dest": "https://peaceful-latter-evans-mold.trycloudflare.com/api/$1" },
+    { "src": "/exercises/(.*)", "dest": "https://peaceful-latter-evans-mold.trycloudflare.com/exercises/$1" },
+    { "src": "/gifs/(.*)", "dest": "https://peaceful-latter-evans-mold.trycloudflare.com/gifs/$1" },
+    { "src": "/uploads/(.*)", "dest": "https://peaceful-latter-evans-mold.trycloudflare.com/uploads/$1" },
     { "src": "/(.*)", "dest": "/frontend/dist/index.html" }
   ]
 }
