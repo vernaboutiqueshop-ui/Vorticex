@@ -1,4 +1,4 @@
-const currentAPI = 'https://incomplete-modifications-defence-dakota.trycloudflare.com';
+const currentAPI = '';
 
 export const API = currentAPI;
 export default API;
