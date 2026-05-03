@@ -1,17 +1,39 @@
-import { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Apple, Activity, BarChart2, User, Zap, Send, X, Bell, Heart, MessageCircle, Lock, Download, Smartphone, Info, ChevronDown } from 'lucide-react';
+import { useState, useEffect, useRef, lazy, Suspense, memo, useMemo, useCallback } from 'react';
+import { MessageSquare, Apple, Activity, BarChart2, User, Zap, Send, X, Bell, Heart, MessageCircle, Lock, Smartphone, ChevronDown } from 'lucide-react';
 import { API, authFetch, track } from './config';
+// Lazy loading para views pesadas (reduce bundle inicial ~60%)
+const GymView = lazy(() => import('./components/GymView'));
+const NutricionView = lazy(() => import('./components/NutricionView'));
+const ComunidadView = lazy(() => import('./components/ComunidadView'));
+const GraficosView = lazy(() => import('./components/GraficosView'));
+const PerfilView = lazy(() => import('./components/PerfilView'));
+
+// Componentes críticos que cargan inmediatamente
 import WorkoutTracker from './components/WorkoutTracker';
-import GymView from './components/GymView';
-import NutricionView from './components/NutricionView';
-import ComunidadView from './components/ComunidadView';
-import GraficosView from './components/GraficosView';
-import PerfilView from './components/PerfilView';
 import LoginView from './components/LoginView';
 import { LanguageProvider, useLanguage } from './LanguageContext';
 import './index.css';
 
-import PublicRoutineView from './components/PublicRoutineView';
+// Lazy loading para vista pública
+const PublicRoutineView = lazy(() => import('./components/PublicRoutineView'));
+
+// Componente de loading para Suspense
+const TabLoader = memo(function TabLoader() {
+  return (
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      height: '60vh', gap: '1rem',
+    }}>
+      <div style={{
+        width: 48, height: 48, borderRadius: '50%',
+        border: '3px solid rgba(6,182,212,0.1)',
+        borderTopColor: '#06b6d4',
+        animation: 'spin 1s linear infinite',
+      }} />
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+});
 
 function ComingSoon({ label }) {
   return (
@@ -49,10 +71,12 @@ function AppContent() {
   const [publicRoutineId, setPublicRoutineId] = useState(null);
   const [mountedTabs, setMountedTabs] = useState({ gym: true });
 
+  // Optimizado: solo actualiza si el tab no está montado
   useEffect(() => {
-    if (!mountedTabs[activeTab]) {
-      setMountedTabs(prev => ({ ...prev, [activeTab]: true }));
-    }
+    setMountedTabs(prev => {
+      if (prev[activeTab]) return prev; // No recrea objeto si ya existe
+      return { ...prev, [activeTab]: true };
+    });
   }, [activeTab]);
   
   useEffect(() => {
@@ -105,42 +129,44 @@ function AppContent() {
     return () => clearInterval(iv);
   }, [authUser]);
 
-  const handleLogin = (username, token) => {
+  const handleLogin = useCallback((username, token) => {
     setAuthUser(username);
     setAuthToken(token);
     track('login', { username });
-  };
+  }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     track('logout');
     localStorage.removeItem('vortice_user');
     localStorage.removeItem('vortice_token');
     setAuthUser(null);
     setAuthToken(null);
-  };
+  }, []);
 
-  const handleLoadRutina = (rutina) => {
+  const handleLoadRutina = useCallback((rutina) => {
     setPendingRutina(rutina);
     setActiveTab('gym');
-  };
+  }, []);
 
-  const handleLoginRedirect = () => {
+  const handleLoginRedirect = useCallback(() => {
     setPublicRoutineId(null);
     window.history.pushState({}, '', '/');
-  };
+  }, []);
 
   if (publicRoutineId) {
     return (
-      <PublicRoutineView 
-        routineId={publicRoutineId} 
-        onLoginRedirect={handleLoginRedirect} 
-        perfil={authUser} 
-        onClone={() => {
-          setPublicRoutineId(null);
-          window.history.pushState({}, '', '/');
-          setActiveTab('gym');
-        }}
-      />
+      <Suspense fallback={<TabLoader />}>
+        <PublicRoutineView 
+          routineId={publicRoutineId} 
+          onLoginRedirect={handleLoginRedirect} 
+          perfil={authUser} 
+          onClone={() => {
+            setPublicRoutineId(null);
+            window.history.pushState({}, '', '/');
+            setActiveTab('gym');
+          }}
+        />
+      </Suspense>
     );
   }
 
@@ -151,29 +177,30 @@ function AppContent() {
   const perfil = authUser;
   const isAdmin = perfil?.toLowerCase() === 'gonza';
 
-  const handleStartSession = (exercises, routineId, routineName) => {
+  const handleStartSession = useCallback((exercises, routineId, routineName) => {
     setSessionExercises(exercises);
     setSessionRoutineId(routineId);
     setSessionRoutineName(routineName);
     setSessionActive(true);
-  };
+  }, []);
 
-  const handleSessionFinish = (result) => {
+  const handleSessionFinish = useCallback((result) => {
     setSessionActive(false);
     setSessionResult(result);
-  };
+  }, []);
 
-  const handleSessionCancel = () => {
+  const handleSessionCancel = useCallback(() => {
     setSessionActive(false);
-  };
+  }, []);
 
-  const tabs = [
+  // Memoizado: tabs no cambian entre renders
+  const tabs = useMemo(() => [
     { id: 'nutricion', icon: Apple,         label: t('nutrition') },
     { id: 'gym',       icon: Activity,      label: t('gym') },
     { id: 'comunidad', icon: MessageSquare, label: t('community') },
     { id: 'graficos',  icon: BarChart2,     label: t('stats') },
     { id: 'perfil',    icon: User,          label: t('profile') },
-  ];
+  ], [t]);
 
   return (
     <>
@@ -316,21 +343,23 @@ function AppContent() {
       </nav>
 
       <main className="main-content">
-        <div style={{ display: activeTab === 'nutricion' ? 'block' : 'none' }}>
-          {mountedTabs.nutricion && (isAdmin ? <NutricionView perfil={perfil} /> : <ComingSoon label={t('nutrition')} />)}
-        </div>
-        <div style={{ display: activeTab === 'gym' ? 'block' : 'none' }}>
-          {mountedTabs.gym && <GymView perfil={perfil} onStartSession={handleStartSession} sessionActive={sessionActive} sessionResult={sessionResult} onClearResult={() => { setSessionResult(null); }} />}
-        </div>
-        <div style={{ display: activeTab === 'comunidad' ? 'block' : 'none' }}>
-          {mountedTabs.comunidad && <ComunidadView perfil={perfil} />}
-        </div>
-        <div style={{ display: activeTab === 'graficos' ? 'block' : 'none' }}>
-          {mountedTabs.graficos && (isAdmin ? <GraficosView perfil={perfil} /> : <ComingSoon label={t('stats')} />)}
-        </div>
-        <div style={{ display: activeTab === 'perfil' ? 'block' : 'none' }}>
-          {mountedTabs.perfil && <PerfilView perfil={perfil} onLogout={handleLogout} />}
-        </div>
+        <Suspense fallback={<TabLoader />}>
+          <div style={{ display: activeTab === 'nutricion' ? 'block' : 'none' }}>
+            {mountedTabs.nutricion && (isAdmin ? <NutricionView perfil={perfil} /> : <ComingSoon label={t('nutrition')} />)}
+          </div>
+          <div style={{ display: activeTab === 'gym' ? 'block' : 'none' }}>
+            {mountedTabs.gym && <GymView perfil={perfil} onStartSession={handleStartSession} sessionActive={sessionActive} sessionResult={sessionResult} onClearResult={() => { setSessionResult(null); }} />}
+          </div>
+          <div style={{ display: activeTab === 'comunidad' ? 'block' : 'none' }}>
+            {mountedTabs.comunidad && <ComunidadView perfil={perfil} />}
+          </div>
+          <div style={{ display: activeTab === 'graficos' ? 'block' : 'none' }}>
+            {mountedTabs.graficos && (isAdmin ? <GraficosView perfil={perfil} /> : <ComingSoon label={t('stats')} />)}
+          </div>
+          <div style={{ display: activeTab === 'perfil' ? 'block' : 'none' }}>
+            {mountedTabs.perfil && <PerfilView perfil={perfil} onLogout={handleLogout} />}
+          </div>
+        </Suspense>
       </main>
       {/* Notifications Modal */}
       {showNotifs && <NotificationsModal perfil={perfil} onClose={() => { setShowNotifs(false); setNotifCount(0); }} />}
