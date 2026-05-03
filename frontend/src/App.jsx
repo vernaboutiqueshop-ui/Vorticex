@@ -153,30 +153,7 @@ function AppContent() {
     window.history.pushState({}, '', '/');
   }, []);
 
-  if (publicRoutineId) {
-    return (
-      <Suspense fallback={<TabLoader />}>
-        <PublicRoutineView 
-          routineId={publicRoutineId} 
-          onLoginRedirect={handleLoginRedirect} 
-          perfil={authUser} 
-          onClone={() => {
-            setPublicRoutineId(null);
-            window.history.pushState({}, '', '/');
-            setActiveTab('gym');
-          }}
-        />
-      </Suspense>
-    );
-  }
-
-  if (!authUser || !authToken) {
-    return <LoginView onLogin={handleLogin} />;
-  }
-
-  const perfil = authUser;
-  const isAdmin = perfil?.toLowerCase() === 'gonza';
-
+  // ── Session handlers (DEBEN estar antes de cualquier early return) ──
   const handleStartSession = useCallback((exercises, routineId, routineName) => {
     setSessionExercises(exercises);
     setSessionRoutineId(routineId);
@@ -201,6 +178,31 @@ function AppContent() {
     { id: 'graficos',  icon: BarChart2,     label: t('stats') },
     { id: 'perfil',    icon: User,          label: t('profile') },
   ], [t]);
+
+  // ═══ EARLY RETURNS (después de todos los hooks) ═══
+  if (publicRoutineId) {
+    return (
+      <Suspense fallback={<TabLoader />}>
+        <PublicRoutineView 
+          routineId={publicRoutineId} 
+          onLoginRedirect={handleLoginRedirect} 
+          perfil={authUser} 
+          onClone={() => {
+            setPublicRoutineId(null);
+            window.history.pushState({}, '', '/');
+            setActiveTab('gym');
+          }}
+        />
+      </Suspense>
+    );
+  }
+
+  if (!authUser || !authToken) {
+    return <LoginView onLogin={handleLogin} />;
+  }
+
+  const perfil = authUser;
+  const isAdmin = perfil?.toLowerCase() === 'gonza';
 
   return (
     <>
