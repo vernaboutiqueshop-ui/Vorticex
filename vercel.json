@@ -1,15 +1,12 @@
 {
-  "_comment": "API URL: incomplete-modifications-defence-dakota.trycloudflare.com - Updated: May 2, 2026 23:01 - Force Redeploy v2",
+  "_comment": "API URL: incomplete-modifications-defence-dakota.trycloudflare.com - Updated: May 2, 2026 23:08 - Rewrites v3",
   "version": 2,
   "public": true,
-  "redirects": [
-    { "source": "/api/health", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/api/health", "permanent": false },
-    { "source": "/api/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/api/:path*", "permanent": false },
-    { "source": "/exercises/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/exercises/:path*", "permanent": false },
-    { "source": "/gifs/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/gifs/:path*", "permanent": false },
-    { "source": "/uploads/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/uploads/:path*", "permanent": false }
-  ],
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/api/:path*" },
+    { "source": "/exercises/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/exercises/:path*" },
+    { "source": "/gifs/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/gifs/:path*" },
+    { "source": "/uploads/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/uploads/:path*" },
     { "source": "/(.*)", "destination": "/frontend/dist/index.html" }
   ],
   "builds": [
