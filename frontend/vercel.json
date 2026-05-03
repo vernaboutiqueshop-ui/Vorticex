@@ -2,19 +2,19 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://recorder-chapter-dash-myth.trycloudflare.com/api/:path*"
+      "destination": "https://behaviour-wonder-embassy-ambient.trycloudflare.com/api/:path*"
     },
     {
       "source": "/exercises/:path*",
-      "destination": "https://recorder-chapter-dash-myth.trycloudflare.com/exercises/:path*"
+      "destination": "https://behaviour-wonder-embassy-ambient.trycloudflare.com/exercises/:path*"
     },
     {
       "source": "/gifs/:path*",
-      "destination": "https://recorder-chapter-dash-myth.trycloudflare.com/gifs/:path*"
+      "destination": "https://behaviour-wonder-embassy-ambient.trycloudflare.com/gifs/:path*"
     },
     {
       "source": "/uploads/:path*",
-      "destination": "https://recorder-chapter-dash-myth.trycloudflare.com/uploads/:path*"
+      "destination": "https://behaviour-wonder-embassy-ambient.trycloudflare.com/uploads/:path*"
     },
     {
       "source": "/(.*)",
