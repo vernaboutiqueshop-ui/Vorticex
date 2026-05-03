@@ -1,12 +1,12 @@
 {
-  "_comment": "API URL: belly-iowa-titten-batteries.trycloudflare.com - Updated: May 2, 2026",
+  "_comment": "API URL: incomplete-modifications-defence-dakota.trycloudflare.com - Updated: May 2, 2026 22:52",
   "version": 2,
   "public": true,
   "redirects": [
-    { "source": "/api/:path*", "destination": "https://belly-iowa-titten-batteries.trycloudflare.com/api/:path*", "permanent": false },
-    { "source": "/exercises/:path*", "destination": "https://belly-iowa-titten-batteries.trycloudflare.com/exercises/:path*", "permanent": false },
-    { "source": "/gifs/:path*", "destination": "https://belly-iowa-titten-batteries.trycloudflare.com/gifs/:path*", "permanent": false },
-    { "source": "/uploads/:path*", "destination": "https://belly-iowa-titten-batteries.trycloudflare.com/uploads/:path*", "permanent": false }
+    { "source": "/api/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/api/:path*", "permanent": false },
+    { "source": "/exercises/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/exercises/:path*", "permanent": false },
+    { "source": "/gifs/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/gifs/:path*", "permanent": false },
+    { "source": "/uploads/:path*", "destination": "https://incomplete-modifications-defence-dakota.trycloudflare.com/uploads/:path*", "permanent": false }
   ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/frontend/dist/index.html" }
