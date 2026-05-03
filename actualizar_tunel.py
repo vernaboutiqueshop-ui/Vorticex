@@ -114,6 +114,9 @@ def actualizar_vercel_y_push(url):
             
             # Auto-Push
             print("[VORTICE] Realizando Auto-Push a GitHub...")
+            # Primero sincronizar con remoto (ignorar cambios locales en DB)
+            subprocess.run(["git", "fetch", "origin", "main"], cwd=ROOT_DIR)
+            subprocess.run(["git", "reset", "--soft", "origin/main"], cwd=ROOT_DIR)
             subprocess.run(["git", "add", "vercel.json"], cwd=ROOT_DIR)
             subprocess.run(["git", "commit", "-m", f"vps: update tunnel url to {url}"], cwd=ROOT_DIR)
             subprocess.run(["git", "push", "origin", "main"], cwd=ROOT_DIR)
