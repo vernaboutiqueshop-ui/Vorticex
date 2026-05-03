@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Player } from '@lottiefiles/react-lottie-player';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { Camera, Search, Plus, X, Loader2 } from 'lucide-react';
-import { GiFlame, GiCookingPot, GiMeal, GiHourglass, GiCheckMark, GiTargetArrows } from 'react-icons/gi';
-import { MdOutlineTimer, MdOutlineSettings, MdOutlineSearch, MdOutlineCameraAlt } from 'react-icons/md';
-import { IoNutritionOutline, IoWater } from 'react-icons/io5';
+import { GiFlame, GiCookingPot, GiMeal, GiTargetArrows } from 'react-icons/gi';
+import { MdOutlineTimer, MdOutlineSettings } from 'react-icons/md';
+import { IoWater } from 'react-icons/io5';
 import { FiCheck, FiEdit3 } from 'react-icons/fi';
 import { HiOutlineChartBar } from 'react-icons/hi';
 import { motion, AnimatePresence } from 'motion/react';
