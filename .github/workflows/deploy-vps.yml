@@ -18,6 +18,9 @@ jobs:
         port: 5414
         command_timeout: 60s
         script: |
-          cd /root/vortice && git pull origin main
+          cd /root/vortice
+          git reset --hard
+          git clean -fd
+          git pull origin main
           /root/vortice/backend/venv/bin/pip install -q -r /root/vortice/backend/requirements.txt
           echo "Deploy OK: $(date)"
