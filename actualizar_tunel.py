@@ -91,18 +91,21 @@ def actualizar_vercel_y_push(url):
         with open(vercel_path, 'r') as f:
             data = json.load(f)
         
-        # Actualizar destinos en routes
+        # Actualizar destinos en redirects (estructura actual de vercel.json)
         modified = False
-        for route in data.get('routes', []):
-            if 'dest' in route and ('trycloudflare.com' in route['dest'] or '179.43.120.62' in route['dest']):
-                # Extraer el path original (/api/, /gifs/, etc)
-                path_match = re.search(r'(/api/|/exercises/|/gifs/|/uploads/)', route['dest'])
-                if path_match:
-                    path = path_match.group(1)
-                    new_dest = f"{url.rstrip('/')}{path}$1"
-                    if route['dest'] != new_dest:
-                        route['dest'] = new_dest
-                        modified = True
+        for redirect in data.get('redirects', []):
+            if 'destination' in redirect:
+                # Verificar si es una URL de túnel o ngrok vieja
+                dest = redirect['destination']
+                if 'trycloudflare.com' in dest or 'ngrok' in dest or '179.43.120.62' in dest:
+                    # Extraer el path original (/api/, /gifs/, etc)
+                    path_match = re.search(r'(/api/|/exercises/|/gifs/|/uploads/)[^"]*', dest)
+                    if path_match:
+                        path = path_match.group(1)
+                        new_dest = f"{url.rstrip('/')}{path}:path*"
+                        if redirect['destination'] != new_dest:
+                            redirect['destination'] = new_dest
+                            modified = True
         
         if modified:
             with open(vercel_path, 'w') as f:
