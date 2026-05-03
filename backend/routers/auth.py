@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional, List
 from datetime import timedelta
+import re
 
 from core.database import obtener_perfil, guardar_perfil, verificar_password, obtener_password_hash
 from core.auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
@@ -21,6 +22,25 @@ class RegisterRequest(BaseModel):
     deportes: List[str] = []
     profile_pic: Optional[str] = None
 
+    @field_validator('nombre')
+    @classmethod
+    def validar_nombre(cls, v):
+        v = v.strip()
+        if len(v) < 3:
+            raise ValueError('El nombre debe tener al menos 3 caracteres')
+        if len(v) > 30:
+            raise ValueError('El nombre no puede superar 30 caracteres')
+        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9._-]+$', v):
+            raise ValueError('El nombre solo puede contener letras, números, puntos, guiones y guiones bajos')
+        return v
+
+    @field_validator('password')
+    @classmethod
+    def validar_password(cls, v):
+        if len(v) < 4:
+            raise ValueError('La contraseña debe tener al menos 4 caracteres')
+        return v
+
     model_config = {
         "json_schema_extra": {
             "example": {
@@ -38,6 +58,9 @@ class RegisterRequest(BaseModel):
 
 @router.post("/register")
 def register_user(req: RegisterRequest):
+    existing = obtener_perfil(req.nombre)
+    if existing:
+        raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso")
     deportes_str = ", ".join(req.deportes) if req.deportes else req.deporte
     data = {
         "descripcion": f"Edad: {req.edad}, Peso: {req.peso}kg, Altura: {req.altura}cm. Meta: {req.meta}. Deportes: {deportes_str}",
