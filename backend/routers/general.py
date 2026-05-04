@@ -29,17 +29,34 @@ UI_MUSCULO_ES = {
 
 # --- Ejercicios (catálogo y búsqueda) ---
 @router.get("/exercises")
-def get_ejercicios_endpoint():
+def get_ejercicios_endpoint(limit: int = 0, offset: int = 0):
+    """
+    Obtener catálogo de ejercicios.
+    - limit=0: devuelve todos (1324 ejercicios)
+    - limit=20&offset=0: paginación
+    """
     try:
         rows = obtener_catalogo_completo()
-        return {"status": "success", "ejercicios": [
-            {"id_ejercicio": r['id_ejercicio'], "nombre_es": r['nombre_es'],
-             "nombre_en": r.get('nombre_en', ""), "body_part": r.get('body_part'),
-             "target": r.get('target'), "gif_url": r.get('gif_url'),
-             "equipment": r.get('equipment', ""), "instrucciones_es": r.get('instrucciones_es', []),
-             "zone": r.get('zone'), "mechanic": r.get('mechanic'),
-             "difficulty": r.get('difficulty_level')} for r in rows
-        ]}
+        total = len(rows)
+        
+        # Paginación si se especifica
+        if limit > 0:
+            rows = rows[offset:offset + limit]
+        
+        return {
+            "status": "success", 
+            "total": total,
+            "offset": offset,
+            "limit": limit if limit > 0 else total,
+            "ejercicios": [
+                {"id_ejercicio": r['id_ejercicio'], "nombre_es": r['nombre_es'],
+                 "nombre_en": r.get('nombre_en', ""), "body_part": r.get('body_part'),
+                 "target": r.get('target'), "gif_url": r.get('gif_url'),
+                 "equipment": r.get('equipment', ""), "instrucciones_es": r.get('instrucciones_es', []),
+                 "zone": r.get('zone'), "mechanic": r.get('mechanic'),
+                 "difficulty": r.get('difficulty_level')} for r in rows
+            ]
+        }
     except Exception as e:
         return {"status": "error", "ejercicios": [], "error": str(e)}
 

@@ -2,6 +2,7 @@ import sys
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -94,6 +95,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- COMPRESSION (GZIP) ---
+app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=6)
 
 # Montar GIFs estáticos
 base_path = os.path.dirname(os.path.abspath(__file__))
