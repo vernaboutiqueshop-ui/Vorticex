@@ -1,7 +1,6 @@
-// En producción (Vercel) las llamadas van a /api/... y Vercel hace el rewrite al túnel.
-// En desarrollo local apunta directo al backend.
-const isProd = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-const currentAPI = isProd ? '' : 'http://localhost:8000';
+// SOLUCIÓN TEMPORAL: Frontend apunta directo a ngrok (Vercel tiene caché rota)
+// Cuando Vercel se actualice, volver a: const currentAPI = isProd ? '' : 'http://localhost:8000';
+const currentAPI = 'https://subsidy-gothic-take.ngrok-free.dev';
 
 export const API = currentAPI;
 export default API;
