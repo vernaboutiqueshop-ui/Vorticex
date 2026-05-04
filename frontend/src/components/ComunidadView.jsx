@@ -633,7 +633,7 @@ export default function ComunidadView({ perfil }) {
                               width: 48, height: 48, borderRadius: '10px', background: '#fff',
                               overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)',
                             }}>
-                              <img src={ex.gif_url?.startsWith('/') ? `${API}${ex.gif_url}` : ex.gif_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                              <img src={ex.gif_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                             </div>
                             <div style={{ fontSize: '0.42rem', color: '#94a3b8', fontWeight: 700, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {ex.name || ''}

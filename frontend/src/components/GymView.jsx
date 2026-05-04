@@ -1828,15 +1828,8 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
       if (fData.status === "success")
         setFolders(Array.isArray(fData.folders) ? fData.folders : []);
       if (eData.status === "success") {
-        const ejercicios = Array.isArray(eData.ejercicios)
-          ? eData.ejercicios.map((e) => ({
-              ...e,
-              gif_url: e.gif_url?.startsWith("/")
-                ? `${API}${e.gif_url}`
-                : e.gif_url || "",
-            }))
-          : [];
-        setEjerciciosMaster(ejercicios);
+        // GIFs deben quedar como rutas relativas (/gifs/0001.gif) para cargar desde Vercel
+        setEjerciciosMaster(Array.isArray(eData.ejercicios) ? eData.ejercicios : []);
       }
     } catch (e) {
       console.error("Error loading gym data:", e);
