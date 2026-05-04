@@ -1,14 +1,13 @@
 """
-VÓRTICE — Iniciar backend + túnel Cloudflare (Auto-Update Vercel)
+VÓRTICE — Iniciar backend + ngrok (URL fija permanente)
 
 Uso:
   python actualizar_tunel.py
 
 Qué hace:
   1. Inicia el backend FastAPI en localhost:8000
-  2. Inicia cloudflared tunnel (trycloudflare.com)
-  3. Captura la URL y actualiza vercel.json automáticamente
-  4. Hace git push para que Vercel se actualice solo
+  2. Inicia ngrok con URL fija: subsidy-gothic-take.ngrok-free.dev
+  3. El túnel nunca cambia - no necesita actualizar Vercel
 """
 
 import subprocess
@@ -24,12 +23,9 @@ IS_WINDOWS = sys.platform == "win32"
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 BACKEND_DIR = os.path.join(ROOT_DIR, "backend")
 
-def find_cloudflared():
-    if IS_WINDOWS:
-        return "cloudflared.exe"
-    return "cloudflared"
-
-CLOUDFLARED_PATH = find_cloudflared()
+# Ngrok configuración - URL fija permanente
+NGROK_DOMAIN = "subsidy-gothic-take.ngrok-free.dev"
+NGROK_URL = f"https://{NGROK_DOMAIN}"
 backend_proc = None
 tunnel_proc = None
 
@@ -144,37 +140,27 @@ def actualizar_vercel_y_push(url):
 
 def iniciar_tunel():
     if IS_WINDOWS:
-        subprocess.run(["taskkill", "/F", "/IM", "cloudflared.exe"], capture_output=True)
+        subprocess.run(["taskkill", "/F", "/IM", "ngrok.exe"], capture_output=True)
     else:
-        subprocess.run(["pkill", "-9", "cloudflared"], capture_output=True)
+        subprocess.run(["pkill", "-9", "ngrok"], capture_output=True)
     
-    print("[VORTICE] Iniciando Cloudflare Quick Tunnel...")
-    proc = subprocess.Popen(
-        [CLOUDFLARED_PATH, "tunnel", "--url", "http://localhost:8000"],
+    print(f"[VORTICE] Iniciando ngrok con dominio fijo: {NGROK_DOMAIN}")
+    tunnel_cmd = ["ngrok", "http", f"--url={NGROK_DOMAIN}", "8000"]
+    tunnel_proc = subprocess.Popen(
+        tunnel_cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
         bufsize=1,
+        universal_newlines=True
     )
     
-    url = None
-    # Esperar y capturar la URL de los logs (aumentado a 50 líneas para mayor seguridad)
-    for _ in range(50):
-        line = proc.stdout.readline()
-        if line:
-            print(f"  [TUNNEL] {line.strip()}")
-            match = re.search(r'https://[a-z0-9-]+\.trycloudflare\.com', line)
-            if match:
-                url = match.group(0)
-                break
-        time.sleep(0.5)
-        
-    if url:
-        print(f"[VORTICE] ¡Túnel Listo! URL: {url}")
-        actualizar_vercel_y_push(url)
-        return proc, url
-    
-    return None, None
+    # Ngrok tarda ~5 segundos en iniciar
+    print("[VORTICE] Esperando ngrok...")
+    time.sleep(5)
+    url = NGROK_URL
+    print(f"[VORTICE] ¡Túnel Listo! URL permanente: {url}")
+    return tunnel_proc, url
 
 
 if __name__ == "__main__":
