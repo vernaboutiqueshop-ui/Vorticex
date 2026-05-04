@@ -1,4 +1,7 @@
-const currentAPI = 'https://recorder-chapter-dash-myth.trycloudflare.com';
+// En producción (Vercel) las llamadas van a /api/... y Vercel hace el rewrite al túnel.
+// En desarrollo local apunta directo al backend.
+const isProd = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+const currentAPI = isProd ? '' : 'http://localhost:8000';
 
 export const API = currentAPI;
 export default API;
