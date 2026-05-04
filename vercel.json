@@ -3,7 +3,9 @@
   "version": 2,
   "public": true,
   "headers": [
-    { "source": "/api/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }] }
+    { "source": "/api/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }] },
+    { "source": "/gifs/(.*)", "headers": [{ "key": "Content-Type", "value": "image/gif" }, { "key": "Cache-Control", "value": "public, max-age=86400" }] },
+    { "source": "/(.*\\.gif)", "headers": [{ "key": "Content-Type", "value": "image/gif" }] }
   ],
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://subsidy-gothic-take.ngrok-free.dev/api/:path*" },

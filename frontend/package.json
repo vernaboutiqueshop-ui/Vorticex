@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && npm run copy-gifs",
+    "copy-gifs": "node -e \"const fs=require('fs'),path=require('path'); const src=path.join(__dirname, 'public', 'gifs'), dst=path.join(__dirname, 'dist', 'gifs'); if (!fs.existsSync(dst)) fs.mkdirSync(dst, {recursive:true}); fs.readdirSync(src).forEach(f=>fs.copyFileSync(path.join(src,f), path.join(dst,f))); console.log('GIFs copied:', fs.readdirSync(dst).length);\"",
     "lint": "eslint .",
     "preview": "vite preview"
   },
