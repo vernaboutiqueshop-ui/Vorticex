@@ -1133,7 +1133,7 @@ def obtener_posts(current_user: str = "Anonymous", limit: int = 15, offset: int 
                     """
                     SELECT COALESCE(i18n.name, e.id) as name, 
                            COALESCE(cat.name_es, '') as target, 
-                           e.gif_url
+                           e.id as exercise_id
                     FROM routine_exercises re
                     JOIN exercises e ON e.id = re.exercise_id
                     LEFT JOIN exercise_i18n i18n ON i18n.exercise_id = e.id AND i18n.lang = 'es'
@@ -1142,7 +1142,13 @@ def obtener_posts(current_user: str = "Anonymous", limit: int = 15, offset: int 
                 """,
                     (post["routine_id"],),
                 )
-                post["routine_exercises"] = [dict(e) for e in cur.fetchall()]
+                ejercicios = []
+                for row in cur.fetchall():
+                    ex = dict(row)
+                    # Usar ruta relativa para GIFs (mismo formato que ejercicios.json)
+                    ex["gif_url"] = f"/gifs/{ex['exercise_id']}.gif"
+                    ejercicios.append(ex)
+                post["routine_exercises"] = ejercicios
             posts.append(post)
         return {"posts": posts, "has_more": has_more}
 
