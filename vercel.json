@@ -1,8 +1,9 @@
 {
-  "_comment": "API URL: subsidy-gothic-take.ngrok-free.dev - Updated: May 4, 2026 01:25 - Redeploy forced",
+  "_comment": "API: subsidy-gothic-take.ngrok-free.dev - Updated: May 4, 2026 01:27 - Purge cache",
   "version": 2,
   "public": true,
   "rewrites": [
+    { "source": "/api/health", "destination": "https://subsidy-gothic-take.ngrok-free.dev/api/health" },
     {
       "source": "/api/:path*",
       "destination": "https://subsidy-gothic-take.ngrok-free.dev/api/:path*"
