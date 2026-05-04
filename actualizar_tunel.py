@@ -16,8 +16,6 @@ import time
 import os
 import sys
 import signal
-import re
-import json
 
 IS_WINDOWS = sys.platform == "win32"
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -87,65 +85,6 @@ def iniciar_backend():
     return proc
 
 
-def actualizar_vercel_y_push(url):
-    try:
-        # Buscar todos los vercel.json en el proyecto
-        vercel_files = [os.path.join(ROOT_DIR, "vercel.json")]
-        frontend_vercel = os.path.join(ROOT_DIR, "frontend", "vercel.json")
-        if os.path.exists(frontend_vercel):
-            vercel_files.append(frontend_vercel)
-        
-        any_modified = False
-        for vercel_path in vercel_files:
-            if not os.path.exists(vercel_path):
-                continue
-                
-            print(f"[VORTICE] Verificando {vercel_path}...")
-            with open(vercel_path, 'r') as f:
-                data = json.load(f)
-            
-            # Actualizar destinos en redirects o rewrites
-            modified = False
-            for key in ['redirects', 'rewrites']:
-                for entry in data.get(key, []):
-                    if 'destination' in entry:
-                        # Verificar si es una URL de túnel o ngrok vieja
-                        dest = entry['destination']
-                        if 'trycloudflare.com' in dest or 'ngrok' in dest or '179.43.120.62' in dest:
-                            # Extraer el path original (/api/, /exercises/, etc)
-                            path_match = re.search(r'(/api/|/exercises/|/gifs/|/uploads/)[^"]*', dest)
-                            if path_match:
-                                path = path_match.group(1)
-                                new_dest = f"{url.rstrip('/')}{path}:path*"
-                                if entry['destination'] != new_dest:
-                                    entry['destination'] = new_dest
-                                    modified = True
-            
-            if modified:
-                with open(vercel_path, 'w') as f:
-                    json.dump(data, f, indent=2)
-                print(f"[VORTICE] {os.path.basename(vercel_path)} actualizado.")
-                any_modified = True
-        
-        if any_modified:
-            # Auto-Push
-            print("[VORTICE] Realizando Auto-Push a GitHub...")
-            # Primero sincronizar con remoto (ignorar cambios locales en DB)
-            subprocess.run(["git", "fetch", "origin", "main"], cwd=ROOT_DIR)
-            subprocess.run(["git", "reset", "--soft", "origin/main"], cwd=ROOT_DIR)
-            subprocess.run(["git", "add", "vercel.json"], cwd=ROOT_DIR)
-            if os.path.exists(frontend_vercel):
-                subprocess.run(["git", "add", "frontend/vercel.json"], cwd=ROOT_DIR)
-            subprocess.run(["git", "commit", "-m", f"vps: update tunnel url to {url}"], cwd=ROOT_DIR)
-            subprocess.run(["git", "push", "origin", "main"], cwd=ROOT_DIR)
-            print("[VORTICE] GitHub actualizado. Vercel se está redeployeando.")
-        else:
-            print("[VORTICE] No se requiere actualización en ningún vercel.json.")
-            
-    except Exception as e:
-        print(f"[VORTICE] Error en auto-update: {e}")
-
-
 def iniciar_tunel():
     if IS_WINDOWS:
         subprocess.run(["taskkill", "/F", "/IM", "ngrok.exe"], capture_output=True)
@@ -187,9 +126,10 @@ if __name__ == "__main__":
         cleanup()
 
     print("\n" + "=" * 55)
-    print(f"  Túnel:    {tunnel_url}")
-    print(f"  Vercel:   https://vorticex.vercel.app")
-    print(f"  Estado:   Sincronizado con GitHub")
+    print(f"  Backend:  http://localhost:8000")
+    print(f"  Túnel:    {tunnel_url} (FIJO)")
+    print(f"  Web:      https://vorticex.vercel.app")
+    print(f"  Status:   Online 24/7 - Auto-restart activado")
     print("=" * 55 + "\n")
 
     try:

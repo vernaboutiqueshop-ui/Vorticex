@@ -1,24 +1,10 @@
 {
+  "_comment": "Usado solo para preview local - Vercel usa vercel.json de raíz",
   "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://behaviour-wonder-embassy-ambient.trycloudflare.com/api/:path*"
-    },
-    {
-      "source": "/exercises/:path*",
-      "destination": "https://behaviour-wonder-embassy-ambient.trycloudflare.com/exercises/:path*"
-    },
-    {
-      "source": "/gifs/:path*",
-      "destination": "https://behaviour-wonder-embassy-ambient.trycloudflare.com/gifs/:path*"
-    },
-    {
-      "source": "/uploads/:path*",
-      "destination": "https://behaviour-wonder-embassy-ambient.trycloudflare.com/uploads/:path*"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
+    { "source": "/api/:path*", "destination": "https://subsidy-gothic-take.ngrok-free.dev/api/:path*" },
+    { "source": "/exercises/:path*", "destination": "https://subsidy-gothic-take.ngrok-free.dev/exercises/:path*" },
+    { "source": "/gifs/:path*", "destination": "https://subsidy-gothic-take.ngrok-free.dev/gifs/:path*" },
+    { "source": "/uploads/:path*", "destination": "https://subsidy-gothic-take.ngrok-free.dev/uploads/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
