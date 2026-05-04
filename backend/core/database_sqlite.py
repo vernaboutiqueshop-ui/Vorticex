@@ -4,6 +4,11 @@ import json
 import os
 import sqlite3
 import bcrypt
+from functools import lru_cache
+
+# Cache simple en memoria para datos que no cambian frecuentemente
+_exercises_cache = None
+_exercises_cache_timestamp = None
 
 # Ruta relativa dinámica (busca data/vortice_elite.db en la misma carpeta que el servidor)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -158,6 +163,13 @@ def listar_perfiles():
 
 # --- CATALOGO (Arquitectura Intel v2) ---
 def obtener_catalogo_completo(lang="es"):
+    global _exercises_cache, _exercises_cache_timestamp
+    
+    # Cache por 5 minutos (300 segundos)
+    if _exercises_cache is not None and _exercises_cache_timestamp is not None:
+        if (datetime.datetime.now() - _exercises_cache_timestamp).seconds < 300:
+            return _exercises_cache
+    
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(
@@ -206,6 +218,9 @@ def obtener_catalogo_completo(lang="es"):
                     "gif_url": f"/gifs/{r['id']}.gif",
                 }
             )
+        # Guardar en cache
+        _exercises_cache = catalogo
+        _exercises_cache_timestamp = datetime.datetime.now()
         return catalogo
 
 
