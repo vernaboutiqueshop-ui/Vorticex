@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef, lazy, Suspense, memo, useMemo, useCallback } from 'react';
 import { MessageSquare, Apple, Activity, BarChart2, User, Zap, Send, X, Bell, Heart, MessageCircle, Lock, Smartphone, ChevronDown } from 'lucide-react';
 import { API, authFetch, track } from './config';
+import { ErrorBoundary } from './components/ErrorBoundary';
+
+// Retry wrapper para lazy imports — evita pantalla blanca por fallo de red en mobile
+const lazyWithRetry = (fn) => lazy(() => fn().catch(() => fn()));
+
 // Lazy loading para views pesadas (reduce bundle inicial ~60%)
-const GymView = lazy(() => import('./components/GymView'));
-const NutricionView = lazy(() => import('./components/NutricionView'));
-const ComunidadView = lazy(() => import('./components/ComunidadView'));
-const GraficosView = lazy(() => import('./components/GraficosView'));
-const PerfilView = lazy(() => import('./components/PerfilView'));
+const GymView = lazyWithRetry(() => import('./components/GymView'));
+const NutricionView = lazyWithRetry(() => import('./components/NutricionView'));
+const ComunidadView = lazyWithRetry(() => import('./components/ComunidadView'));
+const GraficosView = lazyWithRetry(() => import('./components/GraficosView'));
+const PerfilView = lazyWithRetry(() => import('./components/PerfilView'));
 
 // Componentes críticos que cargan inmediatamente
 import WorkoutTracker from './components/WorkoutTracker';
@@ -15,7 +20,7 @@ import { LanguageProvider, useLanguage } from './LanguageContext';
 import './index.css';
 
 // Lazy loading para vista pública
-const PublicRoutineView = lazy(() => import('./components/PublicRoutineView'));
+const PublicRoutineView = lazyWithRetry(() => import('./components/PublicRoutineView'));
 
 // Componente de loading para Suspense
 const TabLoader = memo(function TabLoader() {
@@ -182,6 +187,7 @@ function AppContent() {
   // ═══ EARLY RETURNS (después de todos los hooks) ═══
   if (publicRoutineId) {
     return (
+      <ErrorBoundary>
       <Suspense fallback={<TabLoader />}>
         <PublicRoutineView 
           routineId={publicRoutineId} 
@@ -194,6 +200,7 @@ function AppContent() {
           }}
         />
       </Suspense>
+      </ErrorBoundary>
     );
   }
 
@@ -345,6 +352,7 @@ function AppContent() {
       </nav>
 
       <main className="main-content">
+        <ErrorBoundary>
         <Suspense fallback={<TabLoader />}>
           <div style={{ display: activeTab === 'nutricion' ? 'block' : 'none' }}>
             {mountedTabs.nutricion && (isAdmin ? <NutricionView perfil={perfil} /> : <ComingSoon label={t('nutrition')} />)}
@@ -362,6 +370,7 @@ function AppContent() {
             {mountedTabs.perfil && <PerfilView perfil={perfil} onLogout={handleLogout} />}
           </div>
         </Suspense>
+        </ErrorBoundary>
       </main>
       {/* Notifications Modal */}
       {showNotifs && <NotificationsModal perfil={perfil} onClose={() => { setShowNotifs(false); setNotifCount(0); }} />}
