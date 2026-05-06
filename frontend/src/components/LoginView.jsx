@@ -36,6 +36,27 @@ export default function LoginView({ onLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loginData, setLoginData] = useState({ username: '', password: '' });
+  const [recoverUsername, setRecoverUsername] = useState('');
+  const [recoverResult, setRecoverResult] = useState(null);
+
+  const handleRecover = async (e) => {
+    e.preventDefault();
+    setLoading(true); setError(''); setRecoverResult(null);
+    try {
+      const res = await fetch(`${API}/api/auth/recover?username=${encodeURIComponent(recoverUsername)}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
+      const data = await res.json();
+      if (data.password) {
+        setRecoverResult(data.password);
+      } else {
+        setError('Usuario no encontrado');
+      }
+    } catch {
+      setError('Sin conexión con el servidor');
+    }
+    setLoading(false);
+  };
   const [wizardData, setWizardData] = useState({
     nombre: '', password: '', edad: '', peso: '', altura: '',
     meta: '', deportes: [], profilePic: null,
@@ -235,7 +256,56 @@ export default function LoginView({ onLogin }) {
                 style={{ color: '#06b6d4', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>
                 Creá tu perfil
               </button>
+              {' · '}
+              <button type="button" onClick={() => { setMode('recover'); setError(''); setRecoverResult(null); setRecoverUsername(''); }}
+                style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>
+                Olvidé mi contraseña
+              </button>
             </div>
+          </form>
+        )}
+
+        {/* ═══ RECOVER ═══ */}
+        {mode === 'recover' && (
+          <form onSubmit={handleRecover} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <div>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#fff', margin: '0 0 0.3rem' }}>Recuperar contraseña</h2>
+              <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>Ingresá tu nombre de usuario</p>
+            </div>
+            <div>
+              <label style={labelStyle}>NOMBRE DE USUARIO</label>
+              <input
+                style={inputStyle} type="text" placeholder="Gonzalo"
+                value={recoverUsername}
+                onChange={e => setRecoverUsername(e.target.value)}
+                required
+              />
+            </div>
+            {error && (
+              <div style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px', padding: '0.6rem 0.8rem', color: '#f87171', fontSize: '0.78rem', fontWeight: 600 }}>
+                {error}
+              </div>
+            )}
+            {recoverResult && (
+              <div style={{ background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
+                <div style={{ color: '#94a3b8', fontSize: '0.65rem', fontWeight: 800, marginBottom: '0.3rem' }}>TU CONTRASEÑA ES</div>
+                <div style={{ color: '#06b6d4', fontSize: '1.1rem', fontWeight: 900, letterSpacing: '0.05em' }}>{recoverResult}</div>
+              </div>
+            )}
+            {!recoverResult && (
+              <button type="submit" disabled={loading || !recoverUsername.trim()} style={{
+                background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', color: '#000',
+                border: 'none', borderRadius: '14px', padding: '0.85rem',
+                fontWeight: 900, cursor: 'pointer', fontSize: '0.9rem',
+                opacity: (loading || !recoverUsername.trim()) ? 0.6 : 1,
+              }}>
+                {loading ? 'Buscando...' : 'Ver contraseña'}
+              </button>
+            )}
+            <button type="button" onClick={() => { setMode('login'); setError(''); setRecoverResult(null); }}
+              style={{ color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
+              ← Volver al login
+            </button>
           </form>
         )}
 

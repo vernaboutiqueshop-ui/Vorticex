@@ -108,3 +108,18 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
         data={"sub": final_username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer", "status": "success"}
+
+
+@router.get("/recover")
+def recover_password(username: str):
+    try:
+        from core.database_sqlite import get_conn
+        with get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT password FROM users WHERE LOWER(name) = LOWER(?)", (username,))
+            row = cur.fetchone()
+            if not row:
+                return {"error": "Usuario no encontrado"}
+            return {"password": row["password"]}
+    except Exception as e:
+        return {"error": str(e)}
