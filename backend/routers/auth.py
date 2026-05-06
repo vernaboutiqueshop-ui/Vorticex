@@ -116,10 +116,10 @@ def recover_password(username: str):
         from core.database_sqlite import get_conn
         with get_conn() as conn:
             cur = conn.cursor()
-            cur.execute("SELECT password FROM users WHERE LOWER(name) = LOWER(?)", (username,))
+            cur.execute("SELECT password_plain FROM users WHERE LOWER(name) = LOWER(?)", (username,))
             row = cur.fetchone()
-            if not row:
-                return {"error": "Usuario no encontrado"}
-            return {"password": row["password"]}
+            if not row or not row["password_plain"]:
+                return {"error": "No hay contraseña guardada para este usuario. Contactá al administrador."}
+            return {"password": row["password_plain"]}
     except Exception as e:
         return {"error": str(e)}

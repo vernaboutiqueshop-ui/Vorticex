@@ -137,16 +137,21 @@ def guardar_perfil(nombre: str, data: dict):
 
     with get_conn() as conn:
         cur = conn.cursor()
+        try:
+            cur.execute("ALTER TABLE users ADD COLUMN password_plain TEXT DEFAULT NULL")
+        except Exception:
+            pass
         cur.execute(
             """
-            INSERT INTO users (name, email, weight, goal, password)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (name, email, weight, goal, password, password_plain)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(name) DO UPDATE SET
                 weight=excluded.weight,
                 goal=excluded.goal,
-                password=excluded.password
+                password=excluded.password,
+                password_plain=excluded.password_plain
         """,
-            (nombre, email, weight, goal, hashed_password),
+            (nombre, email, weight, goal, hashed_password, raw_password),
         )
         conn.commit()
 
