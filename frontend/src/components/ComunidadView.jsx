@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Heart, MessageCircle, Send, Image as ImageIcon, X, Dumbbell, Loader, UserPlus, UserCheck, Play, Trash2, Copy } from 'lucide-react';
 import { motion } from 'motion/react';
 import { API, authFetch, track } from '../config';
+import PublicProfileModal from './PublicProfileModal';
 
 const MAX_MEDIA_BYTES = 3 * 1024 * 1024;
 
@@ -52,6 +53,7 @@ export default function ComunidadView({ perfil }) {
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState("");
   const [loading, setLoading] = useState(true);
+  const [viewingProfile, setViewingProfile] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [activeComments, setActiveComments] = useState({});
@@ -543,9 +545,11 @@ export default function ComunidadView({ perfil }) {
               {/* User Header */}
               <div style={{ padding: '0.9rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
-                  <Avatar src={post.user_avatar} name={post.user_name} size={38} level={post.user_level} />
+                  <div onClick={() => setViewingProfile(post.user_name)} style={{ cursor: 'pointer' }}>
+                    <Avatar src={post.user_avatar} name={post.user_name} size={38} level={post.user_level} />
+                  </div>
                   <div>
-                    <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 900, color: '#ffffff' }}>{post.user_name}</h4>
+                    <h4 onClick={() => setViewingProfile(post.user_name)} style={{ margin: 0, fontSize: '0.9rem', fontWeight: 900, color: '#ffffff', cursor: 'pointer' }}>{post.user_name}</h4>
                     <span style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 600 }}>{timeAgo(post.created_at)}</span>
                   </div>
                 </div>
@@ -802,6 +806,14 @@ export default function ComunidadView({ perfil }) {
       )}
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
+      {viewingProfile && (
+        <PublicProfileModal
+          nombre={viewingProfile}
+          currentUser={perfil}
+          onClose={() => setViewingProfile(null)}
+        />
+      )}
     </div>
   );
 }

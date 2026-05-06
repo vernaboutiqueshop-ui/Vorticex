@@ -1168,6 +1168,59 @@ def obtener_posts(current_user: str = "Anonymous", limit: int = 15, offset: int 
         return {"posts": posts, "has_more": has_more}
 
 
+def obtener_perfil_publico(nombre: str):
+    """Devuelve datos públicos de un usuario: avatar, nivel, EXP, posts recientes. Sin datos privados."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, name, level, exp, profile_pic, created_at FROM users WHERE LOWER(name) = LOWER(?)",
+            (nombre,)
+        )
+        u = cur.fetchone()
+        if not u:
+            return None
+        uid = u["id"]
+
+        # Últimos 6 posts del usuario
+        cur.execute(
+            """SELECT p.id, p.content, p.created_at, p.media_type, p.image_url,
+                      (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as likes_count,
+                      r.name as routine_name
+               FROM posts p
+               LEFT JOIN routines r ON r.id = p.routine_id
+               WHERE p.user_id = ?
+               ORDER BY p.created_at DESC LIMIT 6""",
+            (uid,)
+        )
+        posts = [dict(r) for r in cur.fetchall()]
+
+        # Contar seguidores y siguiendo
+        cur.execute("SELECT COUNT(*) as c FROM follows WHERE following_id = ?", (uid,))
+        row = cur.fetchone()
+        followers = row["c"] if row else 0
+
+        cur.execute("SELECT COUNT(*) as c FROM follows WHERE follower_id = ?", (uid,))
+        row = cur.fetchone()
+        following = row["c"] if row else 0
+
+        # Total posts
+        cur.execute("SELECT COUNT(*) as c FROM posts WHERE user_id = ?", (uid,))
+        row = cur.fetchone()
+        total_posts = row["c"] if row else 0
+
+        return {
+            "name": u["name"],
+            "level": u["level"] or 1,
+            "exp": u["exp"] or 0,
+            "profile_pic": u["profile_pic"],
+            "created_at": u["created_at"],
+            "followers": followers,
+            "following": following,
+            "total_posts": total_posts,
+            "recent_posts": posts,
+        }
+
+
 def guardar_post(
     perfil: str, content: str, image_url: str = None, routine_id: int = None, media_type: str = None
 ):

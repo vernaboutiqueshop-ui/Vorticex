@@ -18,6 +18,17 @@ def get_perfiles_endpoint(user: str = Depends(get_current_user)):
 
 ADMIN_USERS = ["gonza"]
 
+@router.get("/user/{nombre}/public")
+def get_perfil_publico_endpoint(nombre: str):
+    """Perfil público — no requiere autenticación."""
+    from core.database_sqlite import obtener_perfil_publico
+    data = obtener_perfil_publico(nombre)
+    if not data:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return {"status": "success", "perfil": data}
+
+
 @router.get("/perfil/{nombre}")
 def get_perfil_endpoint(nombre: str, user: str = Depends(get_current_user)):
     perfil = obtener_perfil(nombre)
