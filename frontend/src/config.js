@@ -1,6 +1,7 @@
-// SOLUCIÓN TEMPORAL: Frontend apunta directo a ngrok (Vercel tiene caché rota)
-// Cuando Vercel se actualice, volver a: const currentAPI = isProd ? '' : 'http://localhost:8000';
-const currentAPI = 'https://subsidy-gothic-take.ngrok-free.dev';
+// Producción: rutas relativas → Vercel hace proxy a ngrok (vercel.json)
+// Desarrollo local: apunta directo al backend
+const isProd = window.location.hostname !== 'localhost';
+const currentAPI = isProd ? '' : 'http://localhost:8000';
 
 export const API = currentAPI;
 export default API;
