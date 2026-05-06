@@ -3342,7 +3342,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                     border: "1px solid rgba(255,255,255,0.12)",
                                     borderRadius: "14px",
                                     padding: "0.4rem",
-                                    zIndex: 500,
+                                    zIndex: 9999,
                                     boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
                                     minWidth: "175px",
                                   }}
@@ -3376,8 +3376,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                       textAlign: "left",
                                     }}
                                   >
-                                    <Edit2 size={15} color="#06b6d4" /> Editar
-                                    rutina
+                                    <Edit2 size={15} color="#06b6d4" /> Editar rutina
                                   </button>
                                   <button
                                     onClick={() => {
@@ -3400,16 +3399,9 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                       textAlign: "left",
                                     }}
                                   >
-                                    <Copy size={15} color="#94a3b8" /> Duplicar
-                                    rutina
+                                    <Copy size={15} color="#94a3b8" /> Duplicar rutina
                                   </button>
-                                  <div
-                                    style={{
-                                      height: "1px",
-                                      background: "rgba(255,255,255,0.07)",
-                                      margin: "0.3rem 0",
-                                    }}
-                                  />
+                                  <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", margin: "0.3rem 0" }} />
                                   <button
                                     onClick={() => {
                                       if (confirm("¿Eliminar esta rutina?")) {
@@ -3433,8 +3425,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                       textAlign: "left",
                                     }}
                                   >
-                                    <Trash2 size={15} color="#f87171" />{" "}
-                                    Eliminar rutina
+                                    <Trash2 size={15} color="#f87171" /> Eliminar rutina
                                   </button>
                                 </div>
                               )}
@@ -3634,7 +3625,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                     border: "1px solid rgba(255,255,255,0.12)",
                                     borderRadius: "14px",
                                     padding: "0.4rem",
-                                    zIndex: 500,
+                                    zIndex: 9999,
                                     boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
                                     minWidth: "175px",
                                   }}
