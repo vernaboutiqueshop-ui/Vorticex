@@ -1768,6 +1768,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
   const [showFolderDropdown, setShowFolderDropdown] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuMeta, setMenuMeta] = useState(null); // { id, x, y, type: 'rutina'|'carpeta', data }
   const [openFolders, setOpenFolders] = useState({});
   const [colorPickerFolderId, setColorPickerFolderId] = useState(null);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
@@ -1788,11 +1789,11 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
 
   // Cerrar menu al hacer click fuera
   useEffect(() => {
-    if (openMenuId === null) return;
-    const close = () => setOpenMenuId(null);
+    if (!menuMeta) return;
+    const close = () => setMenuMeta(null);
     window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
-  }, [openMenuId]);
+  }, [menuMeta]);
 
   const FOLDER_COLORS = ["#06b6d4", "#8b5cf6", "#f59e0b", "#ef4444", "#22c55e", "#ec4899", "#3b82f6", "#f97316"];
 
@@ -3184,6 +3185,12 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setMenuMeta(prev =>
+                                prev?.id === `folder-${f.id}`
+                                  ? null
+                                  : { id: `folder-${f.id}`, x: rect.right, y: rect.bottom + 4, type: 'carpeta', data: f }
+                              );
                             }}
                           >
                             <MoreVertical size={14} />
@@ -3259,15 +3266,15 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                 position: "relative",
                               }}
                             >
-                              {/* Ícono rutina */}
+                              {/* Ícono rutina con color de carpeta */}
                               <div
                                 style={{
                                   width: "38px", height: "38px", borderRadius: "12px",
-                                  background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.15)",
+                                  background: `${fColor}18`, border: `1px solid ${fColor}30`,
                                   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                                 }}
                               >
-                                <Dumbbell size={18} color="#06b6d4" />
+                                <Dumbbell size={18} color={fColor} />
                               </div>
                               {/* Info clickeable */}
                               <div
@@ -3313,122 +3320,22 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                 )}
                               </div>
 
-                              {/* Botón ··· */}
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setOpenMenuId(isMenuOpen ? null : r.id);
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setMenuMeta(prev =>
+                                    prev?.id === r.id
+                                      ? null
+                                      : { id: r.id, x: rect.right, y: rect.bottom + 4, type: 'rutina', data: r }
+                                  );
                                 }}
                                 className="btn-icon-elite"
-                                style={{
-                                  width: "32px",
-                                  height: "32px",
-                                  flexShrink: 0,
-                                }}
+                                style={{ width: "32px", height: "32px", flexShrink: 0,
+                                  background: menuMeta?.id === r.id ? "rgba(6,182,212,0.15)" : undefined }}
                               >
                                 <MoreVertical size={16} />
                               </button>
-
-                              {/* Dropdown menu */}
-                              {isMenuOpen && (
-                                <div
-                                  onClick={(e) => e.stopPropagation()}
-                                  style={{
-                                    position: "absolute",
-                                    top: "100%",
-                                    right: 0,
-                                    marginTop: "0.4rem",
-                                    background: "#1e293b",
-                                    border: "1px solid rgba(255,255,255,0.12)",
-                                    borderRadius: "14px",
-                                    padding: "0.4rem",
-                                    zIndex: 9999,
-                                    boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-                                    minWidth: "175px",
-                                  }}
-                                >
-                                  <button
-                                    onClick={() => {
-                                      setEditingId(r.id);
-                                      setRoutineName(r.name);
-                                      setBuilderExercises(
-                                        Array.isArray(r.ejercicios)
-                                          ? r.ejercicios
-                                          : [],
-                                      );
-                                      setSelectedFolderId(r.folder_id || null);
-                                      setIsCreating(true);
-                                      setOpenMenuId(null);
-                                    }}
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "0.7rem",
-                                      width: "100%",
-                                      padding: "0.65rem 0.85rem",
-                                      background: "none",
-                                      border: "none",
-                                      color: "#e2e8f0",
-                                      fontSize: "0.85rem",
-                                      fontWeight: 700,
-                                      cursor: "pointer",
-                                      borderRadius: "10px",
-                                      textAlign: "left",
-                                    }}
-                                  >
-                                    <Edit2 size={15} color="#06b6d4" /> Editar rutina
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      handleDuplicateRoutine(r);
-                                      setOpenMenuId(null);
-                                    }}
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "0.7rem",
-                                      width: "100%",
-                                      padding: "0.65rem 0.85rem",
-                                      background: "none",
-                                      border: "none",
-                                      color: "#e2e8f0",
-                                      fontSize: "0.85rem",
-                                      fontWeight: 700,
-                                      cursor: "pointer",
-                                      borderRadius: "10px",
-                                      textAlign: "left",
-                                    }}
-                                  >
-                                    <Copy size={15} color="#94a3b8" /> Duplicar rutina
-                                  </button>
-                                  <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", margin: "0.3rem 0" }} />
-                                  <button
-                                    onClick={() => {
-                                      if (confirm("¿Eliminar esta rutina?")) {
-                                        handleDeleteRoutine(r.id);
-                                        setOpenMenuId(null);
-                                      }
-                                    }}
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "0.7rem",
-                                      width: "100%",
-                                      padding: "0.65rem 0.85rem",
-                                      background: "none",
-                                      border: "none",
-                                      color: "#f87171",
-                                      fontSize: "0.85rem",
-                                      fontWeight: 700,
-                                      cursor: "pointer",
-                                      borderRadius: "10px",
-                                      textAlign: "left",
-                                    }}
-                                  >
-                                    <Trash2 size={15} color="#f87171" /> Eliminar rutina
-                                  </button>
-                                </div>
-                              )}
                             </div>
                           );
                         })}
@@ -3602,125 +3509,19 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setOpenMenuId(isMenuOpen ? null : r.id);
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  setMenuMeta(prev =>
+                                    prev?.id === r.id
+                                      ? null
+                                      : { id: r.id, x: rect.right, y: rect.bottom + 4, type: 'rutina', data: r }
+                                  );
                                 }}
                                 className="btn-icon-elite"
-                                style={{
-                                  width: "32px",
-                                  height: "32px",
-                                  flexShrink: 0,
-                                }}
+                                style={{ width: "32px", height: "32px", flexShrink: 0,
+                                  background: menuMeta?.id === r.id ? "rgba(6,182,212,0.15)" : undefined }}
                               >
                                 <MoreVertical size={16} />
                               </button>
-                              {isMenuOpen && (
-                                <div
-                                  onClick={(e) => e.stopPropagation()}
-                                  style={{
-                                    position: "absolute",
-                                    top: "100%",
-                                    right: 0,
-                                    marginTop: "0.4rem",
-                                    background: "#1e293b",
-                                    border: "1px solid rgba(255,255,255,0.12)",
-                                    borderRadius: "14px",
-                                    padding: "0.4rem",
-                                    zIndex: 9999,
-                                    boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-                                    minWidth: "175px",
-                                  }}
-                                >
-                                  <button
-                                    onClick={() => {
-                                      setEditingId(r.id);
-                                      setRoutineName(r.name);
-                                      setBuilderExercises(
-                                        Array.isArray(r.ejercicios)
-                                          ? r.ejercicios
-                                          : [],
-                                      );
-                                      setSelectedFolderId(r.folder_id || null);
-                                      setIsCreating(true);
-                                      setOpenMenuId(null);
-                                    }}
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "0.7rem",
-                                      width: "100%",
-                                      padding: "0.65rem 0.85rem",
-                                      background: "none",
-                                      border: "none",
-                                      color: "#e2e8f0",
-                                      fontSize: "0.85rem",
-                                      fontWeight: 700,
-                                      cursor: "pointer",
-                                      borderRadius: "10px",
-                                      textAlign: "left",
-                                    }}
-                                  >
-                                    <Edit2 size={15} color="#06b6d4" /> Editar
-                                    rutina
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      handleDuplicateRoutine(r);
-                                      setOpenMenuId(null);
-                                    }}
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "0.7rem",
-                                      width: "100%",
-                                      padding: "0.65rem 0.85rem",
-                                      background: "none",
-                                      border: "none",
-                                      color: "#e2e8f0",
-                                      fontSize: "0.85rem",
-                                      fontWeight: 700,
-                                      cursor: "pointer",
-                                      borderRadius: "10px",
-                                      textAlign: "left",
-                                    }}
-                                  >
-                                    <Copy size={15} color="#94a3b8" /> Duplicar
-                                    rutina
-                                  </button>
-                                  <div
-                                    style={{
-                                      height: "1px",
-                                      background: "rgba(255,255,255,0.07)",
-                                      margin: "0.3rem 0",
-                                    }}
-                                  />
-                                  <button
-                                    onClick={() => {
-                                      if (confirm("¿Eliminar esta rutina?")) {
-                                        handleDeleteRoutine(r.id);
-                                        setOpenMenuId(null);
-                                      }
-                                    }}
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "0.7rem",
-                                      width: "100%",
-                                      padding: "0.65rem 0.85rem",
-                                      background: "none",
-                                      border: "none",
-                                      color: "#f87171",
-                                      fontSize: "0.85rem",
-                                      fontWeight: 700,
-                                      cursor: "pointer",
-                                      borderRadius: "10px",
-                                      textAlign: "left",
-                                    }}
-                                  >
-                                    <Trash2 size={15} color="#f87171" />{" "}
-                                    Eliminar rutina
-                                  </button>
-                                </div>
-                              )}
                             </div>
                           );
                         })}
@@ -3952,6 +3753,95 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
           exercises={builderExercises}
           onClose={() => setShowSummaryModal(false)}
         />
+      )}
+
+      {/* ─── Dropdown Portal (fixed, escapa overflow:hidden) ─── */}
+      {menuMeta && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: "fixed",
+            top: menuMeta.y,
+            left: Math.min(menuMeta.x - 180, window.innerWidth - 190),
+            background: "#1e293b",
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: "14px",
+            padding: "0.4rem",
+            zIndex: 99999,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.7)",
+            minWidth: "180px",
+          }}
+        >
+          {menuMeta.type === "rutina" && (() => {
+            const r = menuMeta.data;
+            const btnStyle = {
+              display: "flex", alignItems: "center", gap: "0.7rem",
+              width: "100%", padding: "0.65rem 0.85rem",
+              background: "none", border: "none", color: "#e2e8f0",
+              fontSize: "0.85rem", fontWeight: 700, cursor: "pointer",
+              borderRadius: "10px", textAlign: "left",
+            };
+            return (
+              <>
+                <button style={btnStyle} onClick={() => {
+                  setEditingId(r.id); setRoutineName(r.name);
+                  setBuilderExercises(Array.isArray(r.ejercicios) ? r.ejercicios : []);
+                  setSelectedFolderId(r.folder_id || null);
+                  setIsCreating(true); setMenuMeta(null);
+                }}>
+                  <Edit2 size={15} color="#06b6d4" /> Editar rutina
+                </button>
+                <button style={btnStyle} onClick={() => { handleDuplicateRoutine(r); setMenuMeta(null); }}>
+                  <Copy size={15} color="#94a3b8" /> Duplicar rutina
+                </button>
+                <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", margin: "0.3rem 0" }} />
+                <button style={{ ...btnStyle, color: "#f87171" }} onClick={() => {
+                  if (confirm("¿Eliminar esta rutina?")) { handleDeleteRoutine(r.id); setMenuMeta(null); }
+                }}>
+                  <Trash2 size={15} color="#f87171" /> Eliminar rutina
+                </button>
+              </>
+            );
+          })()}
+
+          {menuMeta.type === "carpeta" && (() => {
+            const f = menuMeta.data;
+            const btnStyle = {
+              display: "flex", alignItems: "center", gap: "0.7rem",
+              width: "100%", padding: "0.65rem 0.85rem",
+              background: "none", border: "none", color: "#e2e8f0",
+              fontSize: "0.85rem", fontWeight: 700, cursor: "pointer",
+              borderRadius: "10px", textAlign: "left",
+            };
+            return (
+              <>
+                <button style={btnStyle} onClick={() => {
+                  const nombre = prompt("Nuevo nombre de carpeta:", f.name);
+                  if (nombre && nombre.trim()) {
+                    authFetch(`${API}/api/gym/folders/${f.id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ name: nombre.trim() }),
+                    }).then(() => fetchRoutines());
+                  }
+                  setMenuMeta(null);
+                }}>
+                  <Edit2 size={15} color="#06b6d4" /> Renombrar carpeta
+                </button>
+                <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", margin: "0.3rem 0" }} />
+                <button style={{ ...btnStyle, color: "#f87171" }} onClick={() => {
+                  if (confirm(`¿Eliminar la carpeta "${f.name}"? Las rutinas no se borrarán.`)) {
+                    authFetch(`${API}/api/gym/folders/${f.id}`, { method: "DELETE" })
+                      .then(() => fetchRoutines());
+                  }
+                  setMenuMeta(null);
+                }}>
+                  <Trash2 size={15} color="#f87171" /> Eliminar carpeta
+                </button>
+              </>
+            );
+          })()}
+        </div>
       )}
     </div>
   );

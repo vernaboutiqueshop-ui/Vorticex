@@ -83,7 +83,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
   const expProgress = perfil ? Math.min(100, ((perfil.exp % 1000) / 1000) * 100) : 0;
   const isOwnProfile = currentUser?.toLowerCase() === nombre?.toLowerCase();
   const hasRutinas = perfil?.rutinas?.length > 0;
-  const hasPosts = perfil?.recent_posts?.length > 0;
+  const hasPosts = false; // Tab Posts deshabilitado
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
@@ -172,35 +172,12 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
               ))}
             </div>
 
-            {/* Tabs */}
-            {(hasRutinas || hasPosts) && (
+            {/* Rutinas */}
+            {hasRutinas && (
               <>
-                <div style={{ display: 'flex', gap: '0.4rem', background: 'rgba(255,255,255,0.03)', borderRadius: '14px', padding: '0.3rem', marginBottom: '1rem' }}>
-                  {hasRutinas && (
-                    <button onClick={() => setActiveTab('rutinas')} style={{
-                      flex: 1, padding: '0.5rem', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.78rem',
-                      background: activeTab === 'rutinas' ? 'rgba(6,182,212,0.15)' : 'transparent',
-                      color: activeTab === 'rutinas' ? '#06b6d4' : '#475569',
-                      transition: 'all 0.2s',
-                    }}>
-                      🏋️ Rutinas ({perfil.rutinas.length})
-                    </button>
-                  )}
-                  {hasPosts && (
-                    <button onClick={() => setActiveTab('posts')} style={{
-                      flex: 1, padding: '0.5rem', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: 800, fontSize: '0.78rem',
-                      background: activeTab === 'posts' ? 'rgba(6,182,212,0.15)' : 'transparent',
-                      color: activeTab === 'posts' ? '#06b6d4' : '#475569',
-                      transition: 'all 0.2s',
-                    }}>
-                      💬 Posts ({perfil.total_posts})
-                    </button>
-                  )}
-                </div>
+                <p style={{ ...SECTION_LABEL, margin: '0 0 0.6rem' }}>🏋️ Rutinas</p>
 
-                {/* Tab: Rutinas */}
-                {activeTab === 'rutinas' && hasRutinas && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                     {perfil.rutinas.map(rt => (
                       <div key={rt.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '0.9rem 1rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: rt.preview_gifs?.length ? '0.7rem' : 0 }}>
@@ -240,28 +217,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
                         )}
                       </div>
                     ))}
-                  </div>
-                )}
-
-                {/* Tab: Posts */}
-                {activeTab === 'posts' && hasPosts && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {perfil.recent_posts.map(post => (
-                      <div key={post.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '0.8rem' }}>
-                        {post.routine_name && (
-                          <div style={{ color: '#06b6d4', fontSize: '0.68rem', fontWeight: 800, marginBottom: '0.3rem' }}>🏋️ {post.routine_name}</div>
-                        )}
-                        {post.content && (
-                          <p style={{ margin: 0, color: '#cbd5e1', fontSize: '0.83rem', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</p>
-                        )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-                          <span style={{ color: '#475569', fontSize: '0.62rem', fontWeight: 600 }}>{timeAgo(post.created_at)}</span>
-                          <span style={{ color: '#f87171', fontSize: '0.62rem', fontWeight: 700 }}>❤️ {post.likes_count}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                </div>
               </>
             )}
 
