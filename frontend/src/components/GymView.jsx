@@ -3761,8 +3761,8 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
           onClick={(e) => e.stopPropagation()}
           style={{
             position: "fixed",
-            top: menuMeta.y,
-            left: Math.min(menuMeta.x - 180, window.innerWidth - 190),
+            top: Math.min(menuMeta.y, window.innerHeight - 180),
+            left: Math.max(4, menuMeta.x - 185),
             background: "#1e293b",
             border: "1px solid rgba(255,255,255,0.12)",
             borderRadius: "14px",
