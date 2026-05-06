@@ -59,6 +59,16 @@ def iniciar_backend():
         print("[VORTICE] Código actualizado.")
     except Exception as e:
         print(f"[VORTICE] Warning: No se pudo actualizar código: {e}")
+
+    # Asegurar schema de DB sin tocar datos existentes
+    try:
+        db_script = os.path.join(ROOT_DIR, "backend", "scripts", "init_final_db.py")
+        venv_python = os.path.join(BACKEND_DIR, "venv", "bin", "python")
+        python_exe = venv_python if os.path.exists(venv_python) else sys.executable
+        subprocess.run([python_exe, db_script], cwd=ROOT_DIR, capture_output=True)
+        print("[VORTICE] Schema DB verificado.")
+    except Exception as e:
+        print(f"[VORTICE] Warning: No se pudo verificar schema: {e}")
     
     print("[VORTICE] Iniciando backend FastAPI en :8000...")
     # Usar el ejecutable de python del venv si existe
