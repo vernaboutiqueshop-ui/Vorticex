@@ -1211,6 +1211,30 @@ def obtener_perfil_publico(nombre: str):
         row = cur.fetchone()
         total_posts = row["c"] if row else 0
 
+        # Rutinas públicas del usuario (máx 6)
+        try:
+            cur.execute(
+                """SELECT r.id, r.name, r.description,
+                          (SELECT COUNT(*) FROM routine_exercises re WHERE re.routine_id = r.id) as ejercicios_count
+                   FROM routines r
+                   WHERE r.user_id = ? AND r.active = 1
+                   ORDER BY r.created_at DESC LIMIT 6""",
+                (uid,)
+            )
+            rutinas = [dict(r) for r in cur.fetchall()]
+            # Para cada rutina, traer los primeros 3 GIFs
+            for rt in rutinas:
+                cur.execute(
+                    """SELECT e.gif_url, e.id as exercise_id
+                       FROM routine_exercises re
+                       JOIN exercises e ON e.id = re.exercise_id
+                       WHERE re.routine_id = ? LIMIT 3""",
+                    (rt["id"],)
+                )
+                rt["preview_gifs"] = [f"/gifs/{row['exercise_id']}.gif" for row in cur.fetchall()]
+        except Exception:
+            rutinas = []
+
         return {
             "name": u["name"],
             "level": u["level"] or 1,
@@ -1221,6 +1245,7 @@ def obtener_perfil_publico(nombre: str):
             "following": following,
             "total_posts": total_posts,
             "recent_posts": posts,
+            "rutinas": rutinas,
         }
 
 
