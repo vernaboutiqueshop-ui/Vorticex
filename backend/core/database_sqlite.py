@@ -1194,14 +1194,17 @@ def obtener_perfil_publico(nombre: str):
         )
         posts = [dict(r) for r in cur.fetchall()]
 
-        # Contar seguidores y siguiendo
-        cur.execute("SELECT COUNT(*) as c FROM follows WHERE following_id = ?", (uid,))
-        row = cur.fetchone()
-        followers = row["c"] if row else 0
-
-        cur.execute("SELECT COUNT(*) as c FROM follows WHERE follower_id = ?", (uid,))
-        row = cur.fetchone()
-        following = row["c"] if row else 0
+        # Contar seguidores y siguiendo (la tabla puede no existir)
+        try:
+            cur.execute("SELECT COUNT(*) as c FROM follows WHERE following_id = ?", (uid,))
+            row = cur.fetchone()
+            followers = row["c"] if row else 0
+            cur.execute("SELECT COUNT(*) as c FROM follows WHERE follower_id = ?", (uid,))
+            row = cur.fetchone()
+            following = row["c"] if row else 0
+        except Exception:
+            followers = 0
+            following = 0
 
         # Total posts
         cur.execute("SELECT COUNT(*) as c FROM posts WHERE user_id = ?", (uid,))
