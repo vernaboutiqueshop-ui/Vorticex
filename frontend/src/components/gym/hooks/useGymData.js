@@ -4,7 +4,7 @@ import { API, authFetch } from '../../../config';
 /**
  * Hook para manejar datos de gym (rutinas, ejercicios, carpetas)
  */
-export function useGymData(perfil) {
+export function useGymData(perfil, lang = "es") {
   const [ejerciciosMaster, setEjerciciosMaster] = useState([]);
   const [rutinas, setRutinas] = useState([]);
   const [folders, setFolders] = useState([]);
@@ -13,7 +13,7 @@ export function useGymData(perfil) {
 
   const loadData = useCallback(async () => {
     if (!perfil) return;
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -21,7 +21,7 @@ export function useGymData(perfil) {
       const [rutinasRes, foldersRes, ejerciciosRes] = await Promise.all([
         authFetch(`${API}/api/gym/rutinas?perfil=${perfil}`),
         authFetch(`${API}/api/gym/folders?perfil=${perfil}`),
-        authFetch(`${API}/api/exercises`),
+        authFetch(`${API}/api/exercises?lang=${lang}`),
       ]);
 
       const rutinasData = await rutinasRes.json();
@@ -38,7 +38,7 @@ export function useGymData(perfil) {
     } finally {
       setLoading(false);
     }
-  }, [perfil]);
+  }, [perfil, lang]);
 
   useEffect(() => {
     loadData();

@@ -29,30 +29,29 @@ UI_MUSCULO_ES = {
 
 # --- Ejercicios (catálogo y búsqueda) ---
 @router.get("/exercises")
-def get_ejercicios_endpoint(limit: int = 0, offset: int = 0):
+def get_ejercicios_endpoint(limit: int = 0, offset: int = 0, lang: str = "es"):
     """
     Obtener catálogo de ejercicios.
+    - lang=es|en  (por defecto es)
     - limit=0: devuelve todos (1324 ejercicios)
-    - limit=20&offset=0: paginación
     """
     try:
-        rows = obtener_catalogo_completo()
+        rows = obtener_catalogo_completo(lang=lang)
         total = len(rows)
-        
-        # Paginación si se especifica
+
         if limit > 0:
             rows = rows[offset:offset + limit]
-        
+
         return {
-            "status": "success", 
+            "status": "success",
             "total": total,
             "offset": offset,
             "limit": limit if limit > 0 else total,
             "ejercicios": [
                 {"id_ejercicio": r['id_ejercicio'], "nombre_es": r['nombre_es'],
-                 "nombre_en": r.get('nombre_en', ""), "body_part": r.get('body_part'),
-                 "target": r.get('target'), "gif_url": r.get('gif_url'),
-                 "equipment": r.get('equipment', ""), "instrucciones_es": r.get('instrucciones_es', []),
+                 "body_part": r.get('body_part'), "target": r.get('target'),
+                 "gif_url": r.get('gif_url'), "equipment": r.get('equipment', ""),
+                 "instrucciones_es": r.get('instrucciones_es', []),
                  "zone": r.get('zone'), "mechanic": r.get('mechanic'),
                  "difficulty": r.get('difficulty_level')} for r in rows
             ]

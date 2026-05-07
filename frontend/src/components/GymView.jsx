@@ -1821,7 +1821,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
       const [rRes, fRes, eRes] = await Promise.all([
         authFetch(`${API}/api/gym/rutinas?perfil=${perfil}`, { signal: controller.signal }),
         authFetch(`${API}/api/gym/folders?perfil=${perfil}`, { signal: controller.signal }),
-        authFetch(`${API}/api/exercises`, { signal: controller.signal }),
+        authFetch(`${API}/api/exercises?lang=${lang}`, { signal: controller.signal }),
       ]);
       const [rData, fData, eData] = await Promise.all([
         rRes.json(),

@@ -6,9 +6,9 @@ import sqlite3
 import bcrypt
 from functools import lru_cache
 
-# Cache simple en memoria para datos que no cambian frecuentemente
-_exercises_cache = None
-_exercises_cache_timestamp = None
+# Cache por idioma: {"es": [...], "en": [...]}
+_exercises_cache: dict = {}
+_exercises_cache_timestamp: dict = {}
 
 # Ruta relativa dinámica (busca data/vortice_elite.db en la misma carpeta que el servidor)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -173,37 +173,37 @@ def listar_perfiles():
 # --- CATALOGO (Arquitectura Intel v2) ---
 def obtener_catalogo_completo(lang="es"):
     global _exercises_cache, _exercises_cache_timestamp
-    
-    # Cache por 5 minutos (300 segundos)
-    if _exercises_cache is not None and _exercises_cache_timestamp is not None:
-        if (datetime.datetime.now() - _exercises_cache_timestamp).seconds < 300:
-            return _exercises_cache
-    
+
+    lang = lang if lang in ("es", "en") else "es"
+    cat_col = "name_en" if lang == "en" else "name_es"
+
+    # Cache por idioma, 5 minutos
+    ts = _exercises_cache_timestamp.get(lang)
+    if _exercises_cache.get(lang) and ts and (datetime.datetime.now() - ts).seconds < 300:
+        return _exercises_cache[lang]
+
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(
-            """
-            SELECT e.id, e.gif_url, e.equipment, e.difficulty,
-                   i.name as nombre_es, i.instructions as instrucciones_es,
-                   c_zone.name_es as zone_name,
-                   c_group.name_es as group_name,
-                   c_mech.name_es as mechanic_name
+            f"""
+            SELECT e.id, e.equipment, e.difficulty,
+                   i.name as nombre, i.instructions as instrucciones,
+                   c_zone.{cat_col} as zone_name,
+                   c_group.{cat_col} as group_name,
+                   c_mech.{cat_col} as mechanic_name
             FROM exercises e
             JOIN exercise_i18n i ON e.id = i.exercise_id AND i.lang = ?
             LEFT JOIN exercise_categories c_zone ON e.zone_id = c_zone.id
             LEFT JOIN exercise_categories c_group ON e.group_id = c_group.id
             LEFT JOIN exercise_categories c_mech ON e.mechanic_id = c_mech.id
-        """,
+            """,
             (lang,),
         )
         rows = cur.fetchall()
 
         catalogo = []
         for r in rows:
-            # Para el frontend, 'body_part' ahora es el nombre del grupo (Biceps, Pecho, etc.)
-            # y 'target' puede ser la zona o la mecanica.
-            inst_str = r["instrucciones_es"] or ""
-            # Intentamos parsear si fuera JSON, si no, lista de un elemento
+            inst_str = r["instrucciones"] or ""
             try:
                 inst_list = (
                     json.loads(inst_str)
@@ -216,7 +216,7 @@ def obtener_catalogo_completo(lang="es"):
             catalogo.append(
                 {
                     "id_ejercicio": r["id"],
-                    "nombre_es": r["nombre_es"],
+                    "nombre_es": r["nombre"],
                     "body_part": r["group_name"] or "General",
                     "zone": r["zone_name"],
                     "mechanic": r["mechanic_name"],
@@ -227,9 +227,9 @@ def obtener_catalogo_completo(lang="es"):
                     "gif_url": f"/gifs/{r['id']}.gif",
                 }
             )
-        # Guardar en cache
-        _exercises_cache = catalogo
-        _exercises_cache_timestamp = datetime.datetime.now()
+
+        _exercises_cache[lang] = catalogo
+        _exercises_cache_timestamp[lang] = datetime.datetime.now()
         return catalogo
 
 
@@ -766,6 +766,7 @@ def obtener_rutinas_templates(perfil: str):
                 JOIN exercise_i18n i ON e.id = i.exercise_id AND i.lang = 'es'
                 LEFT JOIN exercise_categories c_group ON e.group_id = c_group.id
                 WHERE re.routine_id = ?
+                -- lang always es here: routine detail names stored at save time
             """,
                 (r["id"],),
             )
