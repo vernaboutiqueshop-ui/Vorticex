@@ -2,7 +2,8 @@ fastapi
 uvicorn
 pydantic
 python-dotenv
-google-generativeai
+google-genai
+google-auth
 python-multipart
 python-jose[cryptography]
 watchfiles
