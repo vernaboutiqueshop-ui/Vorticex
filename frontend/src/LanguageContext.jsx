@@ -60,6 +60,20 @@ const translations = {
     loading: "Cargando...",
     install_title: "Instalá la app",
     install_subtitle: "Mejor experiencia, acceso directo",
+    instructions: "INSTRUCCIONES",
+    add_to_routine: "+ Añadir a rutina",
+    remove_from_routine: "— Quitar de rutina",
+    all: "Todo",
+    upper: "Superior",
+    lower: "Inferior",
+    barbell: "Barra",
+    dumbbell: "Mancuerna",
+    machine: "Máquina",
+    bodyweight: "Corporal",
+    popular_exercises: "EJERCICIOS POPULARES",
+    search_exercises: (n) => `Buscar en ${n} ejercicios...`,
+    chosen: "ELEGIDOS",
+    of: "de",
   },
   en: {
     gym: "Gym",
@@ -120,6 +134,20 @@ const translations = {
     loading: "Loading...",
     install_title: "Install the app",
     install_subtitle: "Better experience, direct access",
+    instructions: "INSTRUCTIONS",
+    add_to_routine: "+ Add to routine",
+    remove_from_routine: "— Remove from routine",
+    all: "All",
+    upper: "Upper",
+    lower: "Lower",
+    barbell: "Barbell",
+    dumbbell: "Dumbbell",
+    machine: "Machine",
+    bodyweight: "Bodyweight",
+    popular_exercises: "POPULAR EXERCISES",
+    search_exercises: (n) => `Search ${n} exercises...`,
+    chosen: "CHOSEN",
+    of: "of",
   }
 };
 
@@ -132,7 +160,10 @@ export const LanguageProvider = ({ children }) => {
     localStorage.setItem('vortice_lang', lang);
   }, [lang]);
 
-  const t = (key) => translations[lang][key] || key;
+  const t = (key, ...args) => {
+    const val = translations[lang][key] ?? translations['es'][key] ?? key;
+    return typeof val === 'function' ? val(...args) : val;
+  };
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, t }}>

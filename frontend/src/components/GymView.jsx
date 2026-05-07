@@ -575,20 +575,31 @@ const ExerciseSelectorView = ({
 
   // Equipamiento disponible (solo los que tienen ejercicios con los filtros actuales)
   const EQUIP_DISPLAY = [
-    { key: "Todos", label: "Todo" },
-    { key: "Barra", label: "Barra" },
-    { key: "Mancuerna", label: "Mancuerna" },
-    { key: "Máquina", label: "Máquina" },
-    { key: "Peso Corporal", label: "Corporal" },
+    { key: "Todos", label: t('all') },
+    { key: "Barra", label: t('barbell') },
+    { key: "Mancuerna", label: t('dumbbell') },
+    { key: "Máquina", label: t('machine') },
+    { key: "Peso Corporal", label: t('bodyweight') },
   ];
 
   const ZONE_TABS = [
-    { key: "Todos", label: "Todo" },
-    { key: "Superior", label: "Superior" },
-    { key: "Inferior", label: "Inferior" },
+    { key: "Todos", label: t('all') },
+    { key: "Superior", label: t('upper') },
+    { key: "Inferior", label: t('lower') },
     { key: "Core", label: "Core" },
     { key: "Cardio", label: "Cardio" },
   ];
+
+  // Traducción de equipamiento que viene de la DB en español
+  const equipLabel = (eq) => {
+    if (!eq) return '';
+    const map = lang === 'en' ? {
+      'Peso Corporal': 'Bodyweight', 'Barra': 'Barbell',
+      'Mancuerna': 'Dumbbell', 'Máquina': 'Machine',
+      'Cable': 'Cable', 'Kettlebell': 'Kettlebell', 'Banda': 'Band',
+    } : {};
+    return map[eq] || eq;
+  };
 
   const MUSCLE_ICON = {
     Bíceps: GiBiceps,
@@ -1293,7 +1304,7 @@ const ExerciseSelectorView = ({
                   </span>
                   {selectedExercise?.equipment && (
                     <span style={{ display: "flex", alignItems: "center", gap: "0.25rem", background: "rgba(59,130,246,0.1)", color: "#93c5fd", fontSize: "0.6rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "99px" }}>
-                      <Dumbbell size={10} /> {selectedExercise?.equipment}
+                      <Dumbbell size={10} /> {equipLabel(selectedExercise?.equipment)}
                     </span>
                   )}
                   {selectedExercise?.zone && (
@@ -1322,7 +1333,7 @@ const ExerciseSelectorView = ({
                   >
                     <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.7rem", fontWeight: 900, color: "#94a3b8", letterSpacing: "0.3px" }}>
                       <Info size={13} color="#06b6d4" />
-                      INSTRUCCIONES
+                      {t('instructions')}
                     </span>
                     <ChevronDown size={14} color="#64748b" style={{ transition: "transform 0.25s", transform: showInstructions ? "rotate(180deg)" : "rotate(0)" }} />
                   </motion.button>
@@ -1376,7 +1387,7 @@ const ExerciseSelectorView = ({
                   cursor: "pointer", width: "100%", marginBottom: "env(safe-area-inset-bottom, 8px)",
                 }}
               >
-                {isAdded ? "— Quitar de rutina" : "+ Añadir a rutina"}
+                {isAdded ? t('remove_from_routine') : t('add_to_routine')}
               </motion.button>
             </motion.div>
           </div>
