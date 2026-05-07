@@ -292,7 +292,7 @@ const RoutineDetailView = ({
                     layout
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.04, type: "spring", stiffness: 400, damping: 25 }}
+                    transition={{ duration: 0.12 }}
                     style={{
                       display: "flex", alignItems: "center", gap: "0.3rem",
                       padding: "0.3rem 0.65rem", borderRadius: "20px",
@@ -616,9 +616,9 @@ const ExerciseSelectorView = ({
     return (
       <motion.div
         key={eid}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.18, delay: Math.min((idx || 0) * 0.02, 0.12) }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.12 }}
         style={{
           padding: "0.75rem 1rem",
           borderRadius: "14px",
@@ -1345,9 +1345,9 @@ const ExerciseSelectorView = ({
                           {instrArr.map((step, i) => (
                             <motion.div
                               key={i}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: i * 0.06 }}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              transition={{ duration: 0.1, delay: i * 0.03 }}
                               style={{ display: "flex", gap: "0.5rem", alignItems: "flex-start" }}
                             >
                               <span style={{
@@ -1669,9 +1669,9 @@ const SummaryModal = ({ exercises, onClose }) => {
             {muscleEntries.map(([muscle, count], mIdx) => (
               <motion.div
                 key={muscle}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 + mIdx * 0.08, type: "spring", stiffness: 300, damping: 25 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.15, delay: mIdx * 0.03 }}
               >
                 <div
                   style={{
@@ -1711,7 +1711,7 @@ const SummaryModal = ({ exercises, onClose }) => {
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${(count / maxSets) * 100}%` }}
-                    transition={{ delay: 0.5 + mIdx * 0.08, duration: 0.6, ease: "easeOut" }}
+                    transition={{ delay: mIdx * 0.03, duration: 0.4, ease: "easeOut" }}
                     style={{
                       height: "100%",
                       background: "linear-gradient(90deg, #06b6d4, #0891b2)",
@@ -3629,9 +3629,9 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   return (
                     <motion.div
                       key={session.id}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.04 }}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.12 }}
                       style={{
                         background: "rgba(15,23,42,0.6)",
                         border: `1px solid ${isSport ? "rgba(249,115,22,0.12)" : "rgba(255,255,255,0.06)"}`,
