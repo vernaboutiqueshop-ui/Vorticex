@@ -1819,7 +1819,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
     const timeout = setTimeout(() => controller.abort(), 12000);
     try {
       const [rRes, fRes, eRes] = await Promise.all([
-        authFetch(`${API}/api/gym/rutinas?perfil=${perfil}`, { signal: controller.signal }),
+        authFetch(`${API}/api/gym/rutinas?perfil=${perfil}&lang=${lang}`, { signal: controller.signal }),
         authFetch(`${API}/api/gym/folders?perfil=${perfil}`, { signal: controller.signal }),
         authFetch(`${API}/api/exercises?lang=${lang}`, { signal: controller.signal }),
       ]);
@@ -1862,6 +1862,12 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
       hasLoadedRef.current = true;
     }
   }, [loadData]);
+
+  // Re-fetch ejercicios cuando el usuario cambia de idioma
+  useEffect(() => {
+    if (hasLoadedRef.current) loadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang]);
 
   useEffect(() => {
     if (activeTab === "history") loadHistory();

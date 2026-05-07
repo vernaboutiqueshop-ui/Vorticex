@@ -187,9 +187,9 @@ def api_actualizar_rutina(rid: int, req: RutinaUpdatePayload, user: str = Depend
 
 
 @router.get("/rutinas")
-def get_rutinas(perfil: str, user: str = Depends(get_current_user)):
+def get_rutinas(perfil: str, lang: str = "es", user: str = Depends(get_current_user)):
     try:
-        rutinas = obtener_rutinas_templates(perfil)
+        rutinas = obtener_rutinas_templates(perfil, lang=lang)
         return {"status": "success", "rutinas": rutinas}
     except Exception as e:
         return {"status": "error", "error": str(e)}

@@ -3,6 +3,28 @@ import { Heart, MessageCircle, Send, Image as ImageIcon, X, Dumbbell, Loader, Us
 import { motion } from 'motion/react';
 import { API, authFetch, track } from '../config';
 import PublicProfileModal from './PublicProfileModal';
+import { useLanguage } from '../LanguageContext';
+
+const i18n = {
+  es: {
+    placeholder: (p) => `¿Qué entrenaste hoy, ${p}? Escribí @ para adjuntar rutina`,
+    routine: 'Rutina', publish: 'Publicar', publishing: 'Publicando...',
+    cloneEdit: 'Clonar y Editar', sharedRoutine: 'Rutina compartida — cloná para verla completa',
+    noPostsYet: 'Sin publicaciones aún', beFirst: '¡Sé el primero en compartir!',
+    noMorePosts: 'No hay más publicaciones',
+    clonedOk: (name) => `¡Rutina "${name}" clonada! Andá a Gym para editarla.`,
+    cloneError: 'Error al clonar',
+  },
+  en: {
+    placeholder: (p) => `What did you train today, ${p}? Write @ to attach a routine`,
+    routine: 'Routine', publish: 'Publish', publishing: 'Publishing...',
+    cloneEdit: 'Clone & Edit', sharedRoutine: 'Shared routine — clone to see full details',
+    noPostsYet: 'No posts yet', beFirst: 'Be the first to share!',
+    noMorePosts: 'No more posts',
+    clonedOk: (name) => `Routine "${name}" cloned! Go to Gym to edit it.`,
+    cloneError: 'Error cloning',
+  },
+};
 
 const MAX_MEDIA_BYTES = 3 * 1024 * 1024;
 
@@ -50,6 +72,8 @@ const timeAgo = (dateStr) => {
 };
 
 export default function ComunidadView({ perfil }) {
+  const { lang } = useLanguage();
+  const tx = i18n[lang] || i18n.es;
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState("");
   const [loading, setLoading] = useState(true);
@@ -260,8 +284,8 @@ export default function ComunidadView({ perfil }) {
       const res = await authFetch(`${API}/api/comunidad/clone-routine/${routineId}?user=${perfil}`, { method: 'POST' });
       const data = await res.json();
       if (data.status === 'success') {
-        alert(`¡Rutina "${routineName}" clonada! Andá a Gym para editarla.`);
-      } else { alert('Error al clonar'); }
+        alert(tx.clonedOk(routineName));
+      } else { alert(tx.cloneError); }
     } catch { alert('Error al clonar'); }
   };
 
@@ -309,7 +333,7 @@ export default function ComunidadView({ perfil }) {
                 <div style={{ position: 'relative' }}>
                   <textarea
                     ref={textareaRef}
-                    placeholder={`¿Qué entrenaste hoy, ${perfil}? Escribí @ para adjuntar rutina`}
+                    placeholder={tx.placeholder(perfil)}
                     value={newPost}
                     onChange={(e) => {
                       const val = e.target.value;
@@ -463,7 +487,7 @@ export default function ComunidadView({ perfil }) {
                           color: showRoutinePicker ? '#06b6d4' : '#64748b', fontSize: '0.65rem', fontWeight: 800,
                         }}
                       >
-                        <Dumbbell size={13} /> Rutina
+                        <Dumbbell size={13} /> {tx.routine}
                       </button>
                     )}
                   </div>
@@ -480,7 +504,7 @@ export default function ComunidadView({ perfil }) {
                     }}
                   >
                     {isPosting ? <Loader size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={13} />}
-                    {isPosting ? '' : 'Publicar'}
+                    {isPosting ? '' : tx.publish}
                   </button>
                 </div>
               </div>
@@ -527,8 +551,8 @@ export default function ComunidadView({ perfil }) {
           {posts.length === 0 && (
             <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#475569' }}>
               <MessageCircle size={40} style={{ margin: '0 auto 0.75rem', opacity: 0.2 }} />
-              <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>Sin publicaciones aún</div>
-              <div style={{ fontSize: '0.75rem', marginTop: '0.2rem', opacity: 0.5 }}>¡Sé el primero en compartir!</div>
+              <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{tx.noPostsYet}</div>
+              <div style={{ fontSize: '0.75rem', marginTop: '0.2rem', opacity: 0.5 }}>{tx.beFirst}</div>
             </div>
           )}
 
@@ -624,7 +648,7 @@ export default function ComunidadView({ perfil }) {
                             fontSize: '0.6rem', fontWeight: 900, color: '#06b6d4',
                           }}
                         >
-                          <Copy size={11} /> Clonar y Editar
+                          <Copy size={11} /> {tx.cloneEdit}
                         </button>
                       </div>
                     </div>
@@ -657,7 +681,7 @@ export default function ComunidadView({ perfil }) {
                     )}
                     {(!post.routine_exercises || post.routine_exercises.length === 0) && (
                       <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.65rem', color: '#475569', fontStyle: 'italic' }}>
-                        Rutina compartida — cloná para verla completa
+                        {tx.sharedRoutine}
                       </div>
                     )}
                   </div>
@@ -774,7 +798,7 @@ export default function ComunidadView({ perfil }) {
           )}
           {!hasMore && posts.length > 0 && (
             <p style={{ textAlign: 'center', color: '#475569', fontSize: '0.7rem', fontWeight: 700, padding: '0.5rem 0' }}>
-              No hay más publicaciones
+              {tx.noMorePosts}
             </p>
           )}
 

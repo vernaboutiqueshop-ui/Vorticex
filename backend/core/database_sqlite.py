@@ -728,7 +728,9 @@ def guardar_rutina_template(
     return rid
 
 
-def obtener_rutinas_templates(perfil: str):
+def obtener_rutinas_templates(perfil: str, lang: str = "es"):
+    lang = lang if lang in ("es", "en") else "es"
+    cat_col = "name_en" if lang == "en" else "name_es"
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(
@@ -757,18 +759,17 @@ def obtener_rutinas_templates(perfil: str):
             )
 
             cur.execute(
-                """
+                f"""
                 SELECT re.exercise_id as id_ejercicio, re.sets_data, re.notes, re.rest_seconds,
-                       i.name as nombre_es, i.name as name, c_group.name_es as group_name, e.gif_url,
+                       i.name as nombre_es, i.name as name, c_group.{cat_col} as group_name, e.gif_url,
                        e.equipment, e.difficulty
                 FROM routine_exercises re
                 JOIN exercises e ON e.id = re.exercise_id
-                JOIN exercise_i18n i ON e.id = i.exercise_id AND i.lang = 'es'
+                JOIN exercise_i18n i ON e.id = i.exercise_id AND i.lang = ?
                 LEFT JOIN exercise_categories c_group ON e.group_id = c_group.id
                 WHERE re.routine_id = ?
-                -- lang always es here: routine detail names stored at save time
             """,
-                (r["id"],),
+                (lang, r["id"]),
             )
             r["ejercicios"] = []
             for e_row in cur.fetchall():
