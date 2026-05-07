@@ -616,9 +616,9 @@ const ExerciseSelectorView = ({
     return (
       <motion.div
         key={eid}
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, delay: Math.min((idx || 0) * 0.03, 0.3) }}
+        transition={{ duration: 0.18, delay: Math.min((idx || 0) * 0.02, 0.12) }}
         style={{
           padding: "0.75rem 1rem",
           borderRadius: "14px",
@@ -1737,6 +1737,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
   const [ejerciciosMaster, setEjerciciosMaster] = useState([]);
   const [rutinas, setRutinas] = useState([]);
   const [folders, setFolders] = useState([]);
+  const exerciseCacheRef = useRef({});  // { es: [...], en: [...] }
 
   /* ── Estado del builder ── */
   const [isCreating, setIsCreating] = useState(false);
@@ -1818,38 +1819,42 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
 
   /* ─── Carga de datos ─── */
 
-  const loadData = useCallback(async () => {
-    setLoadingData(true);
+  const loadData = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoadingData(true);
     setLoadError(false);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 12000);
     try {
-      const [rRes, fRes, eRes] = await Promise.all([
+      const cached = exerciseCacheRef.current[lang];
+      const fetches = [
         authFetch(`${API}/api/gym/rutinas?perfil=${perfil}&lang=${lang}`, { signal: controller.signal }),
         authFetch(`${API}/api/gym/folders?perfil=${perfil}`, { signal: controller.signal }),
-        authFetch(`${API}/api/exercises?lang=${lang}`, { signal: controller.signal }),
-      ]);
-      const [rData, fData, eData] = await Promise.all([
-        rRes.json(),
-        fRes.json(),
-        eRes.json(),
-      ]);
+        ...(!cached ? [authFetch(`${API}/api/exercises?lang=${lang}`, { signal: controller.signal })] : []),
+      ];
+      const results = await Promise.all(fetches);
+      const [rData, fData] = await Promise.all([results[0].json(), results[1].json()]);
       if (rData.status === "success")
         setRutinas(Array.isArray(rData.rutinas) ? rData.rutinas : []);
       if (fData.status === "success")
         setFolders(Array.isArray(fData.folders) ? fData.folders : []);
-      if (eData.status === "success") {
-        // GIFs deben quedar como rutas relativas (/gifs/0001.gif) para cargar desde Vercel
-        setEjerciciosMaster(Array.isArray(eData.ejercicios) ? eData.ejercicios : []);
+      if (cached) {
+        setEjerciciosMaster(cached);
+      } else {
+        const eData = await results[2].json();
+        if (eData.status === "success") {
+          const ejs = Array.isArray(eData.ejercicios) ? eData.ejercicios : [];
+          exerciseCacheRef.current[lang] = ejs;
+          setEjerciciosMaster(ejs);
+        }
       }
     } catch (e) {
       if (e.name !== 'AbortError') console.error("Error loading gym data:", e);
-      setLoadError(true);
+      if (!silent) setLoadError(true);
     } finally {
       clearTimeout(timeout);
       setLoadingData(false);
     }
-  }, [perfil]);
+  }, [perfil, lang]);
 
   const loadHistory = useCallback(async () => {
     setHistoryLoading(true);
@@ -1869,10 +1874,10 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
     }
   }, [loadData]);
 
-  // Re-fetch ejercicios y resetear filtros cuando cambia el idioma
+  // Lang switch: silencioso (sin skeleton) + usa cache si existe
   useEffect(() => {
     if (hasLoadedRef.current) {
-      loadData();
+      loadData({ silent: true });
       setFilterMuscle("__all__");
       setFilterCategory("Todos");
       setFilterEquipment("Todos");
