@@ -121,6 +121,22 @@ function AppContent() {
     localStorage.setItem('vortice_hide_install', 'true');
   };
 
+  // ── Backend health check — banner no intrusivo, auto-retry cada 30s ──
+  const [backendDown, setBackendDown] = useState(false);
+  useEffect(() => {
+    let iv;
+    const check = () => {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 5000);
+      fetch(`${API}/api/health`, { signal: ctrl.signal, headers: { 'ngrok-skip-browser-warning': 'true' } })
+        .then(r => { clearTimeout(t); setBackendDown(!r.ok); })
+        .catch(() => { clearTimeout(t); setBackendDown(true); });
+    };
+    check();
+    iv = setInterval(check, 30000);
+    return () => clearInterval(iv);
+  }, []);
+
   // ── Notifications (must be before early returns) ──
   const [notifCount, setNotifCount] = useState(0);
   const [showNotifs, setShowNotifs] = useState(false);
@@ -130,7 +146,7 @@ function AppContent() {
     const poll = () => authFetch(`${API}/api/comunidad/notifications/count?user=${authUser}`)
       .then(r => r.json()).then(d => { if (d.status === 'success') setNotifCount(d.count); }).catch(() => {});
     poll();
-    const iv = setInterval(poll, 15000);
+    const iv = setInterval(poll, 60000);
     return () => clearInterval(iv);
   }, [authUser]);
 
@@ -238,6 +254,20 @@ function AppContent() {
           </div>
         </div>
       </header>
+
+      {/* ═══ Backend Down Banner ═══ */}
+      {backendDown && (
+        <div style={{
+          background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)',
+          borderRadius: '10px', margin: '0.5rem 0.75rem', padding: '0.6rem 0.9rem',
+          display: 'flex', alignItems: 'center', gap: '0.5rem',
+        }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
+          <span style={{ color: '#fca5a5', fontSize: '0.8rem', fontWeight: 600 }}>
+            Servidor no disponible — reconectando automáticamente…
+          </span>
+        </div>
+      )}
 
       {/* ═══ PWA Install Banner ═══ */}
       {showInstallBanner && (

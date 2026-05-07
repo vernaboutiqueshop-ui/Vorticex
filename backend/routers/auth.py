@@ -1,14 +1,26 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, field_validator
 from typing import Optional, List
-from datetime import timedelta
+from datetime import timedelta, datetime
 import re
+from collections import defaultdict
 
 from core.database import obtener_perfil, guardar_perfil, verificar_password, obtener_password_hash
 from core.auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+# Rate limiter simple en memoria: máx 10 intentos por IP en 60 segundos
+_login_attempts: dict = defaultdict(list)
+
+def _check_rate_limit(ip: str):
+    now = datetime.utcnow()
+    window = [t for t in _login_attempts[ip] if (now - t).seconds < 60]
+    _login_attempts[ip] = window
+    if len(window) >= 10:
+        raise HTTPException(status_code=429, detail="Demasiados intentos. Esperá 1 minuto.")
+    _login_attempts[ip].append(now)
 
 
 class RegisterRequest(BaseModel):
@@ -85,7 +97,9 @@ def register_user(req: RegisterRequest):
 
 
 @router.post("/token")
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+    ip = request.client.host if request.client else "unknown"
+    _check_rate_limit(ip)
     nombres_a_probar = [form_data.username, form_data.username.capitalize(), form_data.username.lower()]
     user = None
     final_username = form_data.username
@@ -112,14 +126,4 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
 
 @router.get("/recover")
 def recover_password(username: str):
-    try:
-        from core.database_sqlite import get_conn
-        with get_conn() as conn:
-            cur = conn.cursor()
-            cur.execute("SELECT password_plain FROM users WHERE LOWER(name) = LOWER(?)", (username,))
-            row = cur.fetchone()
-            if not row or not row["password_plain"]:
-                return {"error": "No hay contraseña guardada para este usuario. Contactá al administrador."}
-            return {"password": row["password_plain"]}
-    except Exception as e:
-        return {"error": str(e)}
+    return {"error": "La recuperación por contraseña está deshabilitada. Contactá al administrador."}

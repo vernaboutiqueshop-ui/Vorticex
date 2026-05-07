@@ -1755,6 +1755,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
 
   /* ── Loading states ── */
   const [loadingData, setLoadingData] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
 
   /* ── Estado filtros ── */
@@ -1813,11 +1814,14 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
 
   const loadData = useCallback(async () => {
     setLoadingData(true);
+    setLoadError(false);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
     try {
       const [rRes, fRes, eRes] = await Promise.all([
-        authFetch(`${API}/api/gym/rutinas?perfil=${perfil}`),
-        authFetch(`${API}/api/gym/folders?perfil=${perfil}`),
-        authFetch(`${API}/api/exercises`),
+        authFetch(`${API}/api/gym/rutinas?perfil=${perfil}`, { signal: controller.signal }),
+        authFetch(`${API}/api/gym/folders?perfil=${perfil}`, { signal: controller.signal }),
+        authFetch(`${API}/api/exercises`, { signal: controller.signal }),
       ]);
       const [rData, fData, eData] = await Promise.all([
         rRes.json(),
@@ -1833,8 +1837,10 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
         setEjerciciosMaster(Array.isArray(eData.ejercicios) ? eData.ejercicios : []);
       }
     } catch (e) {
-      console.error("Error loading gym data:", e);
+      if (e.name !== 'AbortError') console.error("Error loading gym data:", e);
+      setLoadError(true);
     } finally {
+      clearTimeout(timeout);
       setLoadingData(false);
     }
   }, [perfil]);
@@ -2981,6 +2987,32 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 </div>
               ))}
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+          ) : loadError ? (
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+              padding: "3rem 1rem", gap: "1rem", textAlign: "center",
+            }}>
+              <div style={{
+                width: 56, height: 56, borderRadius: "50%",
+                background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Loader size={24} color="#ef4444" />
+              </div>
+              <p style={{ color: "#94a3b8", fontSize: "0.85rem", margin: 0 }}>
+                No se pudo conectar con el servidor
+              </p>
+              <button
+                onClick={() => { hasLoadedRef.current = false; loadData(); hasLoadedRef.current = true; }}
+                style={{
+                  padding: "0.6rem 1.4rem", borderRadius: 10,
+                  background: "rgba(6,182,212,0.15)", border: "1px solid rgba(6,182,212,0.3)",
+                  color: "#06b6d4", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer",
+                }}
+              >
+                Reintentar
+              </button>
             </div>
           ) : activeTab === "train" ? (
             <>
