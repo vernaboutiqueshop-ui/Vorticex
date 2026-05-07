@@ -238,7 +238,7 @@ export default function SportsView({ perfil }) {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.6rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
             <h3 style={{ margin: 0, fontWeight: 900, color: "#fff", fontSize: "0.9rem" }}>
-              {lang === "es" ? "Mis Deportes" : "My Sports"}
+              {t('my_sports')}
             </h3>
             <motion.button
               whileTap={{ scale: 0.9 }}
@@ -338,7 +338,7 @@ export default function SportsView({ perfil }) {
                       </div>
                     ) : (
                       <div style={{ fontSize: "0.68rem", color: "#475569", fontWeight: 600, marginTop: "0.15rem" }}>
-                        {lang === "es" ? "Tocá para registrar sesión" : "Tap to log session"}
+                        {t('tap_to_log')}
                       </div>
                     )}
                   </div>
@@ -365,7 +365,7 @@ export default function SportsView({ perfil }) {
               border: "1px solid rgba(255,255,255,0.08)", padding: "0.85rem",
             }}>
               <div style={{ fontSize: "0.65rem", fontWeight: 900, color: "#475569", marginBottom: "0.5rem", letterSpacing: "0.5px" }}>
-                {lang === "es" ? "DEPORTES POPULARES" : "POPULAR SPORTS"}
+                {t('popular_sports')}
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.5rem" }}>
                 {(showAllSports ? availableQuick : availableQuick.slice(0, 8)).map(qs => (
@@ -394,14 +394,12 @@ export default function SportsView({ perfil }) {
                     padding: "0.2rem 0", marginBottom: "0.5rem",
                   }}
                 >
-                  {showAllSports
-                    ? (lang === "es" ? "▲ Ver menos" : "▲ Show less")
-                    : (lang === "es" ? `▼ Ver todos (${availableQuick.length})` : `▼ Show all (${availableQuick.length})`)}
+                  {showAllSports ? t('show_less') : t('show_all', availableQuick.length)}
                 </motion.button>
               )}
 
               <div style={{ fontSize: "0.65rem", fontWeight: 900, color: "#475569", marginBottom: "0.4rem", letterSpacing: "0.5px" }}>
-                {lang === "es" ? "O CREÁ UNO CUSTOM" : "OR CREATE A CUSTOM ONE"}
+                {t('create_custom')}
               </div>
               <div style={{ display: "flex", gap: "0.35rem", alignItems: "center" }}>
                 <div
@@ -416,7 +414,7 @@ export default function SportsView({ perfil }) {
                 <input
                   value={customName}
                   onChange={e => setCustomName(e.target.value)}
-                  placeholder={lang === "es" ? "Nombre del deporte..." : "Sport name..."}
+                  placeholder={t('sport_placeholder')}
                   className="premium-input"
                   style={{
                     flex: 1, padding: "0.5rem 0.7rem", borderRadius: "10px",
@@ -442,7 +440,7 @@ export default function SportsView({ perfil }) {
               {sports.length > 0 && (
                 <div style={{ marginTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "0.6rem" }}>
                   <div style={{ fontSize: "0.6rem", fontWeight: 900, color: "#475569", marginBottom: "0.4rem" }}>
-                    {lang === "es" ? "MIS DEPORTES" : "MY SPORTS"}
+                    {t('my_sports_list')}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                     {sports.map(s => (
@@ -756,7 +754,7 @@ export default function SportsView({ perfil }) {
       {history.length > 0 && (
         <div>
           <h3 style={{ margin: "0 0 0.5rem", fontWeight: 900, color: "#fff", fontSize: "0.85rem" }}>
-            {lang === "es" ? "Historial" : "History"}
+            {t('history')}
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
             {history.slice(0, 15).map((s, i) => {
@@ -827,7 +825,7 @@ export default function SportsView({ perfil }) {
                     <motion.button
                       whileTap={{ scale: 0.85 }}
                       onClick={() => {
-                        if (confirm(lang === "es" ? "¿Eliminar esta sesión?" : "Delete this session?")) deleteHistoryItem(s.id);
+                        if (confirm(lang === "es" ? "¿Eliminar esta sesión?" : "Delete this session?")) deleteHistoryItem(s.id); // confirm no usa t() por ser nativo del browser
                       }}
                       style={{ background: "none", border: "none", cursor: "pointer", padding: "0.15rem" }}
                     >

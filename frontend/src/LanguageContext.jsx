@@ -74,6 +74,25 @@ const translations = {
     search_exercises: (n) => `Buscar en ${n} ejercicios...`,
     chosen: "ELEGIDOS",
     of: "de",
+    results: "resultados",
+    muscle: "Músculo",
+    all_muscles: "Todos",
+    chest: "Pecho", back: "Espalda", shoulders: "Hómbros",
+    biceps: "Bíceps", triceps: "Tríceps", forearms: "Antebrazos",
+    quadriceps: "Cuádriceps", hamstrings: "Isquios/Glúteos",
+    calves: "Pantorrillas", abs: "Abdominales", cardio: "Cardio",
+    // Sports
+    my_sports: "Mis Deportes", popular_sports: "DEPORTES POPULARES",
+    tap_to_log: "Tocá para registrar sesión", show_less: "▲ Ver menos",
+    show_all: (n) => `▼ Ver todos (${n})`,
+    create_custom: "O CREÁ UNO CUSTOM", sport_placeholder: "Nombre del deporte...",
+    my_sports_list: "MIS DEPORTES", history: "Historial",
+    // Profile modal
+    member_since: "Miembro desde",
+    followers: "Seguidores", following_label: "Siguiendo",
+    follow: "+ Seguir", unfollow: "✓ Siguiendo",
+    routines_label: "RUTINAS", exercises_count: (n) => `${n} ejercicios`,
+    level_label: "Nivel",
   },
   en: {
     gym: "Gym",
@@ -148,6 +167,25 @@ const translations = {
     search_exercises: (n) => `Search ${n} exercises...`,
     chosen: "CHOSEN",
     of: "of",
+    results: "results",
+    muscle: "Muscle",
+    all_muscles: "All",
+    chest: "Chest", back: "Back", shoulders: "Shoulders",
+    biceps: "Biceps", triceps: "Triceps", forearms: "Forearms",
+    quadriceps: "Quadriceps", hamstrings: "Hamstrings/Glutes",
+    calves: "Calves", abs: "Abs", cardio: "Cardio",
+    // Sports
+    my_sports: "My Sports", popular_sports: "POPULAR SPORTS",
+    tap_to_log: "Tap to log session", show_less: "▲ Show less",
+    show_all: (n) => `▼ Show all (${n})`,
+    create_custom: "OR CREATE A CUSTOM ONE", sport_placeholder: "Sport name...",
+    my_sports_list: "MY SPORTS", history: "History",
+    // Profile modal
+    member_since: "Member since",
+    followers: "Followers", following_label: "Following",
+    follow: "+ Follow", unfollow: "✓ Following",
+    routines_label: "ROUTINES", exercises_count: (n) => `${n} exercises`,
+    level_label: "Level",
   }
 };
 

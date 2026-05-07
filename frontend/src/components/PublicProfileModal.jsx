@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Users, FileText, Dumbbell, Copy, Check, Zap } from 'lucide-react';
 import { API, authFetch } from '../config';
+import { useLanguage } from '../LanguageContext';
 
 function Avatar({ src, name, size = 48, level = 1 }) {
   const initials = name?.slice(0, 2).toUpperCase() || '??';
@@ -45,6 +46,7 @@ const SECTION_LABEL = {
 };
 
 export default function PublicProfileModal({ nombre, onClose, currentUser }) {
+  const { t, lang } = useLanguage();
   const [perfil, setPerfil] = useState(null);
   const [loading, setLoading] = useState(true);
   const [following, setFollowing] = useState(false);
@@ -125,7 +127,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
             <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
               <h2 style={{ margin: '0 0 0.2rem', color: '#fff', fontWeight: 900, fontSize: '1.4rem', letterSpacing: '-0.5px' }}>{perfil.name}</h2>
               <p style={{ margin: 0, color: '#475569', fontSize: '0.72rem', fontWeight: 700 }}>
-                Miembro desde {new Date(perfil.created_at).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
+                {t('member_since')} {new Date(perfil.created_at).toLocaleDateString(lang === 'en' ? 'en-US' : 'es-AR', { month: 'long', year: 'numeric' })}
               </p>
             </div>
 
@@ -139,7 +141,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
                   color: following ? '#06b6d4' : '#fff',
                   transition: 'all 0.2s', letterSpacing: '0.5px',
                 }}>
-                  {following ? '✓ Siguiendo' : '+ Seguir'}
+                  {following ? t('unfollow') : t('follow')}
                 </button>
               </div>
             )}
@@ -149,7 +151,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Zap size={13} color="#f59e0b" />
-                  <span style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 700 }}>Nivel {perfil.level}</span>
+                  <span style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 700 }}>{t('level_label')} {perfil.level}</span>
                 </div>
                 <span style={{ color: '#06b6d4', fontSize: '0.75rem', fontWeight: 900 }}>{perfil.exp.toLocaleString()} EXP</span>
               </div>
@@ -161,8 +163,8 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.6rem', marginBottom: '1.5rem' }}>
               {[
-                { label: 'Seguidores', value: perfil.followers },
-                { label: 'Siguiendo', value: perfil.following },
+                { label: t('followers'), value: perfil.followers },
+                { label: t('following_label'), value: perfil.following },
                 { label: 'Posts', value: perfil.total_posts },
               ].map(({ label, value }) => (
                 <div key={label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '0.8rem 0.5rem', textAlign: 'center' }}>
@@ -175,7 +177,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
             {/* Rutinas */}
             {hasRutinas && (
               <>
-                <p style={{ ...SECTION_LABEL, margin: '0 0 0.6rem' }}>🏋️ Rutinas</p>
+                <p style={{ ...SECTION_LABEL, margin: '0 0 0.6rem' }}>🏋️ {t('routines_label')}</p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                     {perfil.rutinas.map(rt => (
@@ -184,7 +186,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
                           <div>
                             <div style={{ color: '#fff', fontWeight: 900, fontSize: '0.9rem' }}>{rt.name}</div>
                             <div style={{ color: '#475569', fontSize: '0.65rem', fontWeight: 700, marginTop: '0.15rem' }}>
-                              <Dumbbell size={10} style={{ display: 'inline', marginRight: 3 }} />{rt.ejercicios_count} ejercicios
+                              <Dumbbell size={10} style={{ display: 'inline', marginRight: 3 }} />{t('exercises_count', rt.ejercicios_count)}
                             </div>
                           </div>
                           {!isOwnProfile && (

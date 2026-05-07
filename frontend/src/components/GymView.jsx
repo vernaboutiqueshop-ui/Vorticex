@@ -66,24 +66,22 @@ const SET_TYPES = [
   { id: "failure", label: "F", color: "#8b5cf6", desc: "Al fallo" },
 ];
 
-// Grupos musculares reales de la DB: exercises.group_id -> exercise_categories.name_es
-// Valores exactos: 'Biceps','Triceps','Antebrazos','Cuadriceps','Isquios/Gluteos',
-//                  'Pecho','Espalda','Hombros','Abdominales','Cardio'
+// Grupos musculares — valores exactos que devuelve el backend según lang
 const FILTER_MAP = {
   CATEGORIES: {
-    Superior: [
-      "Pecho",
-      "Espalda",
-      "Hombros",
-      "Biceps",
-      "Triceps",
-      "Antebrazos",
-    ],
-    Inferior: ["Cuadriceps", "Isquios/Gluteos", "Pantorrillas"],
-    Core: ["Abdominales"],
-    Cardio: ["Cardio"],
+    es: {
+      Superior: ["Pecho", "Espalda", "Hombros", "Biceps", "Triceps", "Antebrazos"],
+      Inferior: ["Cuadriceps", "Isquios/Gluteos", "Pantorrillas"],
+      Core: ["Abdominales"],
+      Cardio: ["Cardio"],
+    },
+    en: {
+      Superior: ["Chest", "Back", "Shoulders", "Biceps", "Triceps", "Forearms"],
+      Inferior: ["Quadriceps", "Hamstrings/Glutes", "Calves"],
+      Core: ["Abs"],
+      Cardio: ["Cardio"],
+    },
   },
-  // Equipamiento: coincide con exercises.equipment (español)
   EQUIPMENT: {
     Barra: ["barra"],
     Mancuerna: ["mancuerna"],
@@ -92,21 +90,15 @@ const FILTER_MAP = {
   },
 };
 
-// Músculos del selector — mapeo a nombres amigables UI -> valor real DB
-const MUSCLE_LABEL_MAP = {
-  Todos: "Todos",
-  Pecho: "Pecho",
-  Espalda: "Espalda",
-  Hómbros: "Hombros",
-  Bíceps: "Biceps",
-  Tríceps: "Triceps",
-  Antebrazos: "Antebrazos",
-  Cuádriceps: "Cuadriceps",
-  "Isquios/Glúteos": "Isquios/Gluteos",
-  Pantorrillas: "Pantorrillas",
-  Abdominales: "Abdominales",
-  Cardio: "Cardio",
-};
+// Músculos según idioma — el label mostrado ES el valor de body_part que devuelve el backend
+const getMuscleMap = (lang) => lang === "en"
+  ? { All:"All", Chest:"Chest", Back:"Back", Shoulders:"Shoulders", Biceps:"Biceps",
+      Triceps:"Triceps", Forearms:"Forearms", Quadriceps:"Quadriceps",
+      "Hamstrings/Glutes":"Hamstrings/Glutes", Calves:"Calves", Abs:"Abs", Cardio:"Cardio" }
+  : { Todos:"Todos", Pecho:"Pecho", Espalda:"Espalda", "Hómbros":"Hombros",
+      "Bíceps":"Biceps", "Tríceps":"Triceps", Antebrazos:"Antebrazos",
+      "Cuádriceps":"Cuadriceps", "Isquios/Glúteos":"Isquios/Gluteos",
+      Pantorrillas:"Pantorrillas", Abdominales:"Abdominales", Cardio:"Cardio" };
 
 const ELITE_STYLES = {
   glassCard: {
@@ -443,6 +435,8 @@ const ExerciseSelectorView = ({
   setFilterEquipment,
 }) => {
   const { t, lang } = useLanguage();
+  const MUSCLE_LABEL_MAP = getMuscleMap(lang);
+  const todosKey = lang === "en" ? "All" : "Todos";
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [showEquipFilter, setShowEquipFilter] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -479,11 +473,13 @@ const ExerciseSelectorView = ({
   // Base post-búsqueda + categoría (para contar músculos)
   const baseForMuscle = useMemo(() => {
     if (filterCategory === "Todos") return searchBase;
+    const catMap = FILTER_MAP.CATEGORIES[lang] || FILTER_MAP.CATEGORIES.es;
     return searchBase.filter((e) => {
       const bp = e.body_part || "General";
-      return FILTER_MAP.CATEGORIES[filterCategory] && FILTER_MAP.CATEGORIES[filterCategory].includes(bp);
+      return catMap[filterCategory] && catMap[filterCategory].includes(bp);
     });
-  }, [searchBase, filterCategory]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchBase, filterCategory, lang]);
 
   // Conteo de músculos (sobre búsqueda + categoría)
   const muscleCounts = useMemo(() => {
@@ -500,7 +496,7 @@ const ExerciseSelectorView = ({
     return baseForMuscle.filter((e) => {
       const bp = e.body_part || "General";
       const dbMuscle = MUSCLE_LABEL_MAP[filterMuscle] || filterMuscle;
-      return filterMuscle === "Todos" || bp === dbMuscle;
+      return filterMuscle === todosKey || bp === dbMuscle;
     });
   }, [baseForMuscle, filterMuscle]);
 
@@ -529,7 +525,7 @@ const ExerciseSelectorView = ({
   );
 
   const hasActiveFilters =
-    filterMuscle !== "Todos" ||
+    filterMuscle !== todosKey ||
     filterEquipment !== "Todos" ||
     filterCategory !== "Todos";
   const showPopularSection = !hasActiveFilters && searchTerm === "";
@@ -770,7 +766,7 @@ const ExerciseSelectorView = ({
                 display: "inline-block",
               }}
             >
-              {builderExercises.length} ELEGIDOS
+              {builderExercises.length} {t('chosen')}
             </span>
             <div
               style={{
@@ -780,7 +776,7 @@ const ExerciseSelectorView = ({
                 marginTop: "0.15rem",
               }}
             >
-              {filtered.length} de {exercises.length} ejercicios
+              {filtered.length} {t('of')} {exercises.length} {t('exercises').toLowerCase()}
             </div>
           </div>
           <button
@@ -810,7 +806,7 @@ const ExerciseSelectorView = ({
             onChange={(e) => {
               setSearchTerm(e.target.value);
             }}
-            placeholder={lang === 'es' ? `Buscar en ${exercises.length} ejercicios...` : `Search ${exercises.length} exercises...`}
+            placeholder={t('search_exercises', exercises.length)}
             className="premium-input"
             style={{
               paddingLeft: "2.5rem",
@@ -920,7 +916,7 @@ const ExerciseSelectorView = ({
                 ) : (
                   <>
                     <Filter size={12} />
-                    Músculo
+                    {t('muscle')}
                   </>
                 )}
               </span>
@@ -1112,7 +1108,7 @@ const ExerciseSelectorView = ({
                     marginBottom: "0.3rem",
                   }}
                 >
-                  EJERCICIOS POPULARES
+                  {t('popular_exercises')}
                 </motion.div>
                 {popularList.map(renderItem)}
                 {paginatedList.items.length > 0 && (
@@ -1227,7 +1223,7 @@ const ExerciseSelectorView = ({
                   fontSize: "0.65rem",
                 }}
               >
-                ({filtered.length} resultados)
+                ({filtered.length} {t('results')})
               </span>
             </div>
             <button
