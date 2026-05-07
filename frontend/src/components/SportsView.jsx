@@ -111,7 +111,7 @@ function intensityColor(n) {
 }
 
 export default function SportsView({ perfil }) {
-  const { lang } = useLanguage();
+  const { lang, t } = useLanguage();
   const [sports, setSports] = useState([]);
   const [history, setHistory] = useState([]);
   const [showAddSport, setShowAddSport] = useState(false);

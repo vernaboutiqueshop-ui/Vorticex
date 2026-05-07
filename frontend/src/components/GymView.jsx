@@ -436,7 +436,7 @@ const ExerciseSelectorView = ({
 }) => {
   const { t, lang } = useLanguage();
   const MUSCLE_LABEL_MAP = getMuscleMap(lang);
-  const todosKey = lang === "en" ? "All" : "Todos";
+  const ALL_MUSCLES = "__all__";
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [showEquipFilter, setShowEquipFilter] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -496,7 +496,7 @@ const ExerciseSelectorView = ({
     return baseForMuscle.filter((e) => {
       const bp = e.body_part || "General";
       const dbMuscle = MUSCLE_LABEL_MAP[filterMuscle] || filterMuscle;
-      return filterMuscle === todosKey || bp === dbMuscle;
+      return filterMuscle === ALL_MUSCLES || bp === dbMuscle;
     });
   }, [baseForMuscle, filterMuscle]);
 
@@ -525,7 +525,7 @@ const ExerciseSelectorView = ({
   );
 
   const hasActiveFilters =
-    filterMuscle !== todosKey ||
+    filterMuscle !== ALL_MUSCLES ||
     filterEquipment !== "Todos" ||
     filterCategory !== "Todos";
   const showPopularSection = !hasActiveFilters && searchTerm === "";
@@ -598,17 +598,16 @@ const ExerciseSelectorView = ({
   };
 
   const MUSCLE_ICON = {
-    Bíceps: GiBiceps,
-    Tríceps: GiBiceps,
-    Antebrazos: MdFitnessCenter,
-    Pecho: GiChestArmor,
-    Espalda: GiBackPain,
-    Hómbros: GiShoulderArmor,
-    Cuádriceps: GiLeg,
-    "Isquios/Glúteos": GiLeg,
-    Pantorrillas: GiRunningShoe,
-    Abdominales: GiAbdominalArmor,
-    Cardio: MdDirectionsRun,
+    // ES
+    Bíceps: GiBiceps, Tríceps: GiBiceps, Antebrazos: MdFitnessCenter,
+    Pecho: GiChestArmor, Espalda: GiBackPain, Hómbros: GiShoulderArmor,
+    Cuádriceps: GiLeg, "Isquios/Glúteos": GiLeg, Pantorrillas: GiRunningShoe,
+    Abdominales: GiAbdominalArmor, Cardio: MdDirectionsRun,
+    // EN
+    Biceps: GiBiceps, Triceps: GiBiceps, Forearms: MdFitnessCenter,
+    Chest: GiChestArmor, Back: GiBackPain, Shoulders: GiShoulderArmor,
+    Quadriceps: GiLeg, "Hamstrings/Glutes": GiLeg, Calves: GiRunningShoe,
+    Abs: GiAbdominalArmor,
   };
 
   const renderItem = (ej, idx) => {
@@ -860,7 +859,7 @@ const ExerciseSelectorView = ({
                   key={z.key}
                   onClick={() => {
                     setFilterCategory(z.key);
-                    setFilterMuscle("Todos");
+                    setFilterMuscle("__all__");
                   }}
                   style={{
                     padding: "0.45rem 0.2rem",
@@ -902,13 +901,13 @@ const ExerciseSelectorView = ({
                 cursor: "pointer",
                 border: "1px solid",
                 transition: "all 0.15s",
-                background: filterMuscle !== "Todos" ? "rgba(6,182,212,0.1)" : "rgba(255,255,255,0.03)",
-                borderColor: filterMuscle !== "Todos" ? "rgba(6,182,212,0.3)" : "rgba(255,255,255,0.07)",
-                color: filterMuscle !== "Todos" ? "#06b6d4" : "#94a3b8",
+                background: filterMuscle !== ALL_MUSCLES ? "rgba(6,182,212,0.1)" : "rgba(255,255,255,0.03)",
+                borderColor: filterMuscle !== ALL_MUSCLES ? "rgba(6,182,212,0.3)" : "rgba(255,255,255,0.07)",
+                color: filterMuscle !== ALL_MUSCLES ? "#06b6d4" : "#94a3b8",
               }}
             >
               <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                {filterMuscle !== "Todos" ? (
+                {filterMuscle !== ALL_MUSCLES ? (
                   <>
                     {(() => { const MI = MUSCLE_ICON[filterMuscle] || Dumbbell; return <MI size={12} />; })()}
                     {filterMuscle}
@@ -937,15 +936,15 @@ const ExerciseSelectorView = ({
                     {/* Todos */}
                     <motion.button
                       whileTap={{ scale: 0.92 }}
-                      onClick={() => setFilterMuscle("Todos")}
+                      onClick={() => setFilterMuscle("__all__")}
                       style={{
                         display: "flex", alignItems: "center", gap: "0.3rem",
                         padding: "0.35rem 0.55rem", borderRadius: "8px",
                         fontSize: "0.62rem", fontWeight: 800, cursor: "pointer",
                         border: "1px solid",
-                        background: filterMuscle === "Todos" ? "rgba(6,182,212,0.18)" : "rgba(255,255,255,0.03)",
-                        borderColor: filterMuscle === "Todos" ? "#06b6d4" : "rgba(255,255,255,0.07)",
-                        color: filterMuscle === "Todos" ? "#06b6d4" : "#64748b",
+                        background: filterMuscle === ALL_MUSCLES ? "rgba(6,182,212,0.18)" : "rgba(255,255,255,0.03)",
+                        borderColor: filterMuscle === ALL_MUSCLES ? "#06b6d4" : "rgba(255,255,255,0.07)",
+                        color: filterMuscle === ALL_MUSCLES ? "#06b6d4" : "#64748b",
                       }}
                     >
                       <LayoutGrid size={11} /> Todos
@@ -964,7 +963,7 @@ const ExerciseSelectorView = ({
                           whileTap={{ scale: 0.92 }}
                           animate={isActive ? { scale: [1, 1.06, 1] } : {}}
                           transition={{ duration: 0.25 }}
-                          onClick={() => setFilterMuscle(isActive ? "Todos" : label)}
+                          onClick={() => setFilterMuscle(isActive ? "__all__" : label)}
                           style={{
                             display: "flex", alignItems: "center", gap: "0.3rem",
                             padding: "0.35rem 0.55rem", borderRadius: "8px",
@@ -1057,7 +1056,7 @@ const ExerciseSelectorView = ({
                   whileTap={{ scale: 0.9 }}
                   onClick={() => {
                     setFilterCategory("Todos");
-                    setFilterMuscle("Todos");
+                    setFilterMuscle("__all__");
                     setFilterEquipment("Todos");
                     setSearchTerm("");
                   }}
@@ -1164,10 +1163,10 @@ const ExerciseSelectorView = ({
               >
                 {searchTerm ? `"${searchTerm}" no coincide con ningún ejercicio` : "Probá con otras palabras o limpiá los filtros"}
               </div>
-              {(searchTerm || filterMuscle !== "Todos" || filterCategory !== "Todos" || filterEquipment !== "Todos") && (
+              {(searchTerm || filterMuscle !== ALL_MUSCLES || filterCategory !== "Todos" || filterEquipment !== "Todos") && (
                 <motion.button
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => { setSearchTerm(""); setFilterMuscle("Todos"); setFilterCategory("Todos"); setFilterEquipment("Todos"); }}
+                  onClick={() => { setSearchTerm(""); setFilterMuscle("__all__"); setFilterCategory("Todos"); setFilterEquipment("Todos"); }}
                   style={{
                     marginTop: "0.75rem", padding: "0.5rem 1rem", borderRadius: "10px",
                     background: "rgba(6,182,212,0.12)", border: "1px solid rgba(6,182,212,0.25)",
@@ -1767,7 +1766,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
 
   /* ── Estado filtros ── */
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterMuscle, setFilterMuscle] = useState("Todos");
+  const [filterMuscle, setFilterMuscle] = useState("__all__");
   const [filterCategory, setFilterCategory] = useState("Todos");
   const [filterEquipment, setFilterEquipment] = useState("Todos");
 
@@ -1870,9 +1869,14 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
     }
   }, [loadData]);
 
-  // Re-fetch ejercicios cuando el usuario cambia de idioma
+  // Re-fetch ejercicios y resetear filtros cuando cambia el idioma
   useEffect(() => {
-    if (hasLoadedRef.current) loadData();
+    if (hasLoadedRef.current) {
+      loadData();
+      setFilterMuscle("__all__");
+      setFilterCategory("Todos");
+      setFilterEquipment("Todos");
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
 
