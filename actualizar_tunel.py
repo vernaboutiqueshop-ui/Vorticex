@@ -52,14 +52,6 @@ def _stream_output(proc, prefix="BACKEND"):
 
 
 def iniciar_backend():
-    print("[VORTICE] Actualizando código desde GitHub...")
-    try:
-        subprocess.run(["git", "fetch", "origin", "main"], cwd=ROOT_DIR, capture_output=True)
-        subprocess.run(["git", "reset", "--hard", "origin/main"], cwd=ROOT_DIR, capture_output=True)
-        print("[VORTICE] Código actualizado.")
-    except Exception as e:
-        print(f"[VORTICE] Warning: No se pudo actualizar código: {e}")
-
     # Asegurar schema de DB sin tocar datos existentes
     try:
         db_script = os.path.join(ROOT_DIR, "backend", "scripts", "init_final_db.py")
