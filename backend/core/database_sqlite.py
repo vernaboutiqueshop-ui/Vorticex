@@ -112,7 +112,7 @@ def obtener_password_hash(nombre: str) -> str:
 def obtener_memoria_perfil(nombre: str):
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT memoria_viva FROM users WHERE name = ?", (nombre,))
+        cur.execute("SELECT memoria_viva FROM users WHERE LOWER(name) = LOWER(?)", (nombre,))
         row = cur.fetchone()
         if row:
             return {"contexto_narrativo": row["memoria_viva"]}
@@ -327,7 +327,7 @@ def guardar_mensaje(perfil: str, rol: str, contenido: str):
     with get_conn() as conn:
         cur = conn.cursor()
         # Primero obtenemos o creamos el usuario
-        cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
         user = cur.fetchone()
         user_id = user["id"] if user else 1  # Fallback al primer user
 
@@ -348,7 +348,7 @@ def obtener_historial_chat(perfil: str, limite: int = 20):
             """
             SELECT description FROM activity_logs
             JOIN users ON users.id = activity_logs.user_id
-            WHERE users.name = ? AND type = 'Chat'
+            WHERE LOWER(users.name) = LOWER(?) AND type = 'Chat'
             ORDER BY timestamp DESC LIMIT ?
         """,
             (perfil, limite),
@@ -377,7 +377,7 @@ def guardar_evento(
 ):
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
         user = cur.fetchone()
         u_id = user["id"] if user else 1
 
@@ -399,7 +399,7 @@ def obtener_comidas_hoy(perfil: str):
             """
             SELECT activity_logs.* FROM activity_logs
             JOIN users ON users.id = activity_logs.user_id
-            WHERE users.name = ? AND type = 'Nutricion'
+            WHERE LOWER(users.name) = LOWER(?) AND type = 'Nutricion'
             AND date(timestamp) = ?
         """,
             (perfil, hoy),
@@ -432,7 +432,7 @@ def obtener_macros_hoy(perfil: str):
 def guardar_rutina(perfil: str, nombre: str, descripcion: str, ejercicios: list):
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
         u_id = cur.fetchone()["id"]
 
         cur.execute(
@@ -465,7 +465,7 @@ def obtener_rutinas(perfil: str):
             """
             SELECT routines.* FROM routines
             JOIN users ON users.id = routines.user_id
-            WHERE users.name = ?
+            WHERE LOWER(users.name) = LOWER(?)
         """,
             (perfil,),
         )
@@ -503,7 +503,7 @@ def borrar_historial_chat(perfil: str):
         cur.execute(
             """
             DELETE FROM activity_logs
-            WHERE user_id = (SELECT id FROM users WHERE name = ?) AND type = 'Chat'
+            WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?)) AND type = 'Chat'
         """,
             (perfil,),
         )
@@ -520,7 +520,7 @@ def guardar_log_set(
 ):
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
         res = cur.fetchone()
         u_id = res["id"] if res else 1
         cur.execute(
@@ -539,7 +539,7 @@ def obtener_ultimo_peso(perfil: str, id_ejercicio: str):
         cur.execute(
             """
             SELECT val1 FROM activity_logs
-            WHERE user_id = (SELECT id FROM users WHERE name = ?)
+            WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?))
             AND type = 'GymSet' AND ref_id = ?
             ORDER BY timestamp DESC LIMIT 1
         """,
@@ -556,7 +556,7 @@ def obtener_alacena(perfil: str):
             """
             SELECT id, ingredient as ingrediente, amount as cantidad, calories as calorias
             FROM pantry
-            WHERE user_id = (SELECT id FROM users WHERE name = ?)
+            WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?))
         """,
             (perfil,),
         )
@@ -568,7 +568,7 @@ def guardar_en_alacena(
 ):
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
         res = cur.fetchone()
         u_id = res["id"] if res else 1
         cur.execute(
@@ -595,7 +595,7 @@ def obtener_entrenamientos_resumen(perfil: str, dias: int):
             """
             SELECT date(timestamp) as fecha, count(*) as series, sum(val1 * val2) as volumen
             FROM activity_logs
-            WHERE user_id = (SELECT id FROM users WHERE name = ?) AND type = 'GymSet'
+            WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?)) AND type = 'GymSet'
             AND timestamp >= date('now', ?)
             GROUP BY date(timestamp)
         """,
@@ -610,7 +610,7 @@ def obtener_eventos_timeline(perfil: str, limit: int):
         cur.execute(
             """
             SELECT * FROM activity_logs
-            WHERE user_id = (SELECT id FROM users WHERE name = ?)
+            WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?))
             ORDER BY timestamp DESC LIMIT ?
         """,
             (perfil, limit),
@@ -622,7 +622,7 @@ def obtener_ayuno(perfil: str):
     with get_conn() as conn:
         cur = conn.cursor()
         cur.execute(
-            "SELECT * FROM fasting WHERE user_id = (SELECT id FROM users WHERE name = ?)",
+            "SELECT * FROM fasting WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?))",
             (perfil,),
         )
         row = cur.fetchone()
@@ -632,7 +632,7 @@ def obtener_ayuno(perfil: str):
 def actualizar_ayuno(perfil: str, en_ayuno: bool, inicio_iso: str, meta_horas: float):
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
         res = cur.fetchone()
         u_id = res["id"] if res else 1
         cur.execute(
@@ -668,7 +668,7 @@ def obtener_memoria_perfil(nombre: str):
     """Retorna el contexto narrativo guardado en la tabla users."""
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT memoria_viva FROM users WHERE name = ?", (nombre,))
+        cur.execute("SELECT memoria_viva FROM users WHERE LOWER(name) = LOWER(?)", (nombre,))
         res = cur.fetchone()
         return (
             {"contexto_narrativo": res["memoria_viva"]}
@@ -685,7 +685,7 @@ def obtener_comidas_hoy(perfil: str):
             """
             SELECT id, description as alimento, val1 as cal, val2 as prot, val3 as carb, val4 as gras, timestamp
             FROM activity_logs
-            WHERE user_id = (SELECT id FROM users WHERE name = ?)
+            WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?))
             AND type = 'Nutricion'
             AND date(timestamp) = date('now')
             ORDER BY timestamp DESC
@@ -853,7 +853,7 @@ def actualizar_avatar_elite(perfil: str, profile_pic_url: str):
 def guardar_feedback(perfil: str, message: str):
     with get_conn() as conn:
         cur = conn.cursor()
-        cur.execute("SELECT id FROM users WHERE name = ?", (perfil,))
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
         u = cur.fetchone()
         uid = u["id"] if u else 1
         # Anti-spam: max 1 feedback per 60 seconds
@@ -916,7 +916,7 @@ def obtener_intensidad_muscular(perfil: str):
             """
             SELECT val2 as target, COUNT(*) as series
             FROM activity_logs
-            WHERE user_id = (SELECT id FROM users WHERE name = ?)
+            WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?))
             AND type = 'Gym'
             AND date(timestamp) >= date('now', '-7 days')
             GROUP BY val2
