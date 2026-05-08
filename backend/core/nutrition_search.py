@@ -21,7 +21,7 @@ def _get_embed_model():
     try:
         _embed_model_loading = True
         from fastembed import TextEmbedding
-        _embed_model = TextEmbedding("intfloat/multilingual-e5-small")
+        _embed_model = TextEmbedding("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
         print("[NUTRITION] Modelo fastembed listo")
     except Exception as e:
         print(f"[NUTRITION] fastembed no disponible: {e}")
