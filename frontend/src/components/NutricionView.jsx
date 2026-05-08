@@ -356,15 +356,29 @@ export default function NutricionView({ perfil }) {
   };
 
   const parseMultiFood = (text) => {
-    const parts = text.trim().split(/\s+y\s+/i);
-    return parts.map(part => {
-      part = part.trim();
-      const m = part.match(/^(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg)\s+(.+)$/i);
+    const extractFood = (str) => {
+      str = str.trim();
+      // "300g pechuga" | "300 gramos pechuga" | "300 de pechuga" | "300 pechuga"
+      const m = str.match(/^(\d+(?:[.,]\d+)?)\s*(?:g\b|gr\b|gramos?\b|kg\b|de\b)?\s+(.+)$/i);
       if (m) return { nombre: m[2].trim(), gramos: parseFloat(m[1].replace(',', '.')) };
-      const m2 = part.match(/^(.+?)\s+(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg)$/i);
+      // "pechuga 300g"
+      const m2 = str.match(/^(.+?)\s+(\d+(?:[.,]\d+)?)\s*(?:g\b|gr\b|gramos?\b|kg\b)$/i);
       if (m2) return { nombre: m2[1].trim(), gramos: parseFloat(m2[2].replace(',', '.')) };
-      return { nombre: part, gramos: null };
-    });
+      return { nombre: str, gramos: null };
+    };
+
+    // Split by "y" if present
+    if (/\s+y\s+/i.test(text)) {
+      return text.trim().split(/\s+y\s+/i).map(extractFood);
+    }
+
+    // Detect multiple foods by number boundaries: "200 pechuga 300 arroz"
+    const segments = [...text.matchAll(/(\d+(?:[.,]\d+)?)\s*(?:g\b|gr\b|gramos?\b|kg\b|de\b)?\s+([a-záéíóúñüA-ZÁÉÍÓÚÑÜ][\w\sáéíóúñüÁÉÍÓÚÑÜ]+?)(?=\s+\d|$)/gi)];
+    if (segments.length > 1) {
+      return segments.map(m => ({ nombre: m[2].trim(), gramos: parseFloat(m[1].replace(',', '.')) }));
+    }
+
+    return [extractFood(text)];
   };
 
   const buscarAlimento = async () => {
@@ -811,41 +825,46 @@ export default function NutricionView({ perfil }) {
 
         {/* Multi-food confirmation panel */}
         {multiPending.length > 0 && !searching && (
-          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {multiPending.map((item, idx) => {
               const cal = item.food ? Math.round(item.food.cal_100 * item.gramos / 100) : null;
               const prot = item.food ? Math.round(item.food.prot_100 * item.gramos / 100) : null;
               return (
-                <div key={idx} style={{
-                  display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  background: item.food ? 'rgba(6,182,212,0.06)' : 'rgba(239,68,68,0.06)',
-                  border: `1px solid ${item.food ? 'rgba(6,182,212,0.2)' : 'rgba(239,68,68,0.2)'}`,
-                  borderRadius: '10px', padding: '0.5rem 0.7rem',
-                }}>
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.06, type: 'spring', stiffness: 400, damping: 28 }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.6rem',
+                    background: item.food ? 'rgba(6,182,212,0.05)' : 'rgba(239,68,68,0.05)',
+                    border: `1px solid ${item.food ? 'rgba(6,182,212,0.18)' : 'rgba(239,68,68,0.2)'}`,
+                    borderRadius: '12px', padding: '0.6rem 0.75rem',
+                  }}
+                >
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: item.food ? '#e2e8f0' : '#ef4444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.food ? item.food.nombre : `❌ ${item.nombre}`}
+                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: item.food ? 'var(--text-primary)' : '#ef4444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.food ? item.food.nombre : item.nombre}
                     </div>
-                    {item.food && (
-                      <div style={{ fontSize: '0.6rem', color: '#64748b' }}>
-                        {cal} kcal · {prot}g prot · {item.gramos}g
-                      </div>
-                    )}
+                    <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 700, marginTop: '0.1rem' }}>
+                      {item.food ? `${cal} kcal · ${prot}g prot` : 'Sin resultado'}
+                    </div>
                   </div>
                   <input
                     type="number" value={item.gramos} min={1} max={2000}
                     onChange={e => setMultiPending(prev => prev.map((p, i) => i === idx ? { ...p, gramos: Number(e.target.value) || 100 } : p))}
-                    style={{ width: '52px', height: '28px', fontSize: '0.72rem', textAlign: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px', color: '#e2e8f0' }}
+                    className="hevy-input"
+                    style={{ width: '56px', textAlign: 'center', padding: '0.3rem 0.2rem', fontSize: '0.8rem', fontWeight: 800 }}
                   />
-                  <span style={{ fontSize: '0.6rem', color: '#475569' }}>g</span>
-                </div>
+                  <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 700 }}>g</span>
+                </motion.div>
               );
             })}
             <button
               onClick={logAllMulti}
               disabled={loggingMulti || multiPending.every(i => !i.food)}
-              className="btn-elite"
-              style={{ width: '100%', height: '2.4rem', fontSize: '0.75rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+              className="btn-premium"
+              style={{ marginTop: '0.1rem', fontSize: '0.75rem', height: '2.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
             >
               {loggingMulti ? <Loader2 size={14} className="spin" /> : <Plus size={14} />}
               REGISTRAR TODOS ({multiPending.filter(i => i.food).length}/{multiPending.length})
