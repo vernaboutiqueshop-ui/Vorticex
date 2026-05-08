@@ -2138,14 +2138,20 @@ def buscar_alimentos_cache(perfil: str, query: str, limit: int = 15):
         uid = user["id"] if user else -1
 
         cur.execute("""
-            SELECT * FROM alimentos_cache
+            SELECT id, user_id, nombre, nombre_en, marca, porcion_desc,
+                   cal_100, prot_100, carb_100, fat_100, fibra_100,
+                   source, barcode, created_at
+            FROM alimentos_cache
             WHERE (user_id IS NULL OR user_id = ?)
-            AND (nombre LIKE ? OR marca LIKE ?)
+            AND (nombre LIKE ? OR marca LIKE ? OR nombre_en LIKE ?)
             ORDER BY
-                CASE WHEN nombre LIKE ? THEN 0 ELSE 1 END,
+                CASE WHEN nombre LIKE ? THEN 0
+                     WHEN nombre_en LIKE ? THEN 1
+                     ELSE 2 END,
                 nombre
             LIMIT ?
-        """, (uid, f"%{query}%", f"%{query}%", f"{query}%", limit))
+        """, (uid, f"%{query}%", f"%{query}%", f"%{query}%",
+              f"{query}%", f"{query}%", limit))
         return [dict(r) for r in cur.fetchall()]
 
 
