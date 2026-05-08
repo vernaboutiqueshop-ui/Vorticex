@@ -758,23 +758,50 @@ export default function NutricionView({ perfil }) {
           transition={{ duration: 0.4, delay: 0.15 }}
           style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}
         >
-          <h3 style={{ fontSize: '0.65rem', fontWeight: 900, marginBottom: '0.75rem', color: '#06b6d4', letterSpacing: '0.5px' }}>LOG HOY</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {comidasHoy.map((c, cIdx) => (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#06b6d4', letterSpacing: '0.5px', margin: 0, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <GiMeal size={12} /> LOG HOY
+            </h3>
+            <span style={{ fontSize: '0.55rem', fontWeight: 800, color: '#475569' }}>
+              {comidasHoy.length} {comidasHoy.length === 1 ? 'comida' : 'comidas'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+            {comidasHoy.map((c, cIdx) => {
+              const cal = Math.round(c.calorias || 0);
+              const prot = Math.round(c.proteinas || 0);
+              const carb = Math.round(c.carbos || 0);
+              const gras = Math.round(c.grasas || 0);
+              const calColor = cal > 500 ? '#ef4444' : cal > 250 ? '#f59e0b' : '#22c55e';
+              // Extract gramos from "Nombre (Xg)"
+              const gramosMatch = c.descripcion?.match(/\((\d+)g\)$/);
+              const gramos = gramosMatch ? gramosMatch[1] : null;
+              const nombreBase = gramos ? c.descripcion.replace(/\s*\(\d+g\)$/, '') : c.descripcion;
+              return (
               <motion.div
                 key={c.id}
                 initial={{ opacity: 0, x: -15 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 + cIdx * 0.05, type: 'spring', stiffness: 400, damping: 25 }}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '0.6rem' }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'rgba(255,255,255,0.025)', borderRadius: '12px', padding: '0.55rem 0.65rem', border: '1px solid rgba(255,255,255,0.04)' }}
               >
+                {/* Cal badge */}
+                <div style={{ flexShrink: 0, width: '38px', height: '38px', borderRadius: '10px', background: `${calColor}18`, border: `1px solid ${calColor}30`, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 900, color: calColor, lineHeight: 1 }}>{cal}</span>
+                  <span style={{ fontSize: '0.38rem', fontWeight: 800, color: calColor, opacity: 0.7, letterSpacing: '0.3px' }}>KCAL</span>
+                </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.descripcion}</div>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <GiFlame size={11} color="#ef4444" /> {Math.round(c.calorias)} KCAL · P: {Math.round(c.proteinas)}g
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '0.2rem' }}>
+                    {nombreBase}
+                    {gramos && <span style={{ marginLeft: '0.3rem', fontSize: '0.6rem', fontWeight: 700, color: '#06b6d4', background: 'rgba(6,182,212,0.1)', padding: '0.05rem 0.3rem', borderRadius: '4px' }}>{gramos}g</span>}
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.58rem', fontWeight: 800, color: '#06b6d4' }}>P <span style={{ color: '#e2e8f0' }}>{prot}g</span></span>
+                    <span style={{ fontSize: '0.58rem', fontWeight: 800, color: '#f59e0b' }}>C <span style={{ color: '#e2e8f0' }}>{carb}g</span></span>
+                    <span style={{ fontSize: '0.58rem', fontWeight: 800, color: '#f43f5e' }}>G <span style={{ color: '#e2e8f0' }}>{gras}g</span></span>
                   </div>
                 </div>
-                <button onClick={() => eliminarComida(c.id)} className="btn-icon-elite danger" style={{ width: '32px', height: '32px' }}><X size={14} /></button>
+                <button onClick={() => eliminarComida(c.id)} className="btn-icon-elite danger" style={{ width: '28px', height: '28px', flexShrink: 0 }}><X size={12} /></button>
               </motion.div>
             ))}
           </div>
@@ -808,13 +835,21 @@ export default function NutricionView({ perfil }) {
         {/* Hybrid search source badge */}
         {hybridSource && hybridSource !== 'none' && hybridResults.length > 0 && (
           <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <span style={{
-              fontSize: '0.5rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: '6px',
-              background: hybridSource === 'cache' ? 'rgba(34,197,94,0.1)' : hybridSource === 'openfoodfacts' ? 'rgba(59,130,246,0.1)' : 'rgba(168,85,247,0.1)',
-              color: hybridSource === 'cache' ? '#22c55e' : hybridSource === 'openfoodfacts' ? '#3b82f6' : '#a855f7',
-            }}>
-              {hybridSource === 'cache' ? '⚡ CACHE LOCAL' : hybridSource === 'openfoodfacts' ? '🌍 OPEN FOOD FACTS' : '🤖 GEMINI IA'}
-            </span>
+            {(() => {
+              const isSemantic = hybridSource === 'semantic';
+              const isCache = hybridSource === 'cache';
+              const isOFF = hybridSource === 'openfoodfacts';
+              const isGemini = hybridSource === 'gemini';
+              return (
+                <span style={{
+                  fontSize: '0.5rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: '6px',
+                  background: isCache ? 'rgba(34,197,94,0.1)' : isOFF ? 'rgba(59,130,246,0.1)' : isSemantic ? 'rgba(6,182,212,0.1)' : 'rgba(168,85,247,0.1)',
+                  color: isCache ? '#22c55e' : isOFF ? '#3b82f6' : isSemantic ? '#06b6d4' : '#a855f7',
+                }}>
+                  {isCache ? '⚡ CACHE LOCAL' : isOFF ? '🌍 OPEN FOOD FACTS' : isSemantic ? '🔍 SEMÁNTICO' : '🤖 GEMINI IA'}
+                </span>
+              );
+            })()}
             <span style={{ fontSize: '0.5rem', color: '#475569' }}>{hybridResults.length} resultados</span>
           </div>
         )}
