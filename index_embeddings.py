@@ -7,7 +7,7 @@ Los embeddings se guardan en la DB — búsquedas semánticas instantáneas para
 import sqlite3, numpy as np, sys, time
 
 DB = "/root/vortice/backend/data/vortice_elite.db"
-MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+MODEL_NAME = "nomic-ai/nomic-embed-text-v1.5-Q"
 BATCH_SIZE = 64
 
 def main():
@@ -34,6 +34,14 @@ def main():
         print("Columna 'embedding' agregada a alimentos_cache")
     except Exception:
         print("Columna 'embedding' ya existe")
+
+    # Borrar embeddings viejos (si cambiamos modelo, los anteriores son incompatibles)
+    import sys
+    force_reindex = "--reindex" in sys.argv
+    if force_reindex:
+        conn.execute("UPDATE alimentos_cache SET embedding = NULL")
+        conn.commit()
+        print("Embeddings anteriores borrados (reindexación forzada)")
 
     # Contar pendientes
     total = conn.execute(
@@ -64,13 +72,12 @@ def main():
     for i in range(0, len(rows), BATCH_SIZE):
         lote = rows[i:i + BATCH_SIZE]
 
-        # Usar nombre_en si existe, sino nombre (español)
-        # El modelo multilingüe entiende ambos igual
+        # Prefijo "search_document:" requerido por nomic-embed para indexación
         textos = []
         ids = []
         for r in lote:
             texto = r["nombre_en"] if r["nombre_en"] else r["nombre"]
-            textos.append(texto)
+            textos.append(f"search_document: {texto}")
             ids.append(r["id"])
 
         # Generar embeddings del lote (5ms por embedding)

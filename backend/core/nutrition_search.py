@@ -12,6 +12,8 @@ from core.ai import estimar_nutricion_ollama
 _embed_model = None
 _embed_model_loading = False
 
+MODEL_NAME = "nomic-ai/nomic-embed-text-v1.5-Q"
+
 def _get_embed_model():
     global _embed_model, _embed_model_loading
     if _embed_model is not None:
@@ -21,7 +23,7 @@ def _get_embed_model():
     try:
         _embed_model_loading = True
         from fastembed import TextEmbedding
-        _embed_model = TextEmbedding("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+        _embed_model = TextEmbedding(MODEL_NAME)
         print("[NUTRITION] Modelo fastembed listo")
     except Exception as e:
         print(f"[NUTRITION] fastembed no disponible: {e}")
@@ -110,8 +112,8 @@ def _buscar_semantico(query: str, perfil: str, limit: int = 8) -> list:
         from core.database_sqlite import get_conn
         import sqlite3
 
-        # Generar embedding de la query
-        q_emb = np.array(list(model.embed([query]))[0], dtype=np.float32)
+        # Prefijo "search_query:" requerido por nomic-embed para retrieval
+        q_emb = np.array(list(model.embed([f"search_query: {query}"]))[0], dtype=np.float32)
         q_norm = np.linalg.norm(q_emb)
         if q_norm == 0:
             return []
@@ -148,10 +150,10 @@ def _buscar_semantico(query: str, perfil: str, limit: int = 8) -> list:
 
         similitudes.sort(key=lambda x: x[0], reverse=True)
 
-        # Solo devolver si la similitud es suficientemente alta (>70%)
+        # Umbral calibrado para nomic-embed: ES correcto 0.69-0.76, EN falso max 0.66
         resultados = []
         for sim, row in similitudes[:limit]:
-            if sim < 0.70:
+            if sim < 0.68:
                 break
             resultados.append({
                 "nombre": row["nombre"],
