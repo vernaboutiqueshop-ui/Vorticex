@@ -391,40 +391,13 @@ def guardar_evento(
         conn.commit()
 
 
-def obtener_comidas_hoy(perfil: str):
-    with get_conn() as conn:
-        cur = conn.cursor()
-        hoy = _today()
-        cur.execute(
-            """
-            SELECT activity_logs.* FROM activity_logs
-            JOIN users ON users.id = activity_logs.user_id
-            WHERE LOWER(users.name) = LOWER(?) AND type = 'Nutricion'
-            AND date(timestamp) = ?
-        """,
-            (perfil, hoy),
-        )
-        return [
-            {
-                "id": r["id"],
-                "timestamp": r["timestamp"],
-                "descripcion": r["description"],
-                "calorias": r["val1"],
-                "proteinas": r["val2"],
-                "carbos": r["val3"],
-                "grasas": r["val4"],
-            }
-            for r in cur.fetchall()
-        ]
-
-
 def obtener_macros_hoy(perfil: str):
     comidas = obtener_comidas_hoy(perfil)
     return {
-        "calorias": sum(float(c.get("cal") or 0) for c in comidas),
-        "proteinas": sum(float(c.get("prot") or 0) for c in comidas),
-        "carbos": sum(float(c.get("carb") or 0) for c in comidas),
-        "grasas": sum(float(c.get("gras") or 0) for c in comidas),
+        "calorias": sum(float(c.get("calorias") or 0) for c in comidas),
+        "proteinas": sum(float(c.get("proteinas") or 0) for c in comidas),
+        "carbos": sum(float(c.get("carbos") or 0) for c in comidas),
+        "grasas": sum(float(c.get("grasas") or 0) for c in comidas),
     }
 
 
@@ -683,7 +656,7 @@ def obtener_comidas_hoy(perfil: str):
         cur = conn.cursor()
         cur.execute(
             """
-            SELECT id, description as alimento, val1 as cal, val2 as prot, val3 as carb, val4 as gras, timestamp
+            SELECT id, description as descripcion, val1 as calorias, val2 as proteinas, val3 as carbos, val4 as grasas, timestamp
             FROM activity_logs
             WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?))
             AND type = 'Nutricion'
