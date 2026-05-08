@@ -106,6 +106,8 @@ export default function NutricionView({ perfil }) {
   const [selectedFood, setSelectedFood] = useState(null);
   const [gramosInput, setGramosInput] = useState(100);
   const [loggingFood, setLoggingFood] = useState(false);
+  const [multiPending, setMultiPending] = useState([]);
+  const [loggingMulti, setLoggingMulti] = useState(false);
   const [alacena, setAlacena] = useState([]);
   const [newIngrediente, setNewIngrediente] = useState('');
   const [receta, setReceta] = useState('');
@@ -353,17 +355,58 @@ export default function NutricionView({ perfil }) {
     setShowAyunoSettings(false);
   };
 
+  const parseMultiFood = (text) => {
+    const parts = text.trim().split(/\s+y\s+/i);
+    return parts.map(part => {
+      part = part.trim();
+      const m = part.match(/^(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg)\s+(.+)$/i);
+      if (m) return { nombre: m[2].trim(), gramos: parseFloat(m[1].replace(',', '.')) };
+      const m2 = part.match(/^(.+?)\s+(\d+(?:[.,]\d+)?)\s*(?:g|gr|gramos?|kg)$/i);
+      if (m2) return { nombre: m2[1].trim(), gramos: parseFloat(m2[2].replace(',', '.')) };
+      return { nombre: part, gramos: null };
+    });
+  };
+
   const buscarAlimento = async () => {
     if (!searchText.trim()) return;
+    const parts = parseMultiFood(searchText);
+
+    if (parts.length > 1) {
+      setSearching(true);
+      setHybridResults([]);
+      setSelectedFood(null);
+      setHybridSource('');
+      setMultiPending([]);
+      const results = [];
+      for (const part of parts) {
+        try {
+          const res = await authFetch(`${API}/api/nutricion/buscar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ perfil, query: part.nombre })
+          });
+          const data = await res.json();
+          results.push({ nombre: part.nombre, gramos: part.gramos || 100, food: (data.items || [])[0] || null });
+        } catch { results.push({ nombre: part.nombre, gramos: part.gramos || 100, food: null }); }
+      }
+      setMultiPending(results);
+      setSearching(false);
+      return;
+    }
+
+    const { nombre, gramos } = parts[0];
+    if (gramos) setGramosInput(gramos);
+
     setSearching(true);
     setHybridResults([]);
     setSelectedFood(null);
     setHybridSource('');
+    setMultiPending([]);
     try {
       const res = await authFetch(`${API}/api/nutricion/buscar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perfil, query: searchText })
+        body: JSON.stringify({ perfil, query: nombre })
       });
       const data = await res.json();
       if (data.items && data.items.length > 0) {
@@ -375,6 +418,35 @@ export default function NutricionView({ perfil }) {
       }
     } catch (e) { console.error(e); }
     setSearching(false);
+  };
+
+  const logAllMulti = async () => {
+    setLoggingMulti(true);
+    for (const item of multiPending) {
+      if (!item.food) continue;
+      try {
+        await authFetch(`${API}/api/nutricion/log-from-cache`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            perfil,
+            alimento_id: item.food.id || null,
+            nombre: item.food.nombre,
+            cal_100: item.food.cal_100,
+            prot_100: item.food.prot_100,
+            carb_100: item.food.carb_100,
+            fat_100: item.food.fat_100,
+            gramos: item.gramos,
+          })
+        });
+      } catch {}
+    }
+    setMultiPending([]);
+    setSearchText('');
+    fetchMacros();
+    fetchComidas();
+    fetchHistorial();
+    setLoggingMulti(false);
   };
 
   const logFromCache = async (food) => {
@@ -705,7 +777,7 @@ export default function NutricionView({ perfil }) {
           <Search size={12} /> REGISTRAR
         </h3>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <input value={searchText} onChange={e => setSearchText(e.target.value)} onKeyDown={e => e.key === 'Enter' && buscarAlimento()} className="premium-input" placeholder="Buscar alimento..." style={{ flex: 1, height: '2.8rem', fontSize: '0.85rem' }} />
+          <input value={searchText} onChange={e => setSearchText(e.target.value)} onKeyDown={e => e.key === 'Enter' && buscarAlimento()} className="premium-input" placeholder="Ej: 200g pechuga y 150g arroz..." style={{ flex: 1, height: '2.8rem', fontSize: '0.85rem' }} />
           <button className="btn-elite" style={{ width: '3rem', height: '2.8rem', padding: 0 }} onClick={buscarAlimento} disabled={searching}>
             {searching ? <Loader2 size={16} className="spin" /> : <Search size={16} />}
           </button>
@@ -733,8 +805,52 @@ export default function NutricionView({ perfil }) {
           </div>
         )}
 
-        {hybridSource === 'none' && !searching && (
+        {hybridSource === 'none' && !searching && multiPending.length === 0 && (
           <p style={{ fontSize: '0.7rem', color: '#64748b', textAlign: 'center', marginTop: '0.5rem' }}>Sin resultados. Probá con otro término.</p>
+        )}
+
+        {/* Multi-food confirmation panel */}
+        {multiPending.length > 0 && !searching && (
+          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            {multiPending.map((item, idx) => {
+              const cal = item.food ? Math.round(item.food.cal_100 * item.gramos / 100) : null;
+              const prot = item.food ? Math.round(item.food.prot_100 * item.gramos / 100) : null;
+              return (
+                <div key={idx} style={{
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  background: item.food ? 'rgba(6,182,212,0.06)' : 'rgba(239,68,68,0.06)',
+                  border: `1px solid ${item.food ? 'rgba(6,182,212,0.2)' : 'rgba(239,68,68,0.2)'}`,
+                  borderRadius: '10px', padding: '0.5rem 0.7rem',
+                }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: item.food ? '#e2e8f0' : '#ef4444', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.food ? item.food.nombre : `❌ ${item.nombre}`}
+                    </div>
+                    {item.food && (
+                      <div style={{ fontSize: '0.6rem', color: '#64748b' }}>
+                        {cal} kcal · {prot}g prot · {item.gramos}g
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="number" value={item.gramos} min={1} max={2000}
+                    onChange={e => setMultiPending(prev => prev.map((p, i) => i === idx ? { ...p, gramos: Number(e.target.value) || 100 } : p))}
+                    style={{ width: '52px', height: '28px', fontSize: '0.72rem', textAlign: 'center', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '7px', color: '#e2e8f0' }}
+                  />
+                  <span style={{ fontSize: '0.6rem', color: '#475569' }}>g</span>
+                </div>
+              );
+            })}
+            <button
+              onClick={logAllMulti}
+              disabled={loggingMulti || multiPending.every(i => !i.food)}
+              className="btn-elite"
+              style={{ width: '100%', height: '2.4rem', fontSize: '0.75rem', marginTop: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+            >
+              {loggingMulti ? <Loader2 size={14} className="spin" /> : <Plus size={14} />}
+              REGISTRAR TODOS ({multiPending.filter(i => i.food).length}/{multiPending.length})
+            </button>
+          </div>
         )}
 
         {/* Search results list */}
