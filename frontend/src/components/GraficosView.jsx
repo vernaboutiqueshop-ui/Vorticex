@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Player } from '@lottiefiles/react-lottie-player';
-import { Trophy, Flame, Target, CalendarDays, Activity, ChevronRight } from 'lucide-react';
+import { Trophy, Flame, Target, CalendarDays, Activity, ChevronRight, Star, Zap, Apple } from 'lucide-react';
 import { motion } from 'motion/react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import API, { authFetch } from '../config';
 import { useLanguage } from '../LanguageContext';
 
@@ -27,7 +28,13 @@ export default function GraficosView({ perfil }) {
     });
   }, [perfil]);
 
-  if (loading) return <div className="loading-state">Calculando estadísticas...</div>;
+  if (loading) return (
+    <div className="view-container">
+      {[1,2,3].map(i => (
+        <div key={i} className="skeleton" style={{ height: i === 1 ? 120 : 80, borderRadius: 16, marginBottom: 0 }} />
+      ))}
+    </div>
+  );
 
   // Cálculos de EXP
   const level = userData.level || 1;
@@ -35,6 +42,47 @@ export default function GraficosView({ perfil }) {
   const expParaSiguiente = level * 1000;
   const expActualNivel = exp % 1000;
   const pctProgreso = Math.min(100, Math.max(0, (expActualNivel / expParaSiguiente) * 100));
+
+  // Datos para charts (últimos 7 días)
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const dateStr = d.toISOString().split('T')[0];
+    const eventos = timeline.filter(ev => ev.timestamp?.startsWith(dateStr));
+    const kcal = eventos.filter(e => e.type === 'Nutricion').reduce((s, e) => s + (e.val1 || 0), 0);
+    const sesiones = eventos.filter(e => e.type === 'GymSession' || e.type === 'Gym').length;
+    return {
+      dia: ['Do','Lu','Ma','Mi','Ju','Vi','Sá'][d.getDay()],
+      kcal: Math.round(kcal),
+      sesiones,
+    };
+  });
+
+  // Racha actual
+  const rachaActual = (() => {
+    let racha = 0;
+    for (let i = 0; i < 30; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const hasSesion = timeline.some(ev => ev.timestamp?.startsWith(dateStr) && (ev.type === 'GymSession' || ev.type === 'Gym'));
+      if (hasSesion) racha++;
+      else if (i > 0) break;
+    }
+    return racha;
+  })();
+
+  // Logros
+  const totalSesiones = timeline.filter(e => e.type === 'GymSession').length;
+  const totalNutricion = [...new Set(timeline.filter(e => e.type === 'Nutricion').map(e => e.timestamp?.split('T')[0]))].length;
+  const logros = [
+    { id: 'racha7', icon: '🔥', label: 'Racha 7 días', unlocked: rachaActual >= 7 },
+    { id: 'sesiones10', icon: '💪', label: '10 entrenos', unlocked: totalSesiones >= 10 },
+    { id: 'nutri7', icon: '🥗', label: '7 días nutrición', unlocked: totalNutricion >= 7 },
+    { id: 'nivel5', icon: '⭐', label: 'Nivel 5', unlocked: level >= 5 },
+    { id: 'sesiones50', icon: '🏆', label: '50 sesiones', unlocked: totalSesiones >= 50 },
+    { id: 'racha30', icon: '🚀', label: 'Racha 30 días', unlocked: rachaActual >= 30 },
+  ];
 
   // Rango / Ranking basado en nivel
   const getRango = (lvl) => {
@@ -70,113 +118,125 @@ export default function GraficosView({ perfil }) {
 
   return (
     <div className="view-container">
-      
-      {/* 1. SECCIÓN DE GAMIFICACIÓN (EXP Y NIVEL) */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1.1rem', position: 'relative', overflow: 'hidden' }}>
-        {/* Lottie Fire background sutil */}
-        <div style={{ position: 'absolute', top: '-30px', right: '-30px', opacity: 0.1, transform: 'scale(1.5)' }}>
-            <Player autoplay loop src="https://assets3.lottiefiles.com/packages/lf20_touohxv0.json" style={{ width: '150px', height: '150px' }} />
+
+      {/* 1. EXP + NIVEL con gradiente animado */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+        style={{ background: 'linear-gradient(135deg, var(--color-card), var(--color-card-alt))', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '1.1rem', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: -20, right: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(0,201,255,0.06)', filter: 'blur(24px)', pointerEvents: 'none' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', position: 'relative', zIndex: 2 }}>
+          <motion.div
+            animate={{ boxShadow: ['0 0 12px rgba(0,201,255,0.3)', '0 0 24px rgba(123,47,190,0.4)', '0 0 12px rgba(0,201,255,0.3)'] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '3px solid var(--color-card)', flexShrink: 0 }}>
+            <span style={{ fontSize: '1.8rem', fontWeight: 900, color: 'white' }}>{level}</span>
+          </motion.div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.35rem' }}>
+              <h2 style={{ color: 'var(--color-text)', margin: 0, fontSize: '1.2rem', fontWeight: 900 }}>Nivel {level}</h2>
+              <span style={{ color: 'var(--color-warning)', fontWeight: 800, fontSize: '0.8rem' }}>{getRango(level)}</span>
+            </div>
+            {/* EXP bar con gradiente primary→accent */}
+            <div style={{ background: 'rgba(0,0,0,0.4)', height: 10, borderRadius: 99, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${pctProgreso}%` }}
+                transition={{ duration: 1.4, ease: 'easeOut', delay: 0.3 }}
+                style={{ height: '100%', borderRadius: 99, background: 'linear-gradient(90deg, var(--color-primary), var(--color-accent))', boxShadow: '0 0 8px rgba(0,201,255,0.4)' }}
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.3rem', fontSize: '0.62rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+              <span>{expActualNivel} EXP</span><span>{expParaSiguiente} EXP</span>
+            </div>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', position: 'relative', zIndex: 2 }}>
-          <div style={{ 
-            width: '80px', height: '80px', borderRadius: '50%', 
-            background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 20px rgba(245, 158, 11, 0.4)', border: '3px solid #1e293b'
-          }}>
-            <span style={{ fontSize: '2rem', fontWeight: 900, color: 'white', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>{level}</span>
+        {/* Racha counter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--color-border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: '10px', padding: '0.35rem 0.75rem' }}>
+            <span style={{ fontSize: '1.1rem' }}>🔥</span>
+            <div>
+              <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--color-warning)', lineHeight: 1 }}>{rachaActual}</div>
+              <div style={{ fontSize: '0.48rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>RACHA</div>
+            </div>
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.3rem' }}>
-               <h2 style={{ color: 'white', margin: 0, fontSize: '1.3rem', fontWeight: 900 }}>Nivel {level}</h2>
-               <span style={{ color: '#f59e0b', fontWeight: 800, fontSize: '0.9rem' }}>{getRango(level)}</span>
-            </div>
-            
-            <div style={{ background: 'rgba(0,0,0,0.5)', height: '14px', borderRadius: '10px', overflow: 'hidden', position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <div style={{ 
-                width: `${pctProgreso}%`, height: '100%', 
-                background: 'linear-gradient(90deg, #f59e0b, #ef4444)',
-                borderRadius: '10px', transition: 'width 1s ease-in-out'
-              }}></div>
-            </div>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>
-              <span>{expActualNivel} EXP</span>
-              <span>{expParaSiguiente} EXP</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(0,201,255,0.08)', border: '1px solid rgba(0,201,255,0.15)', borderRadius: '10px', padding: '0.35rem 0.75rem' }}>
+            <Activity size={16} color="var(--color-primary)" />
+            <div>
+              <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--color-primary)', lineHeight: 1 }}>{totalSesiones}</div>
+              <div style={{ fontSize: '0.48rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>SESIONES</div>
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* 2. CALENDARIO DE ENTRENAMIENTO (HEATMAP) */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.1 }}
-        style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-           <h3 style={{ color: '#06b6d4', fontSize: '0.65rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0, letterSpacing: '0.5px' }}>
-             <CalendarDays size={14} color="#06b6d4" /> RACHA
-           </h3>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.5rem', borderRadius: '12px' }}>
-             <button onClick={() => setHeatmapMonthOffset(prev => prev - 1)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center' }}><ChevronRight size={16} style={{ transform: 'rotate(180deg)' }} /></button>
-             <span style={{ color: 'white', fontSize: '0.8rem', fontWeight: 800, minWidth: '85px', textAlign: 'center', textTransform: 'capitalize' }}>
-               {new Date(new Date().setMonth(new Date().getMonth() + heatmapMonthOffset)).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).replace('.', '')}
-             </span>
-             <button onClick={() => setHeatmapMonthOffset(prev => prev + 1)} disabled={heatmapMonthOffset >= 0} style={{ background: 'transparent', border: 'none', color: heatmapMonthOffset >= 0 ? 'transparent' : '#94a3b8', cursor: heatmapMonthOffset >= 0 ? 'default' : 'pointer', padding: '0.2rem', display: 'flex', alignItems: 'center' }}><ChevronRight size={16} /></button>
-           </div>
+      {/* 2. CHART Kcal últimos 7 días */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
+        style={{ background: 'linear-gradient(135deg, var(--color-card), var(--color-card-alt))', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '1rem 1.1rem' }}>
+        <h3 style={{ color: 'var(--color-primary)', fontSize: '0.65rem', fontWeight: 900, margin: '0 0 0.85rem', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Apple size={13} /> KCAL — ÚLTIMOS 7 DÍAS
+        </h3>
+        <ResponsiveContainer width="100%" height={100}>
+          <BarChart data={last7Days} barSize={22}>
+            <XAxis dataKey="dia" tick={{ fill: 'var(--color-text-muted)', fontSize: 10, fontWeight: 700 }} axisLine={false} tickLine={false} />
+            <Tooltip contentStyle={{ background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: 10, fontSize: '0.7rem', color: 'var(--color-text)' }} cursor={{ fill: 'rgba(0,201,255,0.05)' }} />
+            <Bar dataKey="kcal" radius={[6,6,0,0]}>
+              {last7Days.map((d, i) => (
+                <Cell key={i} fill={d.kcal > 1500 ? 'var(--color-success)' : d.kcal > 800 ? 'var(--color-primary)' : 'rgba(255,255,255,0.12)'} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </motion.div>
+
+      {/* 3. HEATMAP (calendario) */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}
+        style={{ background: 'linear-gradient(135deg, var(--color-card), var(--color-card-alt))', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '1rem 1.1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+          <h3 style={{ color: 'var(--color-primary)', fontSize: '0.65rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0, letterSpacing: '0.5px' }}>
+            <CalendarDays size={14} /> CALENDARIO
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.04)', padding: '0.15rem 0.4rem', borderRadius: '10px' }}>
+            <button onClick={() => setHeatmapMonthOffset(p => p - 1)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '0.15rem', display: 'flex' }}><ChevronRight size={14} style={{ transform: 'rotate(180deg)' }} /></button>
+            <span style={{ color: 'var(--color-text)', fontSize: '0.72rem', fontWeight: 800, minWidth: '80px', textAlign: 'center', textTransform: 'capitalize' }}>
+              {new Date(new Date().setMonth(new Date().getMonth() + heatmapMonthOffset)).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).replace('.', '')}
+            </span>
+            <button onClick={() => setHeatmapMonthOffset(p => p + 1)} disabled={heatmapMonthOffset >= 0} style={{ background: 'transparent', border: 'none', color: heatmapMonthOffset >= 0 ? 'transparent' : 'var(--color-text-muted)', cursor: heatmapMonthOffset >= 0 ? 'default' : 'pointer', padding: '0.15rem', display: 'flex' }}><ChevronRight size={14} /></button>
+          </div>
         </div>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem' }}>
-          {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((d, idx) => (
-             <div key={`${d}-${idx}`} style={{ textAlign: 'center', color: '#64748b', fontSize: '0.7rem', fontWeight: 800 }}>{d}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.4rem' }}>
+          {['D','L','M','M','J','V','S'].map((d, i) => (
+            <div key={`h-${i}`} style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.62rem', fontWeight: 800 }}>{d}</div>
           ))}
-          
           {heatMapDays.map((dia, i) => {
-             if (dia.empty) return <div key={`empty-${i}`} style={{ aspectRatio: '1', borderRadius: '6px' }}></div>;
-             return (
-               <div key={dia.date} title={`${dia.date}: ${dia.count} eventos`} style={{
-                 aspectRatio: '1',
-                 borderRadius: '6px',
-                 background: dia.isActive ? (dia.count > 10 ? '#10b981' : 'rgba(16, 185, 129, 0.4)') : 'rgba(255,255,255,0.03)',
-                 border: dia.isActive ? '1px solid rgba(16, 185, 129, 0.8)' : '1px solid rgba(255,255,255,0.05)',
-                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                 fontSize: '0.6rem', color: dia.isActive ? 'black' : '#64748b', fontWeight: 900,
-                 transition: 'all 0.2s', cursor: 'pointer'
-               }}>
-                 {dia.isActive ? '✓' : dia.date.split('-')[2]}
-               </div>
-             )
+            if (dia.empty) return <div key={`e-${i}`} style={{ aspectRatio: '1' }} />;
+            return (
+              <motion.div key={dia.date} whileHover={{ scale: 1.1 }} title={`${dia.date}: ${dia.count} sesiones`}
+                style={{ aspectRatio: '1', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.58rem', fontWeight: 900, transition: 'all 0.2s',
+                  background: dia.isActive ? (dia.count > 2 ? 'var(--color-success)' : 'rgba(34,197,94,0.35)') : 'rgba(255,255,255,0.03)',
+                  border: dia.isActive ? '1px solid rgba(34,197,94,0.6)' : '1px solid rgba(255,255,255,0.04)',
+                  color: dia.isActive ? (dia.count > 2 ? '#000' : '#22c55e') : 'var(--color-text-muted)',
+                }}>
+                {dia.isActive ? '✓' : new Date(dia.date + 'T12:00:00').getDate()}
+              </motion.div>
+            );
           })}
         </div>
-        <p style={{ fontSize: '0.7rem', color: '#475569', textAlign: 'center', marginTop: '0.85rem', marginBottom: 0, fontWeight: 600 }}>
-          Si no entrenás por más de 1 día perdés EXP, pero nunca tu nivel. ¡Mantené la racha!
-        </p>
       </motion.div>
 
-      {/* 3. RANKING Y LOGROS */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-        <div style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.1rem' }}>
-          <Player autoplay loop src="https://assets2.lottiefiles.com/packages/lf20_t24tpvcu.json" style={{ width: '70px', height: '70px', marginBottom: '0.4rem' }} />
-          <h4 style={{ color: 'white', margin: '0', fontSize: '1rem', fontWeight: 900 }}>Top 5%</h4>
-          <span style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '0.2rem', fontWeight: 600 }}>En tu categoría de edad</span>
-        </div>
-
-        <div style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.1rem' }}>
-          <div style={{ width: '70px', height: '70px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(6,182,212,0.08)', borderRadius: '50%', marginBottom: '0.4rem' }}>
-            <Activity size={36} color="#06b6d4" />
-          </div>
-          <h4 style={{ color: 'white', margin: '0', fontSize: '1rem', fontWeight: 900 }}>{timeline.filter(e => e.type === 'GymSession').length} Sesiones</h4>
-          <span style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '0.2rem', fontWeight: 600 }}>Últimos 30 días</span>
+      {/* 4. LOGROS */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
+        style={{ background: 'linear-gradient(135deg, var(--color-card), var(--color-card-alt))', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '1rem 1.1rem' }}>
+        <h3 style={{ color: 'var(--color-primary)', fontSize: '0.65rem', fontWeight: 900, margin: '0 0 0.85rem', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Trophy size={13} /> LOGROS
+        </h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
+          {logros.map((l, i) => (
+            <motion.div key={l.id} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.25 + i * 0.06 }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: '0.75rem 0.5rem', borderRadius: '12px', background: l.unlocked ? 'rgba(0,201,255,0.06)' : 'rgba(255,255,255,0.02)', border: `1px solid ${l.unlocked ? 'rgba(0,201,255,0.2)' : 'rgba(255,255,255,0.05)'}`, filter: l.unlocked ? 'none' : 'grayscale(1)', opacity: l.unlocked ? 1 : 0.4 }}>
+              <span style={{ fontSize: '1.5rem' }}>{l.icon}</span>
+              <span style={{ fontSize: '0.52rem', fontWeight: 800, color: l.unlocked ? 'var(--color-text)' : 'var(--color-text-muted)', textAlign: 'center', lineHeight: 1.3 }}>{l.label}</span>
+            </motion.div>
+          ))}
         </div>
       </motion.div>
 

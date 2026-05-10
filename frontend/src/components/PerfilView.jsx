@@ -153,18 +153,20 @@ export default function PerfilView({ perfil, onLogout }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         style={{
-        background: 'linear-gradient(160deg, rgba(6,182,212,0.06) 0%, rgba(15,23,42,0.95) 40%)',
-        border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px',
-        padding: '1.1rem', position: 'relative', overflow: 'hidden',
+        background: 'linear-gradient(135deg, var(--color-card), var(--color-card-alt))',
+        border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)',
+        padding: 0, position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{ position: 'absolute', top: -40, right: -40, width: 120, height: 120, borderRadius: '50%', background: 'rgba(6,182,212,0.06)', filter: 'blur(30px)', pointerEvents: 'none' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          {/* Avatar */}
+        {/* Aurora banner */}
+        <div className="aurora-banner" style={{ height: 56, width: '100%', borderRadius: 'var(--radius-card) var(--radius-card) 0 0' }} />
+        <div style={{ padding: '0 1.1rem 1.1rem', marginTop: -28 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
+          {/* Avatar con borde destacado */}
           <div onClick={() => fileInputRef.current.click()} style={{
-            width: 64, height: 64, borderRadius: 18, cursor: 'pointer', position: 'relative', overflow: 'hidden', flexShrink: 0,
-            background: sanitizeAvatar(userData.profile_pic) ? `url(${sanitizeAvatar(userData.profile_pic)}) center/cover no-repeat` : 'linear-gradient(135deg, #06b6d4, #3b82f6)',
-            border: '2px solid rgba(6,182,212,0.25)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', fontWeight: 900, color: '#fff',
+            width: 72, height: 72, borderRadius: 20, cursor: 'pointer', position: 'relative', overflow: 'hidden', flexShrink: 0,
+            background: sanitizeAvatar(userData.profile_pic) ? `url(${sanitizeAvatar(userData.profile_pic)}) center/cover no-repeat` : 'linear-gradient(135deg, var(--color-primary), #3b82f6)',
+            border: '3px solid var(--color-primary)', boxShadow: '0 0 16px rgba(0,201,255,0.3), 0 4px 16px rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', fontWeight: 900, color: '#fff',
           }}>
             {!sanitizeAvatar(userData.profile_pic) && perfil.charAt(0).toUpperCase()}
             <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', opacity: 0, transition: '0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -212,37 +214,42 @@ export default function PerfilView({ perfil, onLogout }) {
                 </motion.button>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.35rem' }}>
-              <div style={{
-                background: 'linear-gradient(135deg, #06b6d4, #0891b2)', color: '#000',
-                padding: '0.15rem 0.6rem', borderRadius: '6px', fontSize: '0.6rem', fontWeight: 900, letterSpacing: '0.5px',
-              }}>NV {userData.level}</div>
-              <span style={{ color: '#64748b', fontSize: '0.7rem', fontWeight: 700 }}>{userData.exp} EXP</span>
+            {/* Level + EXP pills */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.35rem', flexWrap: 'wrap' }}>
+              <span style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-accent))', color: '#000', padding: '0.15rem 0.6rem', borderRadius: 'var(--radius-pill)', fontSize: '0.6rem', fontWeight: 900 }}>NV {userData.level}</span>
+              <span style={{ color: 'var(--color-text-muted)', fontSize: '0.65rem', fontWeight: 700 }}>{userData.exp} EXP</span>
             </div>
             {/* XP Bar */}
-            <div style={{ marginTop: '0.5rem' }}>
+            <div style={{ marginTop: '0.45rem' }}>
               <div style={{ height: 5, background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden' }}>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${xpPct}%` }}
-                  transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
-                  style={{
-                    height: '100%', borderRadius: 99,
-                    background: 'linear-gradient(90deg, #06b6d4, #22d3ee, #06b6d4)', backgroundSize: '200% 100%',
-                    animation: 'shimmer 2s linear infinite',
-                  }}
-                />
+                <motion.div initial={{ width: 0 }} animate={{ width: `${xpPct}%` }} transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
+                  style={{ height: '100%', borderRadius: 99, background: 'linear-gradient(90deg, var(--color-primary), var(--color-accent))' }} />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.5rem', color: '#475569', fontWeight: 700, marginTop: '0.2rem' }}>
-                <span>{Math.round(xpPct)}%</span>
-                <span>{userData.exp} / {userData.level * 1000}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.48rem', color: 'var(--color-text-muted)', fontWeight: 700, marginTop: '0.15rem' }}>
+                <span>{Math.round(xpPct)}%</span><span>{userData.exp} / {userData.level * 1000}</span>
               </div>
             </div>
+
+            {/* Language toggle — más grande */}
           </div>
         </div>
 
+        {/* 3 stat pills */}
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', margin: '0.75rem 0 0' }}>
+          {[
+            { icon: '🏋️', label: `${userData.total_entrenos || 0} entrenos` },
+            { icon: '🔥', label: `${userData.racha || 0} días racha` },
+            { icon: '📅', label: userData.created_at ? `Desde ${new Date(userData.created_at).toLocaleDateString('es-AR', { month: 'short', year: '2-digit' })}` : 'Miembro' },
+          ].map((s, i) => (
+            <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-pill)', padding: '0.3rem 0.7rem', fontSize: '0.62rem', fontWeight: 700, color: 'var(--color-text-muted)' }}>
+              {s.icon} {s.label}
+            </span>
+          ))}
+        </div>
+
         {/* Stats row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginTop: '0.85rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ padding: '0 1.1rem 1.1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '14px', border: '1px solid var(--color-border)', padding: '0.65rem' }}>
           {[
             { icon: GiFlame, label: lang === 'es' ? 'RACHA' : 'STREAK', value: `${gymStats.current_streak}d`, color: '#f59e0b',
               anim: { scale: [1, 1.15, 1], rotate: [0, -5, 5, 0] }, timing: { repeat: Infinity, duration: 1.8, ease: 'easeInOut' } },
@@ -284,6 +291,7 @@ export default function PerfilView({ perfil, onLogout }) {
             </motion.div>
           ))}
         </div>
+        </div>{/* end padding wrapper */}
       </motion.div>
 
       {/* ═══ BODY HEATMAP ═══ */}

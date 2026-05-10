@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Heart, MessageCircle, Send, Image as ImageIcon, X, Dumbbell, Loader, UserPlus, UserCheck, Play, Trash2, Copy } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { API, authFetch, track } from '../config';
 import PublicProfileModal from './PublicProfileModal';
 import { useLanguage } from '../LanguageContext';
@@ -35,17 +35,26 @@ const sanitizeAvatar = (src) => {
   return null;
 };
 
+const getLevelBorderColor = (lvl) => {
+  if (!lvl || lvl < 10) return 'rgba(100,116,139,0.5)';   // gris
+  if (lvl < 20) return 'rgba(59,130,246,0.8)';             // azul
+  if (lvl < 30) return 'rgba(245,158,11,0.9)';             // dorado
+  return 'rgba(123,47,190,0.9)';                            // violeta
+};
+
 const Avatar = ({ src, name, size = 36, level }) => {
   src = sanitizeAvatar(src);
   const badgeSize = Math.max(14, size * 0.4);
+  const borderColor = getLevelBorderColor(level);
   return (
     <div style={{ position: 'relative', flexShrink: 0, width: size, height: size }}>
       <div style={{
         width: size, height: size, borderRadius: size * 0.3,
-        background: src ? `url(${src}) center/cover no-repeat` : 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+        background: src ? `url(${src}) center/cover no-repeat` : 'linear-gradient(135deg, var(--color-primary), #3b82f6)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontWeight: 900, color: 'white', fontSize: size * 0.38,
-        border: '2px solid rgba(6,182,212,0.25)',
+        border: `2px solid ${borderColor}`,
+        boxShadow: level >= 10 ? `0 0 8px ${borderColor}` : 'none',
       }}>
         {!src && (name?.[0] || '?').toUpperCase()}
       </div>
@@ -53,10 +62,11 @@ const Avatar = ({ src, name, size = 36, level }) => {
         <div style={{
           position: 'absolute', bottom: -1, right: -1,
           minWidth: badgeSize, height: badgeSize, borderRadius: 99,
-          background: '#06b6d4', color: '#000',
+          background: level >= 30 ? 'var(--color-accent)' : level >= 20 ? 'var(--color-warning)' : level >= 10 ? '#3b82f6' : '#475569',
+          color: '#fff',
           fontSize: size < 30 ? '0.35rem' : '0.42rem',
           fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          border: '1.5px solid #0a0a12', padding: '0 2px',
+          border: '1.5px solid var(--color-bg)', padding: '0 2px',
         }}>{level}</div>
       )}
     </div>
@@ -691,34 +701,37 @@ export default function ComunidadView({ perfil }) {
               {/* Interaction Bar */}
               <div style={{
                 padding: '0.65rem 1rem', borderTop: '1px solid rgba(255,255,255,0.06)',
-                display: 'flex', gap: '1.2rem',
+                display: 'flex', gap: '1rem', alignItems: 'center',
               }}>
-                <button
+                <motion.button
                   onClick={() => handleLike(post.id)}
+                  whileTap={{ scale: 1.3 }}
+                  animate={post.user_has_liked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
+                  transition={{ duration: 0.3, type: 'spring', stiffness: 500 }}
                   style={{
                     background: 'none', border: 'none', display: 'flex',
-                    alignItems: 'center', gap: '0.3rem', cursor: 'pointer',
-                    color: post.user_has_liked ? '#f43f5e' : '#64748b',
-                    transition: 'transform 0.15s',
+                    alignItems: 'center', gap: '0.35rem', cursor: 'pointer',
+                    color: post.user_has_liked ? '#f43f5e' : 'var(--color-text-muted)',
+                    padding: '0.4rem 0.6rem', borderRadius: '10px',
+                    background: post.user_has_liked ? 'rgba(244,63,94,0.08)' : 'transparent',
                   }}
-                  onMouseDown={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
-                  onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                  onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
-                  <Heart size={18} fill={post.user_has_liked ? '#f43f5e' : 'none'} strokeWidth={2.5} />
-                  <span style={{ fontSize: '0.78rem', fontWeight: 800 }}>{post.likes_count}</span>
-                </button>
-                <button
+                  <Heart size={20} fill={post.user_has_liked ? '#f43f5e' : 'none'} strokeWidth={2} />
+                  <span style={{ fontSize: '0.82rem', fontWeight: 800 }}>{post.likes_count}</span>
+                </motion.button>
+                <motion.button
                   onClick={() => toggleComments(post.id)}
+                  whileTap={{ scale: 0.92 }}
                   style={{
-                    background: 'none', border: 'none', display: 'flex',
-                    alignItems: 'center', gap: '0.3rem', cursor: 'pointer',
-                    color: activeComments[post.id] ? '#06b6d4' : '#64748b',
+                    background: activeComments[post.id] ? 'rgba(0,201,255,0.08)' : 'none',
+                    border: 'none', display: 'flex', alignItems: 'center', gap: '0.35rem',
+                    cursor: 'pointer', color: activeComments[post.id] ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                    padding: '0.4rem 0.6rem', borderRadius: '10px',
                   }}
                 >
-                  <MessageCircle size={18} strokeWidth={2.5} />
-                  <span style={{ fontSize: '0.78rem', fontWeight: 800 }}>{post.comments_count}</span>
-                </button>
+                  <MessageCircle size={20} strokeWidth={2} />
+                  <span style={{ fontSize: '0.82rem', fontWeight: 800 }}>{post.comments_count}</span>
+                </motion.button>
                 {post.user_name?.toLowerCase() === perfil?.toLowerCase() && (
                   <button
                     onClick={() => handleDeletePost(post.id)}
