@@ -1,8 +1,10 @@
 """
 nutrition_search.py - Motor de búsqueda híbrido de alimentos
-Pipeline: SQLite cache → Semántico (fastembed) → Open Food Facts → Gemini AI
+Pipeline: SQLite cache → Semántico (fastembed) → Open Food Facts → Groq IA
 """
 import json
+import os
+import re
 import httpx
 import numpy as np
 from core.database import buscar_alimentos_cache, guardar_alimento_cache
@@ -198,6 +200,28 @@ def _parse_off_product(product: dict) -> dict | None:
     }
 
 
+def _es_dato_valido(food: dict) -> bool:
+    """Descarta entradas con datos nutricionales claramente incorrectos."""
+    cal = food.get("cal_100", 0)
+    prot = food.get("prot_100", 0)
+    carb = food.get("carb_100", 0)
+    fat = food.get("fat_100", 0)
+    if cal <= 0:
+        return False
+    # Los macros no pueden sumar más calorías de las declaradas (margen 30%)
+    cals_from_macros = prot * 4 + carb * 4 + fat * 9
+    if cals_from_macros > 0 and cal > cals_from_macros * 2.5:
+        return False
+    # Proteína alta (>5g) + calorías muy altas (>400) = error típico de OFF
+    # (aceites/frutos secos legítimos tienen prot baja)
+    if cal > 400 and prot > 10:
+        return False
+    # Total macros no puede exceder 100g/100g por mucho
+    if prot + carb + fat > 130:
+        return False
+    return True
+
+
 async def buscar_open_food_facts(query: str, limit: int = 8) -> list[dict]:
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
@@ -216,12 +240,58 @@ async def buscar_open_food_facts(query: str, limit: int = 8) -> list[dict]:
             results = []
             for p in data.get("products", []):
                 parsed = _parse_off_product(p)
-                if parsed and parsed["cal_100"] > 0:
+                if parsed and _es_dato_valido(parsed):
                     results.append(parsed)
             return results
     except Exception as e:
         print(f"[OFF Search Error] {e}")
         return []
+
+
+async def _estimar_con_groq(query: str) -> dict | None:
+    """Llama a Groq (Llama 3.1 8B) para estimar macros. Gratuito, sin restricción de país."""
+    groq_key = os.getenv("GROQ_API_KEY", "")
+    if not groq_key:
+        return None
+    prompt = (
+        f"Sos nutricionista. Estimá los macros por 100g de: {query}. "
+        "Responde SOLO JSON válido: "
+        '{\"alimento\": \"nombre\", \"calorias\": 0, \"proteinas\": 0, \"carbos\": 0, \"grasas\": 0}'
+    )
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                json={
+                    "model": "llama-3.1-8b-instant",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.2,
+                    "max_tokens": 150,
+                }
+            )
+        if resp.status_code != 200:
+            print(f"[GROQ] Error HTTP {resp.status_code}")
+            return None
+        text = resp.json()["choices"][0]["message"]["content"]
+        match = re.search(r'\{.*\}', text, re.DOTALL)
+        if not match:
+            return None
+        data = json.loads(match.group(0))
+        return {
+            "nombre": data.get("alimento", query),
+            "nombre_en": query,
+            "marca": "",
+            "cal_100": round(float(data.get("calorias", 0)), 1),
+            "prot_100": round(float(data.get("proteinas", 0)), 1),
+            "carb_100": round(float(data.get("carbos", 0)), 1),
+            "fat_100": round(float(data.get("grasas", 0)), 1),
+            "fibra_100": 0,
+            "source": "groq",
+        }
+    except Exception as e:
+        print(f"[GROQ] Error: {e}")
+        return None
 
 
 def buscar_con_gemini(query: str) -> dict | None:
@@ -298,7 +368,18 @@ async def busqueda_hibrida(perfil: str, query: str) -> dict:
     if off_results:
         return {"cache": cache_results, "external": off_results, "source": "openfoodfacts"}
 
-    # ── Paso 4: Gemini ──
+    # ── Paso 4: Groq IA (Llama 3.1 — gratuito, sin restricción de país) ──
+    groq_result = await _estimar_con_groq(query_norm)
+    if groq_result:
+        guardar_alimento_cache(
+            perfil=perfil, nombre=groq_result["nombre"], marca="",
+            cal_100=groq_result["cal_100"], prot_100=groq_result["prot_100"],
+            carb_100=groq_result["carb_100"], fat_100=groq_result["fat_100"],
+            source="groq", global_entry=True,
+        )
+        return {"cache": cache_results, "external": [groq_result], "source": "groq"}
+
+    # ── Paso 5: Gemini (fallback, puede no funcionar por restricción geográfica) ──
     gemini_result = buscar_con_gemini(query_norm)
     if gemini_result:
         guardar_alimento_cache(

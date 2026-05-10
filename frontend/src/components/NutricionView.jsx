@@ -586,13 +586,46 @@ export default function NutricionView({ perfil }) {
 
   return (
     <div className="view-container">
-      
+
+      {/* 0. MACRO BAR RÁPIDO — siempre visible arriba */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        style={{ order: 1, background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+      >
+        {[
+          { label: 'KCAL', val: macrosHoy.calorias, goal: metas.cal_goal, color: '#ef4444', unit: '' },
+          { label: 'PROT', val: macrosHoy.proteinas, goal: metas.prot_goal, color: '#06b6d4', unit: 'g' },
+          { label: 'CARB', val: macrosHoy.carbos, goal: metas.carb_goal, color: '#10b981', unit: 'g' },
+          { label: 'GRAS', val: macrosHoy.grasas, goal: metas.fat_goal, color: '#f59e0b', unit: 'g' },
+        ].map(m => {
+          const pct = m.goal > 0 ? Math.min(Math.round((m.val / m.goal) * 100), 999) : 0;
+          return (
+            <div key={m.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem' }}>
+              <span style={{ fontSize: '0.65rem', fontWeight: 900, color: m.color }}>
+                {Math.round(m.val)}{m.unit}
+              </span>
+              <div style={{ width: 36, height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 99, overflow: 'hidden' }}>
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(pct, 100)}%` }}
+                  transition={{ duration: 0.8 }}
+                  style={{ height: '100%', background: m.color, borderRadius: 99 }}
+                />
+              </div>
+              <span style={{ fontSize: '0.42rem', fontWeight: 800, color: '#475569', letterSpacing: '0.3px' }}>{m.label} {pct}%</span>
+            </div>
+          );
+        })}
+      </motion.div>
+
       {/* 1. Brújula Metabólica — Apple Watch Rings */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
+        style={{ order: 4, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
           <h3 style={{ color: '#06b6d4', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <GiTargetArrows size={14} /> BRÚJULA
@@ -681,7 +714,7 @@ export default function NutricionView({ perfil }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        style={{ background: 'rgba(15,23,42,0.95)', border: ayuno.en_ayuno ? '1px solid rgba(6,182,212,0.4)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
+        style={{ order: 5, background: 'rgba(15,23,42,0.95)', border: ayuno.en_ayuno ? '1px solid rgba(6,182,212,0.4)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{fontSize: '0.65rem', fontWeight: 900, display:'flex', alignItems:'center', gap:'0.4rem', color: '#06b6d4', letterSpacing: '0.5px'}}>
             <MdOutlineTimer size={14} /> AYUNO
@@ -756,7 +789,7 @@ export default function NutricionView({ perfil }) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.15 }}
-          style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}
+          style={{ order: 3, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
             <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#06b6d4', letterSpacing: '0.5px', margin: 0, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
@@ -813,7 +846,7 @@ export default function NutricionView({ perfil }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
-        style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
+        style={{ order: 2, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
         <h3 style={{ fontSize: '0.65rem', fontWeight: 900, marginBottom: '0.85rem', color: '#06b6d4', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <Search size={12} /> REGISTRAR
         </h3>
@@ -840,13 +873,14 @@ export default function NutricionView({ perfil }) {
               const isCache = hybridSource === 'cache';
               const isOFF = hybridSource === 'openfoodfacts';
               const isGemini = hybridSource === 'gemini';
+              const isGroq = hybridSource === 'groq';
               return (
                 <span style={{
                   fontSize: '0.5rem', fontWeight: 800, padding: '0.15rem 0.5rem', borderRadius: '6px',
-                  background: isCache ? 'rgba(34,197,94,0.1)' : isOFF ? 'rgba(59,130,246,0.1)' : isSemantic ? 'rgba(6,182,212,0.1)' : 'rgba(168,85,247,0.1)',
-                  color: isCache ? '#22c55e' : isOFF ? '#3b82f6' : isSemantic ? '#06b6d4' : '#a855f7',
+                  background: isCache ? 'rgba(34,197,94,0.1)' : isOFF ? 'rgba(59,130,246,0.1)' : isSemantic ? 'rgba(6,182,212,0.1)' : isGroq ? 'rgba(251,146,60,0.1)' : 'rgba(168,85,247,0.1)',
+                  color: isCache ? '#22c55e' : isOFF ? '#3b82f6' : isSemantic ? '#06b6d4' : isGroq ? '#fb923c' : '#a855f7',
                 }}>
-                  {isCache ? '⚡ CACHE LOCAL' : isOFF ? '🌍 OPEN FOOD FACTS' : isSemantic ? '🔍 SEMÁNTICO' : '🤖 GEMINI IA'}
+                  {isCache ? '⚡ CACHE LOCAL' : isOFF ? '🌍 OPEN FOOD FACTS' : isSemantic ? '🔍 SEMÁNTICO' : isGemini ? '🤖 GEMINI IA' : '🦙 GROQ IA'}
                 </span>
               );
             })()}
@@ -1025,7 +1059,7 @@ export default function NutricionView({ perfil }) {
       </motion.div>
 
       {/* 5. ALACENA */}
-      <div style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem', borderLeft: '3px solid #f59e0b' }}>
+      <div style={{ order: 6, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem', borderLeft: '3px solid #f59e0b' }}>
         <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#f59e0b', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><GiCookingPot size={14} color="#f59e0b" /> ALACENA</h3>
         <div style={{display:'flex', gap:'0.5rem', marginTop:'0.75rem'}}>
           <input value={newIngrediente} onChange={e => setNewIngrediente(e.target.value)} onKeyDown={e => e.key === 'Enter' && agregarAlacena()} className="premium-input" placeholder="Nuevo..." style={{ flex: 1, height: '2.8rem', fontSize: '0.85rem' }} />
@@ -1059,7 +1093,7 @@ export default function NutricionView({ perfil }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
-        style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
+        style={{ order: 7, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
           <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#38bdf8', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <IoWater size={14} color="#38bdf8" /> HIDRATACIÓN
@@ -1115,7 +1149,7 @@ export default function NutricionView({ perfil }) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.35 }}
-          style={{ background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
+          style={{ order: 8, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
           <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#06b6d4', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
             <HiOutlineChartBar size={14} /> SEMANA
           </h3>
