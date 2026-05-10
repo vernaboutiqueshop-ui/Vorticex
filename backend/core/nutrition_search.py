@@ -254,9 +254,11 @@ async def _estimar_con_groq(query: str) -> dict | None:
     if not groq_key:
         return None
     prompt = (
-        f"Sos nutricionista. Estimá los macros por 100g de: {query}. "
-        "Responde SOLO JSON válido: "
-        '{\"alimento\": \"nombre\", \"calorias\": 0, \"proteinas\": 0, \"carbos\": 0, \"grasas\": 0}'
+        f"Sos nutricionista argentino. Para el alimento o plato: '{query}', "
+        "estimá los macros promedio POR 100g de la preparación final (no por ingrediente individual). "
+        "Considerá una receta casera estándar. "
+        "Responde SOLO JSON sin texto extra: "
+        '{\"alimento\": \"nombre corto\", \"calorias\": 0, \"proteinas\": 0, \"carbos\": 0, \"grasas\": 0}'
     )
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
