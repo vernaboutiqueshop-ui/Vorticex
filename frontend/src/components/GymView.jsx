@@ -3339,40 +3339,49 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                   minWidth: 0,
                                 }}
                               >
-                                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                                  <span
-                                    style={{
-                                      fontWeight: 900,
-                                      fontSize: "1rem",
-                                      color: "#ffffff",
-                                    }}
-                                  >
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                                  <span style={{ fontWeight: 900, fontSize: "0.95rem", color: "var(--color-text)" }}>
                                     {r.name}
                                   </span>
                                   <span style={{
-                                    fontSize: "0.55rem", fontWeight: 900, color: "#475569",
-                                    background: "rgba(255,255,255,0.05)", padding: "0.12rem 0.35rem",
-                                    borderRadius: "6px",
+                                    fontSize: "0.52rem", fontWeight: 900, color: "var(--color-text-muted)",
+                                    background: "rgba(255,255,255,0.05)", padding: "0.12rem 0.35rem", borderRadius: "6px",
                                   }}>
                                     {Array.isArray(r.ejercicios) ? r.ejercicios.length : 0} ej
                                   </span>
                                 </div>
-                                {previewText && (
-                                  <div
-                                    style={{
-                                      fontSize: "0.72rem",
-                                      color: "#64748b",
-                                      fontWeight: 600,
-                                      marginTop: "0.25rem",
-                                      whiteSpace: "nowrap",
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                    }}
-                                  >
-                                    {previewText}
-                                  </div>
-                                )}
+                                {/* Muscle pills */}
+                                {Array.isArray(r.ejercicios) && r.ejercicios.length > 0 && (() => {
+                                  const muscles = [...new Set(r.ejercicios.map(e => e?.target || e?.body_part).filter(Boolean))].slice(0, 3);
+                                  const muscleColors = { chest: '#00C9FF', back: '#7B2FBE', legs: '#22C55E', shoulders: '#F59E0B', arms: '#EF4444', core: '#06b6d4' };
+                                  return muscles.length > 0 ? (
+                                    <div style={{ display: "flex", gap: "0.25rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
+                                      {muscles.map(m => {
+                                        const col = muscleColors[m?.toLowerCase()] || '#475569';
+                                        return (
+                                          <span key={m} style={{ fontSize: "0.5rem", fontWeight: 800, padding: "0.1rem 0.4rem", borderRadius: "999px", background: `${col}18`, color: col, border: `1px solid ${col}30` }}>
+                                            {m}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : null;
+                                })()}
                               </div>
+
+                              {/* Botón INICIAR directo */}
+                              <motion.button
+                                whileTap={{ scale: 0.92 }}
+                                onClick={(e) => { e.stopPropagation(); startSession(r.ejercicios, r.id, r.name); }}
+                                style={{
+                                  flexShrink: 0, padding: "0.4rem 0.7rem", borderRadius: "10px", border: "none",
+                                  background: `${fColor}20`, border: `1px solid ${fColor}40`,
+                                  color: fColor, fontWeight: 900, fontSize: "0.62rem", cursor: "pointer",
+                                  display: "flex", alignItems: "center", gap: "0.3rem",
+                                }}
+                              >
+                                ▶
+                              </motion.button>
 
                               <button
                                 onClick={(e) => {
@@ -3386,7 +3395,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                 }}
                                 className="btn-icon-elite"
                                 style={{ width: "32px", height: "32px", flexShrink: 0,
-                                  background: menuMeta?.id === r.id ? "rgba(6,182,212,0.15)" : undefined }}
+                                  background: menuMeta?.id === r.id ? "rgba(0,201,255,0.15)" : undefined }}
                               >
                                 <MoreVertical size={16} />
                               </button>
@@ -3526,40 +3535,40 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                   minWidth: 0,
                                 }}
                               >
-                                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                                  <span
-                                    style={{
-                                      fontWeight: 900,
-                                      fontSize: "1rem",
-                                      color: "#ffffff",
-                                    }}
-                                  >
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                                  <span style={{ fontWeight: 900, fontSize: "0.95rem", color: "var(--color-text)" }}>
                                     {r.name}
                                   </span>
                                   <span style={{
-                                    fontSize: "0.55rem", fontWeight: 900, color: "#475569",
-                                    background: "rgba(255,255,255,0.05)", padding: "0.12rem 0.35rem",
-                                    borderRadius: "6px",
+                                    fontSize: "0.52rem", fontWeight: 900, color: "var(--color-text-muted)",
+                                    background: "rgba(255,255,255,0.05)", padding: "0.12rem 0.35rem", borderRadius: "6px",
                                   }}>
                                     {Array.isArray(r.ejercicios) ? r.ejercicios.length : 0} ej
                                   </span>
                                 </div>
-                                {previewText && (
-                                  <div
-                                    style={{
-                                      fontSize: "0.72rem",
-                                      color: "#64748b",
-                                      fontWeight: 600,
-                                      marginTop: "0.25rem",
-                                      whiteSpace: "nowrap",
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                    }}
-                                  >
-                                    {previewText}
-                                  </div>
-                                )}
+                                {Array.isArray(r.ejercicios) && (() => {
+                                  const muscles = [...new Set(r.ejercicios.map(e => e?.target || e?.body_part).filter(Boolean))].slice(0, 3);
+                                  const muscleColors = { chest: '#00C9FF', back: '#7B2FBE', legs: '#22C55E', shoulders: '#F59E0B', arms: '#EF4444', core: '#06b6d4' };
+                                  return muscles.length > 0 ? (
+                                    <div style={{ display: "flex", gap: "0.25rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
+                                      {muscles.map(m => {
+                                        const col = muscleColors[m?.toLowerCase()] || '#475569';
+                                        return <span key={m} style={{ fontSize: "0.5rem", fontWeight: 800, padding: "0.1rem 0.4rem", borderRadius: "999px", background: `${col}18`, color: col, border: `1px solid ${col}30` }}>{m}</span>;
+                                      })}
+                                    </div>
+                                  ) : null;
+                                })()}
                               </div>
+                              <motion.button
+                                whileTap={{ scale: 0.92 }}
+                                onClick={(e) => { e.stopPropagation(); startSession(r.ejercicios, r.id, r.name); }}
+                                style={{
+                                  flexShrink: 0, padding: "0.4rem 0.7rem", borderRadius: "10px",
+                                  background: "rgba(0,201,255,0.12)", border: "1px solid rgba(0,201,255,0.3)",
+                                  color: "var(--color-primary)", fontWeight: 900, fontSize: "0.62rem", cursor: "pointer",
+                                  display: "flex", alignItems: "center", gap: "0.3rem",
+                                }}
+                              >▶</motion.button>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -3572,7 +3581,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                 }}
                                 className="btn-icon-elite"
                                 style={{ width: "32px", height: "32px", flexShrink: 0,
-                                  background: menuMeta?.id === r.id ? "rgba(6,182,212,0.15)" : undefined }}
+                                  background: menuMeta?.id === r.id ? "rgba(0,201,255,0.15)" : undefined }}
                               >
                                 <MoreVertical size={16} />
                               </button>
