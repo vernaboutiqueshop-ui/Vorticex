@@ -1,6 +1,40 @@
-import { useState, useEffect, useRef, lazy, Suspense, memo, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense, memo, useMemo, useCallback, createContext, useContext } from 'react';
 import { MessageSquare, Apple, Activity, BarChart2, User, Zap, Send, X, Bell, Heart, MessageCircle, Lock, Smartphone, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { API, authFetch, track } from './config';
+
+// ── TOAST SYSTEM ─────────────────────────────────────
+export const ToastContext = createContext(null);
+
+function ToastProvider({ children }) {
+  const [toasts, setToasts] = useState([]);
+  const show = useCallback((msg, type = 'success', duration = 2500) => {
+    const id = Date.now();
+    setToasts(p => [...p, { id, msg, type }]);
+    setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), duration);
+  }, []);
+  const icons = { success: '✅', info: '💧', error: '❌', warning: '⚠️' };
+  return (
+    <ToastContext.Provider value={show}>
+      {children}
+      <div className="toast-container">
+        <AnimatePresence>
+          {toasts.map(t => (
+            <motion.div key={t.id} className={`toast toast-${t.type === 'info' ? 'info' : t.type === 'error' ? 'error' : 'success'}`}
+              initial={{ opacity: 0, y: -20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -16, scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 28 }}>
+              <span style={{ fontSize: '1rem' }}>{icons[t.type] || '✅'}</span>
+              {t.msg}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    </ToastContext.Provider>
+  );
+}
+export const useToast = () => useContext(ToastContext);
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Retry wrapper para lazy imports — evita pantalla blanca por fallo de red en mobile
@@ -231,26 +265,42 @@ function AppContent() {
     <>
       <header className="top-header">
         <div className="title-main">
-          <Zap size={22} color="var(--accent-gym)" />
-          <span>Vórtice</span>
+          <motion.div
+            className="logo-pulse"
+            animate={{ scale: [1, 1.06, 1], filter: ['drop-shadow(0 0 4px rgba(0,201,255,0.4))', 'drop-shadow(0 0 10px rgba(0,201,255,0.7))', 'drop-shadow(0 0 4px rgba(0,201,255,0.4))'] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <Zap size={22} color="var(--color-primary)" />
+          </motion.div>
+          <span style={{ background: 'linear-gradient(90deg, var(--color-primary), var(--color-accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Vórtice</span>
           <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'0.5rem'}}>
             <button onClick={() => setShowNotifs(true)} style={{
               position: 'relative', background: 'none', border: 'none', cursor: 'pointer', padding: '0.3rem',
             }}>
-              <Bell size={20} color={notifCount > 0 ? '#06b6d4' : '#64748b'} />
-              {notifCount > 0 && (
-                <div style={{
-                  position: 'absolute', top: 0, right: 0, width: 16, height: 16, borderRadius: '50%',
-                  background: '#ef4444', color: '#fff', fontSize: '0.5rem', fontWeight: 900,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: '2px solid #050508',
-                }}>{notifCount > 9 ? '9+' : notifCount}</div>
-              )}
+              <Bell size={20} color={notifCount > 0 ? 'var(--color-primary)' : 'var(--color-text-muted)'} />
+              <AnimatePresence>
+                {notifCount > 0 && (
+                  <motion.div
+                    initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                    style={{
+                      position: 'absolute', top: 0, right: 0, width: 16, height: 16, borderRadius: '50%',
+                      background: 'var(--color-danger)', color: '#fff', fontSize: '0.5rem', fontWeight: 900,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      border: '2px solid var(--color-bg)',
+                    }}>{notifCount > 9 ? '9+' : notifCount}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </button>
-            <div className="profile-active-tag">
-              <span className="dot pulse"></span>
-              {perfil}
-            </div>
+            <button
+              onClick={() => setActiveTab('perfil')}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              <div className="profile-active-tag">
+                <span className="dot pulse"></span>
+                {perfil}
+              </div>
+            </button>
           </div>
         </div>
       </header>
@@ -369,14 +419,24 @@ function AppContent() {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
-            <button 
+            <motion.button
               key={tab.id}
-              className={`tab-btn ${isActive ? 'active' : ''}`} 
+              className={`tab-btn ${isActive ? 'active' : ''}`}
               onClick={() => { setActiveTab(tab.id); track('tab', { tab: tab.id }); }}
+              whileTap={{ scale: 0.9 }}
             >
-              <Icon size={19} />
+              {isActive && (
+                <motion.div
+                  layoutId="tab-pill"
+                  className="tab-btn-pill"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+              )}
+              <motion.div animate={{ y: isActive ? -2 : 0 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
+                <Icon size={18} />
+              </motion.div>
               <span>{tab.label}</span>
-            </button>
+            </motion.button>
           );
         })}
       </nav>
@@ -442,7 +502,7 @@ function NotificationsModal({ perfil, onClose }) {
   const timeAgo = (ts) => {
     if (!ts) return '';
     const diff = (Date.now() - new Date(ts + 'Z').getTime()) / 1000;
-    if (diff < 60) return lang === 'es' ? 'ahora' : 'now';
+    if (diff < 60) return t('now_label');
     if (diff < 3600) return `${Math.floor(diff / 60)}m`;
     if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
     return `${Math.floor(diff / 86400)}d`;
@@ -466,7 +526,7 @@ function NotificationsModal({ perfil, onClose }) {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Bell size={18} color="#06b6d4" />
-            <span style={{ fontWeight: 900, fontSize: '1rem', color: '#fff' }}>{lang === 'es' ? 'Notificaciones' : 'Notifications'}</span>
+            <span style={{ fontWeight: 900, fontSize: '1rem', color: '#fff' }}>{t('notifications')}</span>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             <X size={18} color="#64748b" />
@@ -480,8 +540,8 @@ function NotificationsModal({ perfil, onClose }) {
           ) : notifs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2.5rem 1rem' }}>
               <Bell size={32} color="#1e293b" style={{ marginBottom: '0.75rem' }} />
-              <div style={{ color: '#475569', fontSize: '0.85rem', fontWeight: 700 }}>{lang === 'es' ? 'Sin notificaciones' : 'No notifications'}</div>
-              <div style={{ color: '#334155', fontSize: '0.7rem', marginTop: '0.25rem' }}>{lang === 'es' ? 'Cuando alguien interactúe con tus posts, aparecerá acá' : 'When someone interacts with your posts, it will show here'}</div>
+              <div style={{ color: '#475569', fontSize: '0.85rem', fontWeight: 700 }}>{t('no_notifications')}</div>
+              <div style={{ color: '#334155', fontSize: '0.7rem', marginTop: '0.25rem' }}>{t('notif_hint')}</div>
             </div>
           ) : (
             notifs.map(n => (
@@ -638,7 +698,9 @@ function FeedbackBubble({ perfil }) {
 export default function App() {
   return (
     <LanguageProvider>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </LanguageProvider>
   );
 }
