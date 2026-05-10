@@ -314,13 +314,28 @@ def buscar_con_gemini(query: str) -> dict | None:
     }
 
 
+_PLATO_KEYWORDS = [
+    ' con ', ' a la ', ' al ', ' relleno', ' saltead', ' estofad',
+    'guiso', 'milanesa', 'empanada', 'revuelto', 'sopa de ', 'cazuela',
+    'tarta de', 'tortilla de', 'pizza', 'fideos con', 'arroz con',
+    'pollo al', 'carne al', 'pescado al',
+]
+
+def _es_plato_compuesto(query: str) -> bool:
+    """Platos multi-ingrediente: van directo a IA, no tienen sentido buscar en USDA."""
+    q = query.lower()
+    palabra_count = len(q.split())
+    return palabra_count >= 3 and any(kw in q for kw in _PLATO_KEYWORDS)
+
+
 async def busqueda_hibrida(perfil: str, query: str) -> dict:
     """
-    Pipeline híbrido:
-    1. SQLite cache (exacto)      → instantáneo
-    2. SQLite semántico (fastembed)→ 5-15ms, entiende sinónimos y variaciones
-    3. Open Food Facts API        → productos envasados
-    4. Gemini AI fallback         → estimación para platos no encontrados
+    Pipeline inteligente:
+    0. Plato compuesto (con/al/guiso) → Groq IA directo
+    1. SQLite cache (exacto)          → instantáneo
+    2. SQLite semántico (fastembed)   → entiende variaciones
+    3. Open Food Facts API            → productos envasados
+    4. Groq IA fallback               → cualquier alimento no encontrado
     """
     query = query.strip()
     if not query:
@@ -328,6 +343,18 @@ async def busqueda_hibrida(perfil: str, query: str) -> dict:
 
     # Normalizar sinónimos argentinos
     query_norm = _normalizar(query)
+
+    # ── Paso 0: Plato compuesto → Groq IA directo ──
+    if _es_plato_compuesto(query_norm):
+        groq_result = await _estimar_con_groq(query_norm)
+        if groq_result:
+            guardar_alimento_cache(
+                perfil=perfil, nombre=groq_result["nombre"], marca="",
+                cal_100=groq_result["cal_100"], prot_100=groq_result["prot_100"],
+                carb_100=groq_result["carb_100"], fat_100=groq_result["fat_100"],
+                source="groq", global_entry=True,
+            )
+            return {"cache": [], "external": [groq_result], "source": "groq"}
 
     # ── Paso 1: SQLite cache exacto ──
     cache_results = buscar_alimentos_cache(perfil, query_norm)
