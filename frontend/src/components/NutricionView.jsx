@@ -108,6 +108,7 @@ export default function NutricionView({ perfil }) {
   const [loggingFood, setLoggingFood] = useState(false);
   const [multiPending, setMultiPending] = useState([]);
   const [loggingMulti, setLoggingMulti] = useState(false);
+  const [registrarTab, setRegistrarTab] = useState('texto'); // 'texto' | 'foto' | 'alacena'
   const [alacena, setAlacena] = useState([]);
   const [newIngrediente, setNewIngrediente] = useState('');
   const [receta, setReceta] = useState('');
@@ -568,12 +569,12 @@ export default function NutricionView({ perfil }) {
   const totalMacros = macrosData.reduce((a, b) => a + b.value, 0);
   const DIAS_LABEL = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
-  // Apple Watch-style rings data
+  // Apple Watch-style rings data — colores del design system
   const rings = [
-    { label: 'KCAL', value: macrosHoy.calorias, goal: metas.cal_goal, color: '#ef4444', radius: 52 },
-    { label: 'PROT', value: macrosHoy.proteinas, goal: metas.prot_goal, color: '#3b82f6', radius: 42 },
-    { label: 'CARB', value: macrosHoy.carbos, goal: metas.carb_goal, color: '#10b981', radius: 32 },
-    { label: 'GRAS', value: macrosHoy.grasas, goal: metas.fat_goal, color: '#f59e0b', radius: 22 },
+    { label: 'KCAL', value: macrosHoy.calorias, goal: metas.cal_goal, color: 'var(--color-primary)', colorHex: '#00C9FF', radius: 52 },
+    { label: 'PROT', value: macrosHoy.proteinas, goal: metas.prot_goal, color: 'var(--color-success)', colorHex: '#22C55E', radius: 42 },
+    { label: 'CARB', value: macrosHoy.carbos, goal: metas.carb_goal, color: 'var(--color-warning)', colorHex: '#F59E0B', radius: 32 },
+    { label: 'GRAS', value: macrosHoy.grasas, goal: metas.fat_goal, color: 'var(--color-danger)', colorHex: '#EF4444', radius: 22 },
   ];
 
   // Nutrition score (0-100)
@@ -625,9 +626,9 @@ export default function NutricionView({ perfil }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        style={{ order: 4, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
+        style={{ order: 4, background: 'linear-gradient(135deg, var(--color-card), var(--color-card-alt))', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '1rem 1.1rem', boxShadow: 'var(--shadow-card)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <h3 style={{ color: '#06b6d4', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <h3 style={{ color: 'var(--color-primary)', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <GiTargetArrows size={14} /> BRÚJULA
           </h3>
           <button onClick={() => setShowMetasEditor(s => !s)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--text-muted)', borderRadius: '8px', padding: '0.35rem', cursor: 'pointer' }}>
@@ -670,7 +671,7 @@ export default function NutricionView({ perfil }) {
                       strokeDasharray={circ} initial={{ strokeDashoffset: circ }}
                       animate={{ strokeDashoffset: circ * (1 - pct) }}
                       transition={{ duration: 1.2, delay: 0.2 + i * 0.15, ease: 'easeOut' }}
-                      style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px', filter: `drop-shadow(0 0 4px ${r.color}50)` }}
+                      style={{ transform: 'rotate(-90deg)', transformOrigin: '60px 60px', filter: `drop-shadow(0 0 5px ${r.colorHex || r.color}60)` }}
                     />
                   </g>
                 );
@@ -846,24 +847,50 @@ export default function NutricionView({ perfil }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
-        style={{ order: 2, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
-        <h3 style={{ fontSize: '0.65rem', fontWeight: 900, marginBottom: '0.85rem', color: '#06b6d4', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Search size={12} /> REGISTRAR
-        </h3>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <input value={searchText} onChange={e => setSearchText(e.target.value)} onKeyDown={e => e.key === 'Enter' && buscarAlimento()} className="premium-input" placeholder="Ej: 200g pechuga y 150g arroz..." style={{ flex: 1, height: '2.8rem', fontSize: '0.85rem' }} />
-          <button className="btn-elite" style={{ width: '3rem', height: '2.8rem', padding: 0 }} onClick={buscarAlimento} disabled={searching}>
-            {searching ? <Loader2 size={16} className="spin" /> : <Search size={16} />}
-          </button>
+        style={{ order: 2, background: 'linear-gradient(135deg, var(--color-card), var(--color-card-alt))', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '1rem 1.1rem', boxShadow: 'var(--shadow-card)' }}>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '0.85rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '0.2rem' }}>
+          {[
+            { id: 'texto', label: '✏️ Texto' },
+            { id: 'foto', label: '📷 Foto' },
+            { id: 'alacena', label: '🔖 Alacena' },
+          ].map(tab => (
+            <motion.button
+              key={tab.id}
+              onClick={() => setRegistrarTab(tab.id)}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                flex: 1, padding: '0.4rem 0.3rem', border: 'none', cursor: 'pointer', borderRadius: '8px', fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.2px',
+                background: registrarTab === tab.id ? 'var(--color-primary)' : 'transparent',
+                color: registrarTab === tab.id ? '#000' : 'var(--color-text-muted)',
+                transition: 'all 0.2s ease',
+              }}
+            >{tab.label}</motion.button>
+          ))}
         </div>
 
-        {/* Photo button */}
-        <div style={{ marginTop: '0.5rem' }}>
-          <label className="btn-elite" style={{ width: '100%', height: '2.4rem', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer', background: 'rgba(255,255,255,0.03)' }}>
-            <Camera size={14} /> {analyzingPhoto ? 'ANALIZANDO...' : 'FOTO'}
-            <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={analizarFoto} disabled={analyzingPhoto} />
-          </label>
-        </div>
+        {/* Contenido según tab */}
+        <AnimatePresence mode="wait">
+          {registrarTab === 'texto' && (
+            <motion.div key="texto" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.15 }}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input value={searchText} onChange={e => setSearchText(e.target.value)} onKeyDown={e => e.key === 'Enter' && buscarAlimento()} className="premium-input" placeholder="Ej: 200g pechuga y 150g arroz..." style={{ flex: 1, height: '2.8rem', fontSize: '0.85rem' }} />
+                <motion.button whileTap={{ scale: 0.92 }} className="btn-elite" style={{ width: '3rem', height: '2.8rem', padding: 0 }} onClick={buscarAlimento} disabled={searching}>
+                  {searching ? <Loader2 size={16} className="spin" /> : <Search size={16} />}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+          {registrarTab === 'foto' && (
+            <motion.div key="foto" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.15 }}>
+              <label className="btn-elite" style={{ width: '100%', height: '3.2rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer', background: 'rgba(0,201,255,0.07)', border: '1px dashed rgba(0,201,255,0.3)', borderRadius: 'var(--radius-input)' }}>
+                <Camera size={18} color="var(--color-primary)" /> {analyzingPhoto ? 'ANALIZANDO...' : 'Tocar para sacar foto'}
+                <input type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={analizarFoto} disabled={analyzingPhoto} />
+              </label>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Hybrid search source badge */}
         {hybridSource && hybridSource !== 'none' && hybridResults.length > 0 && (
@@ -946,34 +973,51 @@ export default function NutricionView({ perfil }) {
           {hybridResults.length > 0 && !selectedFood && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
               style={{ marginTop: '0.5rem', maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              {hybridResults.slice(0, 8).map((food, idx) => (
-                <motion.button
-                  key={food.id || idx}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.04, type: 'spring', stiffness: 400, damping: 25 }}
-                  onClick={() => { setSelectedFood(food); setGramosInput(100); }}
-                  style={{
-                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
-                    borderRadius: '10px', padding: '0.55rem 0.7rem', cursor: 'pointer', textAlign: 'left',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem',
-                    transition: 'background 0.2s, border-color 0.2s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(6,182,212,0.06)'; e.currentTarget.style.borderColor = 'rgba(6,182,212,0.2)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {food.nombre}
+              {hybridResults.slice(0, 8).map((food, idx) => {
+                const cal = Math.round(food.cal_100);
+                const calColor = cal > 500 ? 'var(--color-danger)' : cal > 300 ? 'var(--color-warning)' : 'var(--color-success)';
+                const calBg = cal > 500 ? 'rgba(239,68,68,0.12)' : cal > 300 ? 'rgba(245,158,11,0.12)' : 'rgba(34,197,94,0.12)';
+                return (
+                  <motion.button
+                    key={food.id || idx}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.04, type: 'spring', stiffness: 400, damping: 25 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => { setSelectedFood(food); setGramosInput(100); }}
+                    style={{
+                      background: 'rgba(255,255,255,0.025)', border: '1px solid var(--color-border)',
+                      borderRadius: 'var(--radius-input)', padding: '0.6rem 0.75rem', cursor: 'pointer', textAlign: 'left',
+                      display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,201,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(0,201,255,0.2)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.025)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+                  >
+                    {/* Calorie pill */}
+                    <div style={{ flexShrink: 0, background: calBg, border: `1px solid ${calColor}30`, borderRadius: '8px', padding: '0.25rem 0.45rem', textAlign: 'center', minWidth: '40px' }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 900, color: calColor, lineHeight: 1 }}>{cal}</div>
+                      <div style={{ fontSize: '0.38rem', fontWeight: 800, color: calColor, opacity: 0.7 }}>KCAL</div>
                     </div>
-                    {food.marca && <div style={{ fontSize: '0.55rem', color: '#64748b', fontWeight: 700 }}>{food.marca}</div>}
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
-                    <span style={{ fontSize: '0.55rem', fontWeight: 900, color: '#ef4444', background: 'rgba(239,68,68,0.1)', padding: '0.1rem 0.35rem', borderRadius: '5px' }}>{Math.round(food.cal_100)}</span>
-                    <span style={{ fontSize: '0.55rem', fontWeight: 900, color: '#3b82f6', background: 'rgba(59,130,246,0.1)', padding: '0.1rem 0.35rem', borderRadius: '5px' }}>{Math.round(food.prot_100)}P</span>
-                  </div>
-                </motion.button>
-              ))}
+                    {/* Name + macros */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {food.nombre}
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.55rem', marginTop: '0.2rem', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--color-success)' }}>🥩 P:{Math.round(food.prot_100)}g</span>
+                        <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--color-warning)' }}>🌾 C:{Math.round(food.carb_100)}g</span>
+                        <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--color-danger)' }}>🫙 G:{Math.round(food.fat_100)}g</span>
+                      </div>
+                    </div>
+                    {/* Add button */}
+                    <motion.div
+                      whileTap={{ scale: 1.3 }} whileHover={{ scale: 1.1 }}
+                      style={{ flexShrink: 0, width: 28, height: 28, borderRadius: '50%', background: 'rgba(0,201,255,0.12)', border: '1px solid rgba(0,201,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Plus size={14} color="var(--color-primary)" />
+                    </motion.div>
+                  </motion.button>
+                );
+              })}
             </motion.div>
           )}
         </AnimatePresence>
@@ -1093,52 +1137,90 @@ export default function NutricionView({ perfil }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
-        style={{ order: 7, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#38bdf8', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <IoWater size={14} color="#38bdf8" /> HIDRATACIÓN
+        style={{ order: 7, background: 'linear-gradient(135deg, var(--color-card), var(--color-card-alt))', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '1rem 1.1rem', boxShadow: 'var(--shadow-card)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+          <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--color-primary)', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <IoWater size={14} color="var(--color-primary)" /> HIDRATACIÓN
           </h3>
-          <span style={{ fontSize: '0.7rem', fontWeight: 900, color: waterGlasses >= WATER_GOAL ? '#22c55e' : '#94a3b8' }}>
+          <span style={{ fontSize: '0.7rem', fontWeight: 900, color: waterGlasses >= WATER_GOAL ? 'var(--color-success)' : 'var(--color-text-muted)' }}>
             {waterGlasses}/{WATER_GOAL}
           </span>
         </div>
+
+        {/* Mensaje motivacional */}
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={waterGlasses}
+            initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            style={{ fontSize: '0.62rem', color: 'var(--color-text-muted)', marginBottom: '0.65rem', fontWeight: 600 }}
+          >
+            {waterGlasses === 0 ? '¡Empezá a hidratarte! 💧' :
+             waterGlasses <= 2 ? 'Buen comienzo, seguí así 💧' :
+             waterGlasses <= 4 ? '¡Vas por la mitad! 💪' :
+             waterGlasses <= 7 ? '¡Casi llegás! 🔥' :
+             '¡Meta cumplida! 🎉'}
+          </motion.p>
+        </AnimatePresence>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <div style={{ flex: 1, display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
-            {Array.from({ length: WATER_GOAL }, (_, i) => (
-              <motion.div
-                key={i}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.1 + i * 0.05, type: 'spring', stiffness: 500, damping: 20 }}
-                style={{
-                  width: 28, height: 28, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: i < waterGlasses ? 'rgba(56,189,248,0.15)' : 'rgba(255,255,255,0.03)',
-                  border: i < waterGlasses ? '1px solid rgba(56,189,248,0.3)' : '1px solid rgba(255,255,255,0.05)',
-                  transition: 'all 0.3s',
-                }}
-              >
-                <IoWater size={14} color={i < waterGlasses ? '#38bdf8' : '#334155'} />
-              </motion.div>
-            ))}
+          {/* Gotas SVG animadas */}
+          <div style={{ flex: 1, display: 'flex', gap: '0.25rem' }}>
+            {Array.from({ length: WATER_GOAL }, (_, i) => {
+              const filled = i < waterGlasses;
+              return (
+                <motion.button
+                  key={i}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.05 + i * 0.04, type: 'spring', stiffness: 500, damping: 22 }}
+                  whileTap={{ scale: 0.8 }}
+                  onClick={filled ? undefined : addWater}
+                  style={{
+                    flex: 1, height: 38, borderRadius: '10px', cursor: filled ? 'default' : 'pointer',
+                    padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden',
+                    border: filled ? '1px solid rgba(0,201,255,0.3)' : '1px solid var(--color-border)',
+                    background: filled ? 'rgba(0,201,255,0.1)' : 'rgba(255,255,255,0.02)',
+                  }}
+                >
+                  <svg width="18" height="22" viewBox="0 0 18 22" fill="none">
+                    <path d="M9 1C9 1 1 9.5 1 14a8 8 0 0016 0C17 9.5 9 1 9 1Z"
+                      fill={filled ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)'}
+                      stroke={filled ? 'rgba(0,201,255,0.5)' : 'rgba(255,255,255,0.1)'}
+                      strokeWidth="1"
+                    />
+                  </svg>
+                  {filled && (
+                    <motion.div
+                      layoutId={`water-fill-${i}`}
+                      style={{ position: 'absolute', inset: 0, background: 'rgba(0,201,255,0.08)', borderRadius: '9px' }}
+                    />
+                  )}
+                </motion.button>
+              );
+            })}
           </div>
           <motion.button
-            whileTap={{ scale: 0.85 }}
+            whileTap={{ scale: 0.85 }} whileHover={{ scale: 1.05 }}
             onClick={addWater}
+            disabled={waterGlasses >= WATER_GOAL}
             style={{
-              background: 'rgba(56,189,248,0.15)', border: '1px solid rgba(56,189,248,0.3)',
-              borderRadius: '10px', padding: '0.5rem 0.75rem', cursor: 'pointer',
-              color: '#38bdf8', fontWeight: 900, fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem',
+              background: waterGlasses >= WATER_GOAL ? 'rgba(34,197,94,0.15)' : 'rgba(0,201,255,0.12)',
+              border: `1px solid ${waterGlasses >= WATER_GOAL ? 'rgba(34,197,94,0.3)' : 'rgba(0,201,255,0.25)'}`,
+              borderRadius: '10px', padding: '0.5rem 0.75rem', cursor: waterGlasses >= WATER_GOAL ? 'default' : 'pointer',
+              color: waterGlasses >= WATER_GOAL ? 'var(--color-success)' : 'var(--color-primary)',
+              fontWeight: 900, fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0,
             }}
           >
-            <Plus size={14} /> 1
+            {waterGlasses >= WATER_GOAL ? '✓' : <><Plus size={14} /> 1</>}
           </motion.button>
         </div>
-        <div style={{ marginTop: '0.5rem', height: 4, background: 'rgba(255,255,255,0.04)', borderRadius: 99, overflow: 'hidden' }}>
+
+        <div style={{ marginTop: '0.6rem', height: 3, background: 'rgba(255,255,255,0.04)', borderRadius: 99, overflow: 'hidden' }}>
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${Math.min((waterGlasses / WATER_GOAL) * 100, 100)}%` }}
-            transition={{ duration: 0.6 }}
-            style={{ height: '100%', borderRadius: 99, background: 'linear-gradient(90deg, #38bdf8, #06b6d4)' }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            style={{ height: '100%', borderRadius: 99, background: waterGlasses >= WATER_GOAL ? 'var(--color-success)' : 'linear-gradient(90deg, var(--color-primary), var(--color-accent))' }}
           />
         </div>
       </motion.div>
