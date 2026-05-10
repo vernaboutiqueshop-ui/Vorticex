@@ -265,13 +265,9 @@ function AppContent() {
     <>
       <header className="top-header">
         <div className="title-main">
-          <motion.div
-            className="logo-pulse"
-            animate={{ scale: [1, 1.06, 1], filter: ['drop-shadow(0 0 4px rgba(0,201,255,0.4))', 'drop-shadow(0 0 10px rgba(0,201,255,0.7))', 'drop-shadow(0 0 4px rgba(0,201,255,0.4))'] }}
-            transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
-          >
+          <div className="logo-pulse">
             <Zap size={22} color="var(--color-primary)" />
-          </motion.div>
+          </div>
           <span style={{ background: 'linear-gradient(90deg, var(--color-primary), var(--color-accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Vórtice</span>
           <div style={{marginLeft:'auto', display:'flex', alignItems:'center', gap:'0.5rem'}}>
             <button onClick={() => setShowNotifs(true)} style={{
@@ -423,18 +419,16 @@ function AppContent() {
               key={tab.id}
               className={`tab-btn ${isActive ? 'active' : ''}`}
               onClick={() => { setActiveTab(tab.id); track('tab', { tab: tab.id }); }}
-              whileTap={{ scale: 0.9 }}
+              whileTap={{ scale: 0.94 }}
             >
               {isActive && (
                 <motion.div
                   layoutId="tab-pill"
                   className="tab-btn-pill"
-                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  transition={{ type: 'tween', duration: 0.22, ease: 'easeInOut' }}
                 />
               )}
-              <motion.div animate={{ y: isActive ? -2 : 0 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
-                <Icon size={18} />
-              </motion.div>
+              <Icon size={18} />
               <span>{tab.label}</span>
             </motion.button>
           );

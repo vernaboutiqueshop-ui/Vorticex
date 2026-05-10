@@ -125,27 +125,26 @@ export default function BodyMap({ targets = [], bodyData: externalBodyData, scal
         </div>
         <style>{`
           @keyframes bodyFadeIn {
-            from { opacity: 0; transform: scale(0.95) translateY(8px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0); }
           }
           @keyframes musclePulse {
-            0%, 100% { filter: brightness(1) drop-shadow(0 0 4px rgba(6,182,212,0.15)); }
-            50%      { filter: brightness(1.2) drop-shadow(0 0 10px rgba(6,182,212,0.35)); }
-          }
-          @keyframes bodyBreathe {
-            0%, 100% { transform: scale(1); }
-            50%      { transform: scale(1.008); }
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 3px rgba(6,182,212,0.1)); }
+            50%      { filter: brightness(1.08) drop-shadow(0 0 6px rgba(6,182,212,0.22)); }
           }
           .bodymap-profile {
-            animation: bodyFadeIn 0.8s ease-out, bodyBreathe 4s ease-in-out infinite 0.8s;
+            animation: bodyFadeIn 0.4s ease-out;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .bodymap-profile { animation: none; }
           }
           .bodymap-profile svg path[fill="#38bdf8"],
           .bodymap-profile svg path[fill="#06b6d4"],
           .bodymap-profile svg path[fill="#f59e0b"] {
-            animation: musclePulse 2.5s ease-in-out infinite;
+            animation: musclePulse 3s ease-in-out infinite;
           }
-          .bodymap-profile svg path[fill="#06b6d4"] { animation-delay: 0.3s; }
-          .bodymap-profile svg path[fill="#f59e0b"] { animation-delay: 0.6s; }
+          .bodymap-profile svg path[fill="#06b6d4"] { animation-delay: 0.4s; }
+          .bodymap-profile svg path[fill="#f59e0b"] { animation-delay: 0.8s; }
         `}</style>
       </>
     );

@@ -88,13 +88,13 @@ body {
   min-height: 100vh;
 }
 
-/* ── LOGO PULSE ── */
-@keyframes logoPulse {
-  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 4px rgba(0,201,255,0.4)); }
-  50% { transform: scale(1.07); filter: drop-shadow(0 0 10px rgba(0,201,255,0.7)); }
+/* ── LOGO GLOW (solo glow, sin escala) ── */
+@keyframes logoGlow {
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(0,201,255,0.3)); }
+  50%       { filter: drop-shadow(0 0 7px rgba(0,201,255,0.55)); }
 }
 .logo-pulse {
-  animation: logoPulse 2.8s ease-in-out infinite;
+  animation: logoGlow 3.5s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
   .logo-pulse { animation: none; }
@@ -184,11 +184,12 @@ body {
 /* --- NAVIGATION (Sticky Glass) --- */
 .tabs-nav {
   display: flex;
-  background: rgba(5, 5, 8, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 0.6rem 0.5rem 0.5rem;
+  background: rgba(10, 10, 10, 0.88);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+  padding: 0.5rem 0.4rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
   justify-content: space-around;
   position: sticky;
   bottom: 0;
@@ -353,15 +354,15 @@ body {
   border-color: var(--accent-gym) !important;
 }
 
-/* --- PULSE ANIMATION --- */
-@keyframes pulse {
+/* --- DOT PULSE (burbuja de estado online) --- */
+@keyframes dotPulse {
   0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.7; }
+  50% { transform: scale(1.2); opacity: 0.6; }
   100% { transform: scale(1); opacity: 1; }
 }
 
 .pulse {
-  animation: pulse 2s infinite ease-in-out;
+  animation: dotPulse 2s infinite ease-in-out;
 }
 
 .loading-state {
