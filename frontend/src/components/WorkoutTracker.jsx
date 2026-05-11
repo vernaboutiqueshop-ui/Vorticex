@@ -454,6 +454,8 @@ export default function WorkoutTracker({
                 >
                   <img
                     src={ej?.gif_url}
+                    loading="lazy"
+                    decoding="async"
                     onClick={(e) => { e.stopPropagation(); setGifDetail(ej); }}
                     style={{
                       width: 42, height: 42, borderRadius: 10, background: "#fff",
@@ -745,7 +747,7 @@ export default function WorkoutTracker({
             {/* Star rating */}
             <div style={{ textAlign: 'center', margin: '0.5rem 0' }}>
               <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700, marginBottom: '0.4rem' }}>
-                {lang === 'es' ? '¿Cómo te sentiste?' : 'How did you feel?'}
+                {t('how_did_you_feel')}
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '0.3rem' }}>
                 {[1, 2, 3, 4, 5].map(star => (
@@ -779,7 +781,7 @@ export default function WorkoutTracker({
                   boxShadow: "0 0 20px rgba(6,182,212,0.3)",
                 }}
               >
-                {saving ? t('saving') : (lang === 'es' ? 'Guardar entrenamiento' : 'Save workout')}
+                {saving ? t('saving') : t('save_workout')}
               </button>
               <button
                 onClick={() => setFinishModal(false)}
@@ -789,7 +791,7 @@ export default function WorkoutTracker({
                   fontWeight: 700, fontSize: "0.85rem", cursor: "pointer",
                 }}
               >
-                {lang === 'es' ? 'Seguir entrenando' : 'Keep training'}
+                {t('keep_training')}
               </button>
             </div>
           </div>

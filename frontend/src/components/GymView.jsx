@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useMemo,
   useRef,
+  useTransition,
 } from "react";
 import {
   Plus,
@@ -433,6 +434,7 @@ const ExerciseSelectorView = ({
   setFilterMuscle,
   filterEquipment,
   setFilterEquipment,
+  filterPending = false,
 }) => {
   const { t, lang } = useLanguage();
   const MUSCLE_LABEL_MAP = getMuscleMap(lang);
@@ -659,9 +661,11 @@ const ExerciseSelectorView = ({
           )}
         </button>
 
-        {/* GIF - clickeable para abrir detalle */}
+        {/* GIF - lazy loading para no bloquear el filtro */}
         <img
           src={ej?.gif_url}
+          loading="lazy"
+          decoding="async"
           onClick={() => setSelectedExercise(ej)}
           style={{
             width: "56px",
@@ -1079,6 +1083,22 @@ const ExerciseSelectorView = ({
           </AnimatePresence>
         </div>
 
+        {/* Indicador de filtro en proceso */}
+        {filterPending && (
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            gap: "0.4rem", padding: "0.4rem", fontSize: "0.65rem",
+            color: "#06b6d4", fontWeight: 700,
+          }}>
+            <div style={{
+              width: 10, height: 10, borderRadius: "50%",
+              border: "2px solid #06b6d4", borderTopColor: "transparent",
+              animation: "spin 0.6s linear infinite",
+            }} />
+            Filtrando...
+          </div>
+        )}
+
         {/* Lista */}
         <div
           key={`${filterCategory}-${filterMuscle}-${filterEquipment}-${searchTerm}-${currentPage}`}
@@ -1088,6 +1108,8 @@ const ExerciseSelectorView = ({
             display: "flex",
             flexDirection: "column",
             gap: "0.45rem",
+            opacity: filterPending ? 0.5 : 1,
+            transition: "opacity 0.15s ease",
           }}
           className="no-scrollbar"
         >
@@ -1766,10 +1788,16 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
   const [actionLoading, setActionLoading] = useState(null);
 
   /* ── Estado filtros ── */
+  const [filterPending, startFilterTransition] = useTransition();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterMuscle, setFilterMuscle] = useState("__all__");
   const [filterCategory, setFilterCategory] = useState("Todos");
   const [filterEquipment, setFilterEquipment] = useState("Todos");
+
+  // Wrappers con baja prioridad para no bloquear la UI al cambiar filtros
+  const setFilterMuscleDeferred = useCallback((v) => startFilterTransition(() => setFilterMuscle(v)), []);
+  const setFilterCategoryDeferred = useCallback((v) => startFilterTransition(() => setFilterCategory(v)), []);
+  const setFilterEquipmentDeferred = useCallback((v) => startFilterTransition(() => setFilterEquipment(v)), []);
 
   /* ── Nuevos estados UI ── */
   const [showFolderModal, setShowFolderModal] = useState(false);
@@ -3766,11 +3794,12 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           filterCategory={filterCategory}
-          setFilterCategory={setFilterCategory}
+          setFilterCategory={setFilterCategoryDeferred}
           filterMuscle={filterMuscle}
-          setFilterMuscle={setFilterMuscle}
+          setFilterMuscle={setFilterMuscleDeferred}
           filterEquipment={filterEquipment}
-          setFilterEquipment={setFilterEquipment}
+          setFilterEquipment={setFilterEquipmentDeferred}
+          filterPending={filterPending}
           onAdd={(ej) => {
             setBuilderExercises((p) => {
               const next = [
