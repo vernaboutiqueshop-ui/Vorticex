@@ -447,6 +447,11 @@ const ExerciseSelectorView = ({
   const MUSCLES_COLLAPSED_COUNT = 6;
   const PAGE_SIZE = 20;
 
+  // Caché de listas filtradas — evita recomputar useMemo en filtros ya visitados
+  const filterCache = useRef(new Map());
+  // Limpiar caché cuando cambia el search term (invalidación selectiva)
+  useEffect(() => { filterCache.current.clear(); }, [searchTerm, exercises]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterMuscle, filterCategory, filterEquipment]);
@@ -511,15 +516,19 @@ const ExerciseSelectorView = ({
     return counts;
   }, [baseForEquip]);
 
-  // Resultado final: búsqueda + categoría + músculo + equipamiento
+  // Resultado final con caché — evita recomputar en filtros ya visitados
   const filtered = useMemo(() => {
-    return baseForEquip.filter((e) => {
+    const cacheKey = `${filterCategory}|${filterMuscle}|${filterEquipment}`;
+    if (filterCache.current.has(cacheKey)) return filterCache.current.get(cacheKey);
+    const result = baseForEquip.filter((e) => {
       const eq = (e.equipment || "").toLowerCase();
       return filterEquipment === "Todos" ||
         (FILTER_MAP.EQUIPMENT[filterEquipment] &&
           FILTER_MAP.EQUIPMENT[filterEquipment].some((term) => eq.includes(term)));
     });
-  }, [baseForEquip, filterEquipment]);
+    filterCache.current.set(cacheKey, result);
+    return result;
+  }, [baseForEquip, filterEquipment, filterCategory, filterMuscle]);
 
   const selectedIds = useMemo(
     () => builderExercises.map((e) => String(e?.id_ejercicio || e?.id)),
@@ -1083,23 +1092,27 @@ const ExerciseSelectorView = ({
           </AnimatePresence>
         </div>
 
-        {/* Indicador de filtro en proceso */}
-        {filterPending && (
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            gap: "0.4rem", padding: "0.4rem", fontSize: "0.65rem",
-            color: "#06b6d4", fontWeight: 700,
-          }}>
+        {/* Barra de progreso lineal — justo encima de la lista, solo cuando filtra */}
+        <div style={{ height: 2, borderRadius: 99, overflow: "hidden", marginBottom: "0.5rem", background: "rgba(255,255,255,0.04)" }}>
+          {filterPending && (
             <div style={{
-              width: 10, height: 10, borderRadius: "50%",
-              border: "2px solid #06b6d4", borderTopColor: "transparent",
-              animation: "spin 0.6s linear infinite",
+              height: "100%", borderRadius: 99, width: "60%",
+              background: "linear-gradient(90deg, transparent, #06b6d4, transparent)",
+              animation: "filterProgress 0.9s ease-in-out infinite",
             }} />
-            Filtrando...
-          </div>
-        )}
+          )}
+        </div>
+        <style>{`
+          @keyframes filterProgress {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(280%); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            [data-filter-progress] { animation: none; background: #06b6d4; width: 100%; }
+          }
+        `}</style>
 
-        {/* Lista */}
+        {/* Lista — skeletons cuando filtra, resultados cuando listo */}
         <div
           key={`${filterCategory}-${filterMuscle}-${filterEquipment}-${searchTerm}-${currentPage}`}
           style={{
@@ -1108,11 +1121,23 @@ const ExerciseSelectorView = ({
             display: "flex",
             flexDirection: "column",
             gap: "0.45rem",
-            opacity: filterPending ? 0.5 : 1,
-            transition: "opacity 0.15s ease",
           }}
           className="no-scrollbar"
         >
+          {/* Skeleton rows mientras aplica el filtro */}
+          {filterPending && Array(7).fill(0).map((_, i) => (
+            <div key={`sk-${i}`} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.65rem 0.5rem" }}>
+              <div className="skeleton" style={{ width: 56, height: 56, borderRadius: 12, flexShrink: 0 }} />
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                <div className="skeleton" style={{ height: 14, borderRadius: 6, width: `${65 + (i % 3) * 12}%` }} />
+                <div className="skeleton" style={{ height: 10, borderRadius: 6, width: `${35 + (i % 4) * 8}%` }} />
+              </div>
+              <div className="skeleton" style={{ width: 34, height: 34, borderRadius: "50%", flexShrink: 0 }} />
+            </div>
+          ))}
+
+          {/* Contenido real — oculto durante skeleton */}
+          {!filterPending && <>
           {showPopularSection &&
             popularList.length > 0 &&
             currentPage === 1 && (
@@ -1200,6 +1225,7 @@ const ExerciseSelectorView = ({
               )}
             </motion.div>
           )}
+          </>{/* fin contenido real */}
         </div>
 
         {/* Controles de paginación */}
