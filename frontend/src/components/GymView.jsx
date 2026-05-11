@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useRef,
   useTransition,
+  useDeferredValue,
 } from "react";
 import {
   Plus,
@@ -447,9 +448,23 @@ const ExerciseSelectorView = ({
   const MUSCLES_COLLAPSED_COUNT = 6;
   const PAGE_SIZE = 20;
 
-  // Caché de listas filtradas — evita recomputar useMemo en filtros ya visitados
+  // useDeferredValue: el chip visual cambia instantáneamente,
+  // pero la cadena pesada de useMemo usa valores diferidos.
+  // React procesa el cómputo caro cuando el hilo está libre.
+  const deferredMuscle = useDeferredValue(filterMuscle);
+  const deferredCategory = useDeferredValue(filterCategory);
+  const deferredEquipment = useDeferredValue(filterEquipment);
+  const deferredSearch = useDeferredValue(searchTerm);
+
+  // isPending es true cuando los valores diferidos no alcanzaron al actual
+  const isFilterStale =
+    deferredMuscle !== filterMuscle ||
+    deferredCategory !== filterCategory ||
+    deferredEquipment !== filterEquipment ||
+    deferredSearch !== searchTerm;
+
+  // Caché de listas filtradas — evita recomputar en filtros ya visitados
   const filterCache = useRef(new Map());
-  // Limpiar caché cuando cambia el search term (invalidación selectiva)
   useEffect(() => { filterCache.current.clear(); }, [searchTerm, exercises]);
 
   useEffect(() => {
@@ -469,26 +484,28 @@ const ExerciseSelectorView = ({
     [exercises],
   );
 
-  // Base post-búsqueda (fuzzy search applied, no filters yet)
+  // Toda la cadena de cómputo usa valores DIFERIDOS:
+  // → UI responde instantáneamente, cómputo pesado corre cuando hay tiempo libre
+
+  // searchBase con valor diferido (Fuse.js no corre hasta que el texto se estabiliza)
   const searchBase = useMemo(() => {
-    if (searchTerm.trim().length > 0) {
-      return fuseIndex.search(searchTerm.trim()).map((r) => r.item);
+    if (deferredSearch.trim().length > 0) {
+      return fuseIndex.search(deferredSearch.trim()).map((r) => r.item);
     }
     return exercises;
-  }, [exercises, fuseIndex, searchTerm]);
+  }, [exercises, fuseIndex, deferredSearch]);
 
-  // Base post-búsqueda + categoría (para contar músculos)
+  // Base post-búsqueda + categoría diferida
   const baseForMuscle = useMemo(() => {
-    if (filterCategory === "Todos") return searchBase;
+    if (deferredCategory === "Todos") return searchBase;
     const catMap = FILTER_MAP.CATEGORIES[lang] || FILTER_MAP.CATEGORIES.es;
     return searchBase.filter((e) => {
       const bp = e.body_part || "General";
-      return catMap[filterCategory] && catMap[filterCategory].includes(bp);
+      return catMap[deferredCategory] && catMap[deferredCategory].includes(bp);
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchBase, filterCategory, lang]);
+  }, [searchBase, deferredCategory, lang]);
 
-  // Conteo de músculos (sobre búsqueda + categoría)
+  // Conteo de músculos — diferido, no bloquea el render de chips
   const muscleCounts = useMemo(() => {
     const counts = { Todos: baseForMuscle.length };
     baseForMuscle.forEach((e) => {
@@ -498,16 +515,16 @@ const ExerciseSelectorView = ({
     return counts;
   }, [baseForMuscle]);
 
-  // Base post-búsqueda + categoría + músculo (para contar equipamiento)
+  // Base + músculo diferido
   const baseForEquip = useMemo(() => {
     return baseForMuscle.filter((e) => {
       const bp = e.body_part || "General";
-      const dbMuscle = MUSCLE_LABEL_MAP[filterMuscle] || filterMuscle;
-      return filterMuscle === ALL_MUSCLES || bp === dbMuscle;
+      const dbMuscle = MUSCLE_LABEL_MAP[deferredMuscle] || deferredMuscle;
+      return deferredMuscle === ALL_MUSCLES || bp === dbMuscle;
     });
-  }, [baseForMuscle, filterMuscle]);
+  }, [baseForMuscle, deferredMuscle]);
 
-  // Conteo por equipamiento (sobre búsqueda + categoría + músculo)
+  // Conteo equipamiento — diferido
   const equipCounts = useMemo(() => {
     const counts = { Todos: baseForEquip.length };
     baseForEquip.forEach((e) => {
@@ -516,19 +533,19 @@ const ExerciseSelectorView = ({
     return counts;
   }, [baseForEquip]);
 
-  // Resultado final con caché — evita recomputar en filtros ya visitados
+  // Resultado final con caché — diferido + memoizado
   const filtered = useMemo(() => {
-    const cacheKey = `${filterCategory}|${filterMuscle}|${filterEquipment}`;
+    const cacheKey = `${deferredCategory}|${deferredMuscle}|${deferredEquipment}`;
     if (filterCache.current.has(cacheKey)) return filterCache.current.get(cacheKey);
     const result = baseForEquip.filter((e) => {
       const eq = (e.equipment || "").toLowerCase();
-      return filterEquipment === "Todos" ||
-        (FILTER_MAP.EQUIPMENT[filterEquipment] &&
-          FILTER_MAP.EQUIPMENT[filterEquipment].some((term) => eq.includes(term)));
+      return deferredEquipment === "Todos" ||
+        (FILTER_MAP.EQUIPMENT[deferredEquipment] &&
+          FILTER_MAP.EQUIPMENT[deferredEquipment].some((term) => eq.includes(term)));
     });
     filterCache.current.set(cacheKey, result);
     return result;
-  }, [baseForEquip, filterEquipment, filterCategory, filterMuscle]);
+  }, [baseForEquip, deferredEquipment, deferredCategory, deferredMuscle]);
 
   const selectedIds = useMemo(
     () => builderExercises.map((e) => String(e?.id_ejercicio || e?.id)),
@@ -1094,7 +1111,7 @@ const ExerciseSelectorView = ({
 
         {/* Barra de progreso lineal — justo encima de la lista, solo cuando filtra */}
         <div style={{ height: 2, borderRadius: 99, overflow: "hidden", marginBottom: "0.5rem", background: "rgba(255,255,255,0.04)" }}>
-          {filterPending && (
+          {(filterPending || isFilterStale) && (
             <div style={{
               height: "100%", borderRadius: 99, width: "60%",
               background: "linear-gradient(90deg, transparent, #06b6d4, transparent)",
@@ -1125,7 +1142,7 @@ const ExerciseSelectorView = ({
           className="no-scrollbar"
         >
           {/* Skeleton rows mientras aplica el filtro */}
-          {filterPending && Array(7).fill(0).map((_, i) => (
+          {(filterPending || isFilterStale) && Array(7).fill(0).map((_, i) => (
             <div key={`sk-${i}`} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.65rem 0.5rem" }}>
               <div className="skeleton" style={{ width: 56, height: 56, borderRadius: 12, flexShrink: 0 }} />
               <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
@@ -1137,7 +1154,7 @@ const ExerciseSelectorView = ({
           ))}
 
           {/* Contenido real — oculto durante skeleton */}
-          {!filterPending && <>
+          {!(filterPending || isFilterStale) && <>
           {showPopularSection &&
             popularList.length > 0 &&
             currentPage === 1 && (
@@ -3825,7 +3842,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
           setFilterMuscle={setFilterMuscleDeferred}
           filterEquipment={filterEquipment}
           setFilterEquipment={setFilterEquipmentDeferred}
-          filterPending={filterPending}
+          filterPending={filterPending || false}
           onAdd={(ej) => {
             setBuilderExercises((p) => {
               const next = [
