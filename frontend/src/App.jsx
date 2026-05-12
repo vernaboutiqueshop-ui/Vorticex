@@ -90,7 +90,7 @@ function ComingSoon({ label }) {
       <h2 style={{ color: '#fff', margin: 0, fontSize: '1.3rem', fontWeight: 900 }}>
         {label}
       </h2>
-      <p style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 600, maxWidth: 280, lineHeight: 1.5 }}>
+      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600, maxWidth: 280, lineHeight: 1.5 }}>
         Próximamente disponible. Estamos trabajando para traerte esta funcionalidad.
       </p>
       <div style={{
@@ -318,7 +318,7 @@ function AppContent() {
       {/* ═══ PWA Install Banner ═══ */}
       {showInstallBanner && (
         <div style={{
-          background: 'linear-gradient(135deg, rgba(6,182,212,0.12) 0%, rgba(15,23,42,0.95) 100%)',
+          background: 'linear-gradient(135deg, rgba(6,182,212,0.12) 0%, var(--surface-2) 100%)',
           border: '1px solid rgba(6,182,212,0.2)', borderRadius: '14px',
           margin: '0.5rem 0.75rem', padding: '0.7rem 0.85rem',
           position: 'relative', overflow: 'hidden',
@@ -334,7 +334,7 @@ function AppContent() {
               <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff', lineHeight: 1.3 }}>
                 {t('install_title') || 'Instalá la app'}
               </div>
-              <div style={{ fontSize: '0.62rem', color: '#94a3b8', lineHeight: 1.3, marginTop: '0.1rem' }}>
+              <div style={{ fontSize: '0.62rem', color: 'var(--text-secondary)', lineHeight: 1.3, marginTop: '0.1rem' }}>
                 {t('install_subtitle') || 'Mejor experiencia, acceso directo'}
               </div>
             </div>
@@ -355,7 +355,7 @@ function AppContent() {
                 background: 'none', border: 'none', cursor: 'pointer', padding: '0.2rem',
               }}
             >
-              <X size={14} color="#64748b" />
+              <X size={14} color="var(--text-muted)" />
             </button>
           </div>
 
@@ -378,7 +378,7 @@ function AppContent() {
                       cursor: 'pointer', transition: '0.15s',
                       background: installPlatform === p.id ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.04)',
                       border: installPlatform === p.id ? '1px solid rgba(6,182,212,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                      color: installPlatform === p.id ? '#06b6d4' : '#64748b',
+                      color: installPlatform === p.id ? '#06b6d4' : 'var(--text-muted)',
                     }}
                   >{p.label}</button>
                 ))}
@@ -510,7 +510,7 @@ function NotificationsModal({ perfil, onClose }) {
     }}>
       <div style={{
         width: 'min(92vw, 400px)', maxHeight: '70vh',
-        background: 'rgba(15,23,42,0.98)', border: '1px solid rgba(255,255,255,0.08)',
+        background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.08)',
         borderRadius: '20px', overflow: 'hidden', display: 'flex', flexDirection: 'column',
       }}>
         {/* Header */}
@@ -523,19 +523,19 @@ function NotificationsModal({ perfil, onClose }) {
             <span style={{ fontWeight: 900, fontSize: '1rem', color: '#fff' }}>{t('notifications')}</span>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-            <X size={18} color="#64748b" />
+            <X size={18} color="var(--text-muted)" />
           </button>
         </div>
 
         {/* Body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '0.5rem' }}>
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b', fontSize: '0.8rem' }}>{t('loading')}</div>
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.8rem' }}>{t('loading')}</div>
           ) : notifs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2.5rem 1rem' }}>
-              <Bell size={32} color="#1e293b" style={{ marginBottom: '0.75rem' }} />
-              <div style={{ color: '#475569', fontSize: '0.85rem', fontWeight: 700 }}>{t('no_notifications')}</div>
-              <div style={{ color: '#334155', fontSize: '0.7rem', marginTop: '0.25rem' }}>{t('notif_hint')}</div>
+              <Bell size={32} color="var(--surface-2)" style={{ marginBottom: '0.75rem' }} />
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 700 }}>{t('no_notifications')}</div>
+              <div style={{ color: 'var(--surface-3)', fontSize: '0.7rem', marginTop: '0.25rem' }}>{t('notif_hint')}</div>
             </div>
           ) : (
             notifs.map(n => (
@@ -557,7 +557,7 @@ function NotificationsModal({ perfil, onClose }) {
                   <div style={{ fontSize: '0.78rem', color: '#fff', lineHeight: 1.35 }}>
                     <span style={{ fontWeight: 900, color: '#06b6d4' }}>{n.from_user}</span>
                     {' '}
-                    <span style={{ fontWeight: 600, color: '#94a3b8' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
                       {n.type === 'like'
                         ? (lang === 'es' ? 'le dio ❤️ a tu post' : 'liked ❤️ your post')
                         : n.type === 'admin_reply'
@@ -567,7 +567,7 @@ function NotificationsModal({ perfil, onClose }) {
                   </div>
                   {(n.type === 'comment' || n.type === 'admin_reply') && n.message && (
                     <div style={{
-                      fontSize: '0.68rem', color: '#64748b', fontWeight: 600,
+                      fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem',
                     }}>"{n.message}"</div>
                   )}
@@ -581,7 +581,7 @@ function NotificationsModal({ perfil, onClose }) {
                     ? <Zap size={14} color="#f59e0b" />
                     : <MessageCircle size={14} color="#06b6d4" />
                   }
-                  <span style={{ fontSize: '0.5rem', color: '#475569', fontWeight: 700 }}>{timeAgo(n.created_at)}</span>
+                  <span style={{ fontSize: '0.5rem', color: 'var(--text-muted)', fontWeight: 700 }}>{timeAgo(n.created_at)}</span>
                 </div>
               </div>
             ))
@@ -643,14 +643,14 @@ function FeedbackBubble({ perfil }) {
         <div style={{
           position: 'fixed', bottom: 'calc(5.2rem + env(safe-area-inset-bottom, 0px))',
           left: '0.75rem', zIndex: 8000, width: 260,
-          background: 'rgba(15,23,42,0.97)', backdropFilter: 'blur(20px)',
+          background: 'var(--surface-2)', backdropFilter: 'blur(20px)',
           border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px',
           padding: '0.75rem', boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
             <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#06b6d4', letterSpacing: '0.5px' }}>SUGERENCIAS</span>
             <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-              <X size={14} color="#64748b" />
+              <X size={14} color="var(--text-muted)" />
             </button>
           </div>
           {status === 'sent' ? (
@@ -671,12 +671,12 @@ function FeedbackBubble({ perfil }) {
                 }}
               />
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.4rem' }}>
-                <span style={{ fontSize: '0.5rem', color: '#334155' }}>{msg.length}/300</span>
+                <span style={{ fontSize: '0.5rem', color: 'var(--surface-3)' }}>{msg.length}/300</span>
                 <button onClick={handleSend} disabled={!msg.trim() || cooldown > 0} style={{
                   background: msg.trim() ? 'linear-gradient(135deg, #06b6d4, #3b82f6)' : 'rgba(255,255,255,0.06)',
                   border: 'none', borderRadius: '8px', padding: '0.35rem 0.7rem', cursor: msg.trim() ? 'pointer' : 'not-allowed',
                   display: 'flex', alignItems: 'center', gap: '0.2rem',
-                  color: msg.trim() ? '#000' : '#475569', fontWeight: 900, fontSize: '0.65rem',
+                  color: msg.trim() ? '#000' : 'var(--text-muted)', fontWeight: 900, fontSize: '0.65rem',
                 }}>
                   <Send size={10} /> {cooldown > 0 ? `${cooldown}s` : 'Enviar'}
                 </button>

@@ -104,12 +104,11 @@ const getMuscleMap = (lang) => lang === "en"
 
 const ELITE_STYLES = {
   glassCard: {
-    background: "rgba(15, 23, 42, 0.95)",
-    backdropFilter: "blur(40px)",
-    border: "1px solid rgba(255,255,255,0.12)",
+    background: "var(--surface-2)",
+    border: "1px solid var(--border-subtle)",
     borderRadius: "24px",
     padding: "1.5rem",
-    boxShadow: "0 20px 50px -15px rgba(0,0,0,1)",
+    boxShadow: "0 20px 50px -15px rgba(0,0,0,0.8)",
   },
   primaryBtn: {
     background: "linear-gradient(135deg, #06b6d4, #0891b2)",
@@ -220,7 +219,7 @@ const RoutineDetailView = ({
       {/* Stats row */}
       <div style={{
         display: "flex", gap: "1.5rem",
-        background: "rgba(15,23,42,0.95)", border: "1px solid rgba(255,255,255,0.1)",
+        background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.1)",
         borderRadius: "18px", padding: "0.9rem 1.1rem",
       }}>
         {[
@@ -229,7 +228,7 @@ const RoutineDetailView = ({
           { label: t('duration'), value: `${Math.round(ejs.reduce((acc, e) => acc + (e?.sets_data?.length || 0), 0) * 2.5)}min`, color: "#22c55e" },
         ].map((s, i) => (
           <div key={i}>
-            <span style={{ fontSize: "0.55rem", color: "#64748b", fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase" }}>{s.label}</span>
+            <span style={{ fontSize: "0.55rem", color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.5px", textTransform: "uppercase" }}>{s.label}</span>
             <div style={{ fontWeight: 900, fontSize: "1.1rem", color: s.color, lineHeight: 1.2 }}>{s.value}</div>
           </div>
         ))}
@@ -253,7 +252,7 @@ const RoutineDetailView = ({
 
         return allTargets.length > 0 ? (
           <div style={{
-            background: "rgba(15,23,42,0.95)", border: "1px solid rgba(255,255,255,0.1)",
+            background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.1)",
             borderRadius: "18px", padding: "1rem 1.1rem",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.5rem" }}>
@@ -278,7 +277,7 @@ const RoutineDetailView = ({
               ].map((l, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
                   <div style={{ width: 8, height: 8, borderRadius: "50%", background: l.color }} />
-                  <span style={{ fontSize: "0.5rem", color: "#64748b", fontWeight: 700 }}>{l.label}</span>
+                  <span style={{ fontSize: "0.5rem", color: "var(--text-muted)", fontWeight: 700 }}>{l.label}</span>
                 </div>
               ))}
             </div>
@@ -304,7 +303,7 @@ const RoutineDetailView = ({
                   >
                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: dotColor, flexShrink: 0 }} />
                     <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#e2e8f0" }}>{name}</span>
-                    <ChevronDown size={10} color="#475569" />
+                    <ChevronDown size={10} color="var(--text-muted)" />
                   </motion.div>
                 );
               })}
@@ -725,7 +724,7 @@ const ExerciseSelectorView = ({
           <div
             style={{
               fontSize: "0.62rem",
-              color: "#94a3b8",
+              color: "var(--text-secondary)",
               fontWeight: 700,
               marginTop: "0.15rem",
             }}
@@ -736,7 +735,7 @@ const ExerciseSelectorView = ({
                 style={{
                   marginLeft: "0.4rem",
                   textTransform: "capitalize",
-                  color: "#64748b",
+                  color: "var(--text-muted)",
                 }}
               >
                 · {ej.difficulty}
@@ -800,7 +799,7 @@ const ExerciseSelectorView = ({
             <div
               style={{
                 fontSize: "0.72rem",
-                color: "#64748b",
+                color: "var(--text-muted)",
                 fontWeight: 600,
                 marginTop: "0.15rem",
               }}
@@ -858,7 +857,7 @@ const ExerciseSelectorView = ({
                 padding: 0,
               }}
             >
-              <X size={14} color="#64748b" />
+              <X size={14} color="var(--text-muted)" />
             </button>
           )}
         </div>
@@ -901,7 +900,7 @@ const ExerciseSelectorView = ({
                     transition: "all 0.15s",
                     textAlign: "center",
                     background: isActive ? "#06b6d4" : "rgba(255,255,255,0.06)",
-                    color: isActive ? "#000" : "#64748b",
+                    color: isActive ? "#000" : "var(--text-muted)",
                     boxShadow: isActive
                       ? "0 0 10px rgba(6,182,212,0.35)"
                       : "none",
@@ -933,7 +932,7 @@ const ExerciseSelectorView = ({
                 transition: "all 0.15s",
                 background: filterMuscle !== ALL_MUSCLES ? "rgba(6,182,212,0.1)" : "rgba(255,255,255,0.03)",
                 borderColor: filterMuscle !== ALL_MUSCLES ? "rgba(6,182,212,0.3)" : "rgba(255,255,255,0.07)",
-                color: filterMuscle !== ALL_MUSCLES ? "#06b6d4" : "#94a3b8",
+                color: filterMuscle !== ALL_MUSCLES ? "#06b6d4" : "var(--text-secondary)",
               }}
             >
               <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
@@ -974,7 +973,7 @@ const ExerciseSelectorView = ({
                         border: "1px solid",
                         background: filterMuscle === ALL_MUSCLES ? "rgba(6,182,212,0.18)" : "rgba(255,255,255,0.03)",
                         borderColor: filterMuscle === ALL_MUSCLES ? "#06b6d4" : "rgba(255,255,255,0.07)",
-                        color: filterMuscle === ALL_MUSCLES ? "#06b6d4" : "#64748b",
+                        color: filterMuscle === ALL_MUSCLES ? "#06b6d4" : "var(--text-muted)",
                       }}
                     >
                       <LayoutGrid size={11} /> Todos
@@ -1001,14 +1000,14 @@ const ExerciseSelectorView = ({
                             border: "1px solid",
                             background: isActive ? `${activeColor}20` : "rgba(255,255,255,0.03)",
                             borderColor: isActive ? `${activeColor}80` : "rgba(255,255,255,0.07)",
-                            color: isActive ? activeColor : "#94a3b8",
+                            color: isActive ? activeColor : "var(--text-secondary)",
                             transition: "background 0.2s, border-color 0.2s, color 0.2s",
                           }}
                         >
                           <motion.span
                             animate={isActive ? { rotate: [0, -15, 15, 0], scale: [1, 1.3, 1] } : { rotate: 0, scale: 1 }}
                             transition={{ duration: 0.35, ease: "easeOut" }}
-                            style={{ display: "inline-flex", color: isActive ? activeColor : "#94a3b8", opacity: isActive ? 1 : 0.5 }}
+                            style={{ display: "inline-flex", color: isActive ? activeColor : "var(--text-secondary)", opacity: isActive ? 1 : 0.5 }}
                           >
                             <MIcon size={11} />
                           </motion.span>
@@ -1058,7 +1057,7 @@ const ExerciseSelectorView = ({
                       ? "rgba(59,130,246,0.2)"
                       : "rgba(255,255,255,0.03)",
                     borderColor: isActive ? "#3b82f6" : "rgba(255,255,255,0.07)",
-                    color: isActive ? "#93c5fd" : "#475569",
+                    color: isActive ? "#93c5fd" : "var(--text-muted)",
                   }}
                 >
                   {label}
@@ -1183,7 +1182,7 @@ const ExerciseSelectorView = ({
                     style={{
                       fontSize: "0.6rem",
                       fontWeight: 900,
-                      color: "#94a3b8",
+                      color: "var(--text-secondary)",
                       letterSpacing: "1.5px",
                       margin: "0.7rem 0 0.3rem",
                     }}
@@ -1204,7 +1203,7 @@ const ExerciseSelectorView = ({
               style={{
                 textAlign: "center",
                 padding: "3rem 1rem",
-                color: "#475569",
+                color: "var(--text-muted)",
               }}
             >
               <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>
@@ -1214,7 +1213,7 @@ const ExerciseSelectorView = ({
                 style={{
                   fontWeight: 800,
                   fontSize: "0.95rem",
-                  color: "#64748b",
+                  color: "var(--text-muted)",
                 }}
               >
                 Sin resultados
@@ -1222,7 +1221,7 @@ const ExerciseSelectorView = ({
               <div
                 style={{
                   fontSize: "0.78rem",
-                  color: "#475569",
+                  color: "var(--text-muted)",
                   marginTop: "0.3rem",
                 }}
               >
@@ -1266,7 +1265,7 @@ const ExerciseSelectorView = ({
                 borderRadius: "10px",
                 background: "rgba(255,255,255,0.06)",
                 border: "1px solid rgba(255,255,255,0.1)",
-                color: currentPage === 1 ? "#334155" : "#94a3b8",
+                color: currentPage === 1 ? "var(--surface-3)" : "var(--text-secondary)",
                 fontWeight: 700,
                 fontSize: "0.8rem",
                 cursor: currentPage === 1 ? "not-allowed" : "pointer",
@@ -1275,7 +1274,7 @@ const ExerciseSelectorView = ({
               ← Ant
             </button>
             <div
-              style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 700 }}
+              style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 700 }}
             >
               <span style={{ color: "#06b6d4", fontWeight: 900 }}>
                 {currentPage}
@@ -1284,7 +1283,7 @@ const ExerciseSelectorView = ({
               {totalPages}
               <span
                 style={{
-                  color: "#475569",
+                  color: "var(--text-muted)",
                   marginLeft: "0.5rem",
                   fontSize: "0.65rem",
                 }}
@@ -1300,7 +1299,7 @@ const ExerciseSelectorView = ({
                 borderRadius: "10px",
                 background: "rgba(255,255,255,0.06)",
                 border: "1px solid rgba(255,255,255,0.1)",
-                color: currentPage === totalPages ? "#334155" : "#94a3b8",
+                color: currentPage === totalPages ? "var(--surface-3)" : "var(--text-secondary)",
                 fontWeight: 700,
                 fontSize: "0.8rem",
                 cursor: currentPage === totalPages ? "not-allowed" : "pointer",
@@ -1370,12 +1369,12 @@ const ExerciseSelectorView = ({
                     </span>
                   )}
                   {selectedExercise?.zone && (
-                    <span style={{ background: "rgba(255,255,255,0.06)", color: "#64748b", fontSize: "0.6rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "99px" }}>
+                    <span style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-muted)", fontSize: "0.6rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "99px" }}>
                       {selectedExercise.zone}
                     </span>
                   )}
                   {selectedExercise?.mechanic && (
-                    <span style={{ background: "rgba(255,255,255,0.06)", color: "#64748b", fontSize: "0.6rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "99px" }}>
+                    <span style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-muted)", fontSize: "0.6rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "99px" }}>
                       {selectedExercise.mechanic}
                     </span>
                   )}
@@ -1393,11 +1392,11 @@ const ExerciseSelectorView = ({
                       padding: "0.7rem 0", background: "transparent", border: "none", cursor: "pointer",
                     }}
                   >
-                    <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.7rem", fontWeight: 900, color: "#94a3b8", letterSpacing: "0.3px" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.7rem", fontWeight: 900, color: "var(--text-secondary)", letterSpacing: "0.3px" }}>
                       <Info size={13} color="#06b6d4" />
                       {t('instructions')}
                     </span>
-                    <ChevronDown size={14} color="#64748b" style={{ transition: "transform 0.25s", transform: showInstructions ? "rotate(180deg)" : "rotate(0)" }} />
+                    <ChevronDown size={14} color="var(--text-muted)" style={{ transition: "transform 0.25s", transform: showInstructions ? "rotate(180deg)" : "rotate(0)" }} />
                   </motion.button>
                   <AnimatePresence>
                     {showInstructions && (
@@ -1422,7 +1421,7 @@ const ExerciseSelectorView = ({
                                 background: "rgba(6,182,212,0.1)", color: "#06b6d4",
                                 fontSize: "0.6rem", fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center",
                               }}>{i + 1}</span>
-                              <span style={{ fontSize: "0.76rem", color: "#94a3b8", lineHeight: 1.55, fontWeight: 500 }}>{step}</span>
+                              <span style={{ fontSize: "0.76rem", color: "var(--text-secondary)", lineHeight: 1.55, fontWeight: 500 }}>{step}</span>
                             </motion.div>
                           ))}
                         </div>
@@ -1559,7 +1558,7 @@ const FolderModal = ({ onCancel, onCreate }) => {
               borderRadius: "14px",
               border: "1px solid rgba(255,255,255,0.1)",
               background: "transparent",
-              color: "#94a3b8",
+              color: "var(--text-secondary)",
               fontWeight: 800,
               fontSize: "0.85rem",
               cursor: "pointer",
@@ -1703,7 +1702,7 @@ const SummaryModal = ({ exercises, onClose }) => {
             <div
               style={{
                 fontSize: "0.6rem",
-                color: "#94a3b8",
+                color: "var(--text-secondary)",
                 fontWeight: 700,
                 letterSpacing: "1px",
               }}
@@ -2143,20 +2142,20 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#06b6d4" }}>
                     {sessionResult.volumen ? `${sessionResult.volumen.toFixed(0)}` : "0"}
                   </div>
-                  <div style={{ fontSize: "0.6rem", color: "#94a3b8", fontWeight: 700 }}>KG VOLUMEN</div>
+                  <div style={{ fontSize: "0.6rem", color: "var(--text-secondary)", fontWeight: 700 }}>KG VOLUMEN</div>
                 </div>
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#22c55e" }}>
                     +{sessionResult.exp_ganada || 0}
                   </div>
-                  <div style={{ fontSize: "0.6rem", color: "#94a3b8", fontWeight: 700 }}>EXP</div>
+                  <div style={{ fontSize: "0.6rem", color: "var(--text-secondary)", fontWeight: 700 }}>EXP</div>
                 </div>
                 {sessionResult.nuevo_nivel && (
                   <div style={{ textAlign: "center" }}>
                     <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#f59e0b" }}>
                       {sessionResult.nuevo_nivel}
                     </div>
-                    <div style={{ fontSize: "0.6rem", color: "#94a3b8", fontWeight: 700 }}>NIVEL</div>
+                    <div style={{ fontSize: "0.6rem", color: "var(--text-secondary)", fontWeight: 700 }}>NIVEL</div>
                   </div>
                 )}
               </div>
@@ -2212,7 +2211,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 padding: "0.3rem", display: "flex", alignItems: "center",
               }}
             >
-              <ChevronLeft size={22} color="#94a3b8" />
+              <ChevronLeft size={22} color="var(--text-secondary)" />
             </button>
             <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center" }}>
               <input
@@ -2232,11 +2231,11 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
               {!routineName && (
                 <span style={{
                   position: "absolute", right: "0.2rem", top: "50%", transform: "translateY(-50%)",
-                  fontSize: "0.55rem", fontWeight: 700, color: "#475569",
+                  fontSize: "0.55rem", fontWeight: 700, color: "var(--text-muted)",
                   background: "rgba(255,255,255,0.04)", padding: "0.15rem 0.4rem", borderRadius: "6px",
                   pointerEvents: "none",
                 }}>
-                  <Edit2 size={11} color="#475569" />
+                  <Edit2 size={11} color="var(--text-muted)" />
                 </span>
               )}
             </div>
@@ -2249,7 +2248,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 border: selectedFolderId ? "1px solid rgba(6,182,212,0.3)" : "1px solid rgba(255,255,255,0.08)",
                 borderRadius: "10px", padding: "0.35rem 0.5rem", cursor: "pointer",
                 display: "flex", alignItems: "center", gap: "0.3rem",
-                color: selectedFolderId ? "#06b6d4" : "#64748b",
+                color: selectedFolderId ? "#06b6d4" : "var(--text-muted)",
               }}
             >
               <motion.div
@@ -2277,7 +2276,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.2, ease: "easeInOut" }}
-                style={{ overflow: "hidden", flexShrink: 0, background: "rgba(15,23,42,0.8)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+                style={{ overflow: "hidden", flexShrink: 0, background: "var(--surface-2)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
               >
                 <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", padding: "0.6rem 1rem" }}>
                   <button
@@ -2287,7 +2286,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                       cursor: "pointer", border: "1px solid", transition: "all 0.15s",
                       background: selectedFolderId === null ? "rgba(6,182,212,0.15)" : "rgba(255,255,255,0.04)",
                       borderColor: selectedFolderId === null ? "#06b6d4" : "rgba(255,255,255,0.1)",
-                      color: selectedFolderId === null ? "#06b6d4" : "#64748b",
+                      color: selectedFolderId === null ? "#06b6d4" : "var(--text-muted)",
                     }}
                   >
                     {t('no_folder')}
@@ -2305,7 +2304,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                           display: "flex", alignItems: "center", gap: "0.35rem",
                           background: isActive ? `${fc}20` : "rgba(255,255,255,0.04)",
                           borderColor: isActive ? `${fc}60` : "rgba(255,255,255,0.1)",
-                          color: isActive ? fc : "#94a3b8",
+                          color: isActive ? fc : "var(--text-secondary)",
                         }}
                       >
                         <span style={{ width: 6, height: 6, borderRadius: "50%", background: fc, flexShrink: 0 }} />
@@ -2355,7 +2354,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 ].map((s, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: isMobile ? "0.5rem" : "0.75rem" }}>
                     <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: "0.5rem", color: "#64748b", fontWeight: 700, letterSpacing: "0.3px", textTransform: "uppercase" }}>{s.label}</div>
+                      <div style={{ fontSize: "0.5rem", color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.3px", textTransform: "uppercase" }}>{s.label}</div>
                       <div style={{ fontWeight: 900, fontSize: isMobile ? "1.05rem" : "1.2rem", color: s.color, lineHeight: 1 }}>{s.value}</div>
                     </div>
                     {i < 2 && <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)" }} />}
@@ -2381,7 +2380,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 style={{
                   textAlign: "center",
                   padding: "2.5rem 1rem",
-                  color: "#475569",
+                  color: "var(--text-muted)",
                 }}
               >
                 <Dumbbell
@@ -2420,7 +2419,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                     <div
                       key={idx}
                       style={{
-                        background: "rgba(15,23,42,0.95)",
+                        background: "var(--surface-2)",
                         border: "1px solid rgba(255,255,255,0.1)",
                         borderRadius: "18px",
                         overflow: "hidden",
@@ -2486,7 +2485,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                             <span
                               style={{
                                 fontSize: "0.58rem",
-                                color: "#64748b",
+                                color: "var(--text-muted)",
                                 fontWeight: 700,
                               }}
                             >
@@ -2513,7 +2512,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               <span
                                 style={{
                                   fontSize: "0.55rem",
-                                  color: "#475569",
+                                  color: "var(--text-muted)",
                                 }}
                               >
                                 +{setTypeSummary.length - 4}
@@ -2552,7 +2551,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                           </button>
                           <ChevronDown
                             size={18}
-                            color="#475569"
+                            color="var(--text-muted)"
                             style={{
                               transform: isOpen
                                 ? "rotate(180deg)"
@@ -2582,11 +2581,11 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               marginBottom: "0.85rem",
                             }}
                           >
-                            <Clock size={13} color="#94a3b8" />
+                            <Clock size={13} color="var(--text-secondary)" />
                             <span
                               style={{
                                 fontSize: "0.68rem",
-                                color: "#94a3b8",
+                                color: "var(--text-secondary)",
                                 fontWeight: 700,
                               }}
                             >
@@ -2663,7 +2662,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                     alignItems: "center",
                                     gap: "0.2rem",
                                     fontSize: "0.56rem",
-                                    color: "#64748b",
+                                    color: "var(--text-muted)",
                                     fontWeight: 600,
                                   }}
                                 >
@@ -2712,14 +2711,14 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               <span
                                 style={{
                                   color:
-                                    ej.unit !== "seg" ? "#06b6d4" : "#475569",
+                                    ej.unit !== "seg" ? "#06b6d4" : "var(--text-muted)",
                                 }}
                               >
                                 REPS
                               </span>
                               <span
                                 style={{
-                                  color: "#475569",
+                                  color: "var(--text-muted)",
                                   margin: "0 0.15rem",
                                 }}
                               >
@@ -2728,7 +2727,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               <span
                                 style={{
                                   color:
-                                    ej.unit === "seg" ? "#8b5cf6" : "#475569",
+                                    ej.unit === "seg" ? "#8b5cf6" : "var(--text-muted)",
                                 }}
                               >
                                 SEG
@@ -2750,7 +2749,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               style={{
                                 fontSize: "0.5rem",
                                 fontWeight: 900,
-                                color: "#475569",
+                                color: "var(--text-muted)",
                                 textAlign: "center",
                                 letterSpacing: "0.5px",
                               }}
@@ -2761,7 +2760,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               style={{
                                 fontSize: "0.5rem",
                                 fontWeight: 900,
-                                color: "#475569",
+                                color: "var(--text-muted)",
                                 textAlign: "center",
                                 letterSpacing: "0.5px",
                               }}
@@ -2775,7 +2774,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                 textAlign: "center",
                                 letterSpacing: "0.5px",
                                 color:
-                                  ej.unit === "seg" ? "#8b5cf6" : "#475569",
+                                  ej.unit === "seg" ? "#8b5cf6" : "var(--text-muted)",
                               }}
                             >
                               {ej.unit === "seg" ? "SEG" : "REPS"}
@@ -2893,7 +2892,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                   justifyContent: "center",
                                 }}
                               >
-                                <X size={13} color="#475569" />
+                                <X size={13} color="var(--text-muted)" />
                               </button>
                             </div>
                           ))}
@@ -3055,7 +3054,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                     border: "1px solid",
                     background: activeTab === tab.key ? "rgba(6,182,212,0.15)" : "rgba(255,255,255,0.03)",
                     borderColor: activeTab === tab.key ? "rgba(6,182,212,0.4)" : "rgba(255,255,255,0.06)",
-                    color: activeTab === tab.key ? "#06b6d4" : "#475569",
+                    color: activeTab === tab.key ? "#06b6d4" : "var(--text-muted)",
                     transition: "all 0.15s",
                   }}
                 >
@@ -3078,7 +3077,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                     <div style={{ height: 12, width: "60%", background: "rgba(255,255,255,0.06)", borderRadius: 6, marginBottom: 6 }} />
                     <div style={{ height: 8, width: "40%", background: "rgba(255,255,255,0.04)", borderRadius: 4 }} />
                   </div>
-                  <Loader size={16} color="#475569" style={{ animation: "spin 1s linear infinite" }} />
+                  <Loader size={16} color="var(--text-muted)" style={{ animation: "spin 1s linear infinite" }} />
                 </div>
               ))}
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -3095,7 +3094,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
               }}>
                 <Loader size={24} color="#ef4444" />
               </div>
-              <p style={{ color: "#94a3b8", fontSize: "0.85rem", margin: 0 }}>
+              <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", margin: 0 }}>
                 No se pudo conectar con el servidor
               </p>
               <button
@@ -3166,7 +3165,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   >
                     {t('new_routine')}
                   </span>
-                  <ChevronRight size={18} color="#475569" />
+                  <ChevronRight size={18} color="var(--text-muted)" />
                 </motion.button>
 
                 {/* Nueva carpeta */}
@@ -3199,7 +3198,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                       flexShrink: 0,
                     }}
                   >
-                    <FolderPlus size={20} color="#94a3b8" />
+                    <FolderPlus size={20} color="var(--text-secondary)" />
                   </div>
                   <span
                     style={{
@@ -3211,7 +3210,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   >
                     {t('new_folder')}
                   </span>
-                  <ChevronRight size={18} color="#475569" />
+                  <ChevronRight size={18} color="var(--text-muted)" />
                 </motion.button>
               </div>
 
@@ -3285,7 +3284,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                             style={{
                               fontSize: "0.6rem",
                               fontWeight: 800,
-                              color: "#475569",
+                              color: "var(--text-muted)",
                               background: "rgba(255,255,255,0.05)",
                               padding: "0.1rem 0.4rem",
                               borderRadius: "6px",
@@ -3430,7 +3429,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                   return muscles.length > 0 ? (
                                     <div style={{ display: "flex", gap: "0.25rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
                                       {muscles.map(m => {
-                                        const col = muscleColors[m?.toLowerCase()] || '#475569';
+                                        const col = muscleColors[m?.toLowerCase()] || 'var(--text-muted)';
                                         return (
                                           <span key={m} style={{ fontSize: "0.5rem", fontWeight: 800, padding: "0.1rem 0.4rem", borderRadius: "999px", background: `${col}18`, color: col, border: `1px solid ${col}30` }}>
                                             {m}
@@ -3522,12 +3521,12 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                             transition={{ type: "spring", stiffness: 400, damping: 25 }}
                             style={{ display: "flex", alignItems: "center" }}
                           >
-                            <ChevronRight size={16} color="#94a3b8" />
+                            <ChevronRight size={16} color="var(--text-secondary)" />
                           </motion.div>
                           <span
                             style={{
                               fontWeight: 900,
-                              color: "#94a3b8",
+                              color: "var(--text-secondary)",
                               fontSize: "0.88rem",
                               letterSpacing: "0.3px",
                               textTransform: "uppercase",
@@ -3539,7 +3538,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                             style={{
                               fontSize: "0.65rem",
                               fontWeight: 800,
-                              color: "#475569",
+                              color: "var(--text-muted)",
                               background: "rgba(255,255,255,0.05)",
                               padding: "0.1rem 0.45rem",
                               borderRadius: "6px",
@@ -3625,7 +3624,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                   return muscles.length > 0 ? (
                                     <div style={{ display: "flex", gap: "0.25rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
                                       {muscles.map(m => {
-                                        const col = muscleColors[m?.toLowerCase()] || '#475569';
+                                        const col = muscleColors[m?.toLowerCase()] || 'var(--text-muted)';
                                         return <span key={m} style={{ fontSize: "0.5rem", fontWeight: 800, padding: "0.1rem 0.4rem", borderRadius: "999px", background: `${col}18`, color: col, border: `1px solid ${col}30` }}>{m}</span>;
                                       })}
                                     </div>
@@ -3677,12 +3676,12 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
             /* ── Vista historial ── */
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               {historyLoading ? (
-                <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#64748b" }}>
+                <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text-muted)" }}>
                   <Loader size={24} style={{ animation: "spin 1s linear infinite", margin: "0 auto 0.5rem" }} />
                   <div style={{ fontSize: "0.8rem", fontWeight: 700 }}>{t('loading')}</div>
                 </div>
               ) : historyData.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#475569" }}>
+                <div style={{ textAlign: "center", padding: "4rem 1rem", color: "var(--text-muted)" }}>
                   <History size={48} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
                   <div style={{ fontWeight: 700, fontSize: "1rem" }}>
                     {lang === 'es' ? 'Sin sesiones aún' : 'No sessions yet'}
@@ -3715,7 +3714,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.12 }}
                       style={{
-                        background: "rgba(15,23,42,0.6)",
+                        background: "var(--surface-1)",
                         border: `1px solid ${isSport ? "rgba(249,115,22,0.12)" : "rgba(255,255,255,0.06)"}`,
                         borderRadius: "16px",
                         padding: "0.85rem 1rem",
@@ -3737,7 +3736,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                       {/* Center info */}
                       <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "0.2rem" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                          <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#94a3b8", textTransform: "capitalize" }}>{dateStr}</span>
+                          <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "var(--text-secondary)", textTransform: "capitalize" }}>{dateStr}</span>
                           {isGym && session.routine_name && (
                             <span style={{ fontSize: "0.6rem", fontWeight: 700, color: "#06b6d4", background: "rgba(6,182,212,0.1)", padding: "0.1rem 0.4rem", borderRadius: "6px" }}>
                               {session.routine_name}
@@ -3800,7 +3799,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                             >
                               <Star
                                 size={15}
-                                color={star <= currentRating ? "#f59e0b" : "#334155"}
+                                color={star <= currentRating ? "#f59e0b" : "var(--surface-3)"}
                                 fill={star <= currentRating ? "#f59e0b" : "none"}
                                 style={{ transition: "all 0.15s" }}
                               />
@@ -3818,7 +3817,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                         }}
                         style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem", flexShrink: 0 }}
                       >
-                        <Trash2 size={14} color="#475569" />
+                        <Trash2 size={14} color="var(--text-muted)" />
                       </button>
                     </motion.div>
                   );
@@ -3900,7 +3899,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
             position: "fixed",
             top: Math.min(menuMeta.y, window.innerHeight - 180),
             left: Math.max(4, menuMeta.x - 185),
-            background: "#1e293b",
+            background: "var(--surface-2)",
             border: "1px solid rgba(255,255,255,0.12)",
             borderRadius: "14px",
             padding: "0.4rem",
@@ -3929,7 +3928,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   <Edit2 size={15} color="#06b6d4" /> Editar rutina
                 </button>
                 <button style={btnStyle} onClick={() => { handleDuplicateRoutine(r); setMenuMeta(null); }}>
-                  <Copy size={15} color="#94a3b8" /> Duplicar rutina
+                  <Copy size={15} color="var(--text-secondary)" /> Duplicar rutina
                 </button>
                 <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", margin: "0.3rem 0" }} />
                 <button style={{ ...btnStyle, color: "#f87171" }} onClick={() => {

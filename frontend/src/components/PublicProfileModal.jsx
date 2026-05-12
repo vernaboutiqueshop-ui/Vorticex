@@ -42,7 +42,7 @@ function timeAgo(ts) {
 
 const SECTION_LABEL = {
   fontWeight: 800, fontSize: '0.65rem', letterSpacing: '1.5px',
-  textTransform: 'uppercase', color: '#475569', marginBottom: '0.6rem',
+  textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '0.6rem',
 };
 
 export default function PublicProfileModal({ nombre, onClose, currentUser }) {
@@ -101,7 +101,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
           <div style={{ position: 'absolute', top: -20, right: -20, width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(6,182,212,0.15) 0%, transparent 70%)' }} />
           <div style={{ position: 'absolute', bottom: -30, left: -10, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%)' }} />
           {/* Close btn */}
-          <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8', backdropFilter: 'blur(4px)' }}>
+          <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', backdropFilter: 'blur(4px)' }}>
             <X size={15} />
           </button>
           {/* Pill handle */}
@@ -119,14 +119,14 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
             <div style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(6,182,212,0.1)', borderTopColor: '#06b6d4', animation: 'spin 1s linear infinite' }} />
           </div>
         ) : !perfil ? (
-          <p style={{ color: '#64748b', textAlign: 'center', padding: '5rem 2rem 3rem' }}>Usuario no encontrado</p>
+          <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '5rem 2rem 3rem' }}>Usuario no encontrado</p>
         ) : (
           <div style={{ padding: '3rem 1.25rem 2rem' }}>
 
             {/* Nombre + fecha */}
             <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
               <h2 style={{ margin: '0 0 0.2rem', color: '#fff', fontWeight: 900, fontSize: '1.4rem', letterSpacing: '-0.5px' }}>{perfil.name}</h2>
-              <p style={{ margin: 0, color: '#475569', fontSize: '0.72rem', fontWeight: 700 }}>
+              <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 700 }}>
                 {t('member_since')} {new Date(perfil.created_at).toLocaleDateString(lang === 'en' ? 'en-US' : 'es-AR', { month: 'long', year: 'numeric' })}
               </p>
             </div>
@@ -151,7 +151,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Zap size={13} color="#f59e0b" />
-                  <span style={{ color: '#94a3b8', fontSize: '0.7rem', fontWeight: 700 }}>{t('level_label')} {perfil.level}</span>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: 700 }}>{t('level_label')} {perfil.level}</span>
                 </div>
                 <span style={{ color: '#06b6d4', fontSize: '0.75rem', fontWeight: 900 }}>{perfil.exp.toLocaleString()} EXP</span>
               </div>
@@ -169,7 +169,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
               ].map(({ label, value }) => (
                 <div key={label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '0.8rem 0.5rem', textAlign: 'center' }}>
                   <div style={{ color: '#fff', fontWeight: 900, fontSize: '1.15rem', lineHeight: 1 }}>{value}</div>
-                  <div style={{ color: '#475569', fontSize: '0.6rem', fontWeight: 700, marginTop: '0.25rem' }}>{label}</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.6rem', fontWeight: 700, marginTop: '0.25rem' }}>{label}</div>
                 </div>
               ))}
             </div>
@@ -185,7 +185,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: rt.preview_gifs?.length ? '0.7rem' : 0 }}>
                           <div>
                             <div style={{ color: '#fff', fontWeight: 900, fontSize: '0.9rem' }}>{rt.name}</div>
-                            <div style={{ color: '#475569', fontSize: '0.65rem', fontWeight: 700, marginTop: '0.15rem' }}>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '0.65rem', fontWeight: 700, marginTop: '0.15rem' }}>
                               <Dumbbell size={10} style={{ display: 'inline', marginRight: 3 }} />{t('exercises_count', rt.ejercicios_count)}
                             </div>
                           </div>
@@ -224,7 +224,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
             )}
 
             {!hasRutinas && !hasPosts && (
-              <p style={{ color: '#475569', textAlign: 'center', fontSize: '0.8rem', padding: '1rem 0' }}>Sin actividad pública aún</p>
+              <p style={{ color: 'var(--text-muted)', textAlign: 'center', fontSize: '0.8rem', padding: '1rem 0' }}>Sin actividad pública aún</p>
             )}
           </div>
         )}

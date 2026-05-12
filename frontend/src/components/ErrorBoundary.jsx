@@ -81,7 +81,7 @@ export class ErrorBoundary extends Component {
           </h2>
           
           <p style={{ 
-            color: '#94a3b8', 
+            color: 'var(--text-secondary)', 
             fontSize: '0.9rem',
             maxWidth: 320,
             lineHeight: 1.6,
@@ -121,7 +121,7 @@ export class ErrorBoundary extends Component {
                 background: 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: 12,
-                color: '#94a3b8',
+                color: 'var(--text-secondary)',
                 fontWeight: 700,
                 cursor: 'pointer',
                 transition: 'all 0.2s'
@@ -139,7 +139,7 @@ export class ErrorBoundary extends Component {
               background: 'rgba(0,0,0,0.3)',
               borderRadius: 8,
               fontSize: '0.75rem',
-              color: '#64748b',
+              color: 'var(--text-muted)',
               maxWidth: '100%',
               overflow: 'auto',
               textAlign: 'left'

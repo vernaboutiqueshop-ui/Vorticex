@@ -73,7 +73,7 @@ export default function MiniCalendar({ selectedDate, onSelect, onClose, lang = '
       {/* Day headers */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 1, marginBottom: '0.2rem' }}>
         {days.map(d => (
-          <div key={d} style={{ textAlign: 'center', fontSize: '0.5rem', fontWeight: 800, color: '#475569', padding: '0.1rem 0' }}>
+          <div key={d} style={{ textAlign: 'center', fontSize: '0.5rem', fontWeight: 800, color: 'var(--text-muted)', padding: '0.1rem 0' }}>
             {d}
           </div>
         ))}
@@ -98,7 +98,7 @@ export default function MiniCalendar({ selectedDate, onSelect, onClose, lang = '
                 width: '100%', aspectRatio: '1', borderRadius: '8px', border: 'none',
                 cursor: isFuture ? 'default' : 'pointer',
                 background: isSelected ? '#06b6d4' : isToday ? 'rgba(6,182,212,0.15)' : 'transparent',
-                color: isSelected ? '#000' : isFuture ? '#1e293b' : isToday ? '#06b6d4' : '#94a3b8',
+                color: isSelected ? '#000' : isFuture ? 'var(--surface-2)' : isToday ? '#06b6d4' : 'var(--text-secondary)',
                 fontWeight: isSelected || isToday ? 900 : 700,
                 fontSize: '0.6rem', transition: 'background 0.15s',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -120,7 +120,7 @@ export default function MiniCalendar({ selectedDate, onSelect, onClose, lang = '
         </button>
         <button
           onClick={onClose}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.55rem', fontWeight: 800, color: '#64748b' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.55rem', fontWeight: 800, color: 'var(--text-muted)' }}
         >
           {lang === 'es' ? 'Cerrar' : 'Close'}
         </button>

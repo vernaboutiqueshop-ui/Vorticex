@@ -153,7 +153,7 @@ export default function LoginView({ onLogin }) {
   const isLastStep = step === 4;
 
   const cardStyle = {
-    background: 'rgba(15,23,42,0.95)', backdropFilter: 'blur(40px)',
+    background: 'var(--surface-2)', backdropFilter: 'blur(40px)',
     border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px',
     padding: '2rem 1.5rem', boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
     width: '100%', maxWidth: '420px',
@@ -167,7 +167,7 @@ export default function LoginView({ onLogin }) {
   };
 
   const labelStyle = {
-    fontSize: '0.65rem', fontWeight: 800, color: '#64748b',
+    fontSize: '0.65rem', fontWeight: 800, color: 'var(--text-muted)',
     letterSpacing: '0.5px', marginBottom: '0.35rem', display: 'block',
   };
 
@@ -191,7 +191,7 @@ export default function LoginView({ onLogin }) {
         <h1 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>
           Vórtice
         </h1>
-        <p style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600, marginTop: '0.15rem' }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600, marginTop: '0.15rem' }}>
           {mode === 'login' ? 'Tu coach de salud inteligente' : STEP_LABELS[step]}
         </p>
       </div>
@@ -209,7 +209,7 @@ export default function LoginView({ onLogin }) {
                 }} />
                 <span style={{
                   fontSize: '0.45rem', fontWeight: 800, letterSpacing: '0.5px',
-                  color: i <= step ? '#06b6d4' : '#334155',
+                  color: i <= step ? '#06b6d4' : 'var(--surface-3)',
                 }}>{label.toUpperCase()}</span>
               </div>
             ))}
@@ -250,7 +250,7 @@ export default function LoginView({ onLogin }) {
             }}>
               {loading ? 'Ingresando...' : 'Ingresar'}
             </button>
-            <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem' }}>
+            <div style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
               ¿Primera vez?{' '}
               <button type="button" onClick={() => { setMode('wizard'); setStep(0); setError(''); }}
                 style={{ color: '#06b6d4', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>
@@ -258,7 +258,7 @@ export default function LoginView({ onLogin }) {
               </button>
               {' · '}
               <button type="button" onClick={() => { setMode('recover'); setError(''); setRecoverResult(null); setRecoverUsername(''); }}
-                style={{ color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>
+                style={{ color: 'var(--text-secondary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>
                 Olvidé mi contraseña
               </button>
             </div>
@@ -270,7 +270,7 @@ export default function LoginView({ onLogin }) {
           <form onSubmit={handleRecover} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             <div>
               <h2 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#fff', margin: '0 0 0.3rem' }}>Recuperar contraseña</h2>
-              <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>Ingresá tu nombre de usuario</p>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: 0 }}>Ingresá tu nombre de usuario</p>
             </div>
             <div>
               <label style={labelStyle}>NOMBRE DE USUARIO</label>
@@ -288,7 +288,7 @@ export default function LoginView({ onLogin }) {
             )}
             {recoverResult && (
               <div style={{ background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
-                <div style={{ color: '#94a3b8', fontSize: '0.65rem', fontWeight: 800, marginBottom: '0.3rem' }}>TU CONTRASEÑA ES</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.65rem', fontWeight: 800, marginBottom: '0.3rem' }}>TU CONTRASEÑA ES</div>
                 <div style={{ color: '#06b6d4', fontSize: '1.1rem', fontWeight: 900, letterSpacing: '0.05em' }}>{recoverResult}</div>
               </div>
             )}
@@ -303,7 +303,7 @@ export default function LoginView({ onLogin }) {
               </button>
             )}
             <button type="button" onClick={() => { setMode('login'); setError(''); setRecoverResult(null); }}
-              style={{ color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
+              style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.8rem' }}>
               ← Volver al login
             </button>
           </form>
@@ -318,7 +318,7 @@ export default function LoginView({ onLogin }) {
               <>
                 <div>
                   <h2 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', margin: '0 0 0.15rem' }}>¿Cómo te llamás?</h2>
-                  <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>Tu nombre y una contraseña para ingresar</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: 0 }}>Tu nombre y una contraseña para ingresar</p>
                 </div>
                 <div>
                   <label style={labelStyle}>TU NOMBRE</label>
@@ -338,7 +338,7 @@ export default function LoginView({ onLogin }) {
               <>
                 <div>
                   <h2 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', margin: '0 0 0.15rem' }}>Tus medidas</h2>
-                  <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>Para calcular calorías y macros exactas</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: 0 }}>Para calcular calorías y macros exactas</p>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
                   <div>
@@ -353,7 +353,7 @@ export default function LoginView({ onLogin }) {
                   </div>
                 </div>
                 <div>
-                  <label style={labelStyle}>ALTURA (CM) <span style={{ color: '#334155' }}>— opcional</span></label>
+                  <label style={labelStyle}>ALTURA (CM) <span style={{ color: 'var(--surface-3)' }}>— opcional</span></label>
                   <input style={inputStyle} type="number" placeholder="175"
                     value={wizardData.altura} onChange={e => setWizardData(p => ({ ...p, altura: e.target.value }))} />
                 </div>
@@ -365,7 +365,7 @@ export default function LoginView({ onLogin }) {
               <>
                 <div>
                   <h2 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', margin: '0 0 0.15rem' }}>¿Cuál es tu meta?</h2>
-                  <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>Define cómo el coach orienta tus rutinas</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: 0 }}>Define cómo el coach orienta tus rutinas</p>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                   {METAS.map(m => {
@@ -380,7 +380,7 @@ export default function LoginView({ onLogin }) {
                         }}>
                         <div style={{ fontSize: '1.3rem', marginBottom: '0.2rem' }}>{m.icon}</div>
                         <div style={{ fontWeight: 800, color: sel ? '#06b6d4' : '#e2e8f0', fontSize: '0.82rem' }}>{m.label}</div>
-                        <div style={{ color: '#64748b', fontSize: '0.62rem', marginTop: '0.1rem', fontWeight: 600 }}>{m.desc}</div>
+                        <div style={{ color: 'var(--text-muted)', fontSize: '0.62rem', marginTop: '0.1rem', fontWeight: 600 }}>{m.desc}</div>
                       </button>
                     );
                   })}
@@ -393,7 +393,7 @@ export default function LoginView({ onLogin }) {
               <>
                 <div>
                   <h2 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', margin: '0 0 0.15rem' }}>¿Qué actividades hacés?</h2>
-                  <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>Elegí todas las que apliquen</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: 0 }}>Elegí todas las que apliquen</p>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.4rem', maxHeight: '280px', overflowY: 'auto' }}>
                   {DEPORTES.map(d => {
@@ -413,7 +413,7 @@ export default function LoginView({ onLogin }) {
                           </div>
                         )}
                         <div style={{ fontSize: '1.2rem' }}>{d.icon}</div>
-                        <div style={{ fontWeight: 700, color: sel ? '#06b6d4' : '#94a3b8', fontSize: '0.6rem', marginTop: '0.15rem' }}>{d.label}</div>
+                        <div style={{ fontWeight: 700, color: sel ? '#06b6d4' : 'var(--text-secondary)', fontSize: '0.6rem', marginTop: '0.15rem' }}>{d.label}</div>
                       </button>
                     );
                   })}
@@ -431,7 +431,7 @@ export default function LoginView({ onLogin }) {
               <>
                 <div>
                   <h2 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', margin: '0 0 0.15rem' }}>Tu foto de perfil</h2>
-                  <p style={{ color: '#64748b', fontSize: '0.75rem', margin: 0 }}>Opcional — podés agregarla después</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: 0 }}>Opcional — podés agregarla después</p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '1rem 0' }}>
                   <input ref={fileRef} type="file" accept="image/*" onChange={handleProfilePic} style={{ display: 'none' }} />
@@ -473,7 +473,7 @@ export default function LoginView({ onLogin }) {
                 style={{
                   padding: '0.75rem 0.9rem', border: '1px solid rgba(255,255,255,0.08)',
                   borderRadius: '14px', background: 'rgba(255,255,255,0.03)',
-                  color: '#94a3b8', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
+                  color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
                   display: 'flex', alignItems: 'center', gap: '0.25rem',
                 }}>
                 <ChevronLeft size={15} /> {step === 0 ? 'Login' : 'Atrás'}

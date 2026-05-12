@@ -93,6 +93,38 @@ const translations = {
     follow: "+ Seguir", unfollow: "✓ Siguiendo",
     routines_label: "RUTINAS", exercises_count: (n) => `${n} ejercicios`,
     level_label: "Nivel",
+    // Perfil stats
+    streak: "RACHA", record: "RÉCORD", workouts_label: "ENTRENOS",
+    male: "Hombre", female: "Mujer",
+    fatigue: "Fatiga", sets_label: "Series", sessions_label: "Sesiones",
+    last_label: "Últ. vez", today_label: "Hoy",
+    no_data_period: "Sin datos en este periodo",
+    years_unit: "años",
+    profile_updated: "¡Perfil actualizado!",
+    logout_confirm: "¿Cerrar sesión?",
+    // Gym extra
+    all_exercises: "TODOS LOS EJERCICIOS",
+    done_btn: (n) => `Listo (${n})`,
+    create_folder_title: "Crear nueva carpeta",
+    create_folder_btn: "Crear carpeta",
+    sports_label: "Deportes",
+    no_sessions: "Sin sesiones aún",
+    complete_workout_hint: "Completá un entrenamiento para verlo acá",
+    // Workout tracker
+    how_did_you_feel: "¿Cómo te sentiste?",
+    save_workout: "Guardar entrenamiento",
+    keep_training: "Seguir entrenando",
+    // Notificaciones
+    notifications: "Notificaciones",
+    no_notifications: "Sin notificaciones",
+    notif_hint: "Cuando alguien interactúe con tus posts, aparecerá acá",
+    liked_post: "le dio ❤️ a tu post",
+    replied_feedback: "respondió a tu sugerencia",
+    commented_post: "comentó en tu post",
+    now_label: "ahora",
+    close: "Cerrar",
+    // Dificultad ejercicios
+    difficulty_easy: "Fácil", difficulty_medium: "Intermedio", difficulty_hard: "Difícil",
   },
   en: {
     gym: "Gym",
@@ -186,6 +218,38 @@ const translations = {
     follow: "+ Follow", unfollow: "✓ Following",
     routines_label: "ROUTINES", exercises_count: (n) => `${n} exercises`,
     level_label: "Level",
+    // Profile stats
+    streak: "STREAK", record: "RECORD", workouts_label: "WORKOUTS",
+    male: "Male", female: "Female",
+    fatigue: "Fatigue", sets_label: "Sets", sessions_label: "Sessions",
+    last_label: "Last", today_label: "Today",
+    no_data_period: "No data for this period",
+    years_unit: "yrs",
+    profile_updated: "Profile updated!",
+    logout_confirm: "Log out?",
+    // Gym extra
+    all_exercises: "ALL EXERCISES",
+    done_btn: (n) => `Done (${n})`,
+    create_folder_title: "Create new folder",
+    create_folder_btn: "Create folder",
+    sports_label: "Sports",
+    no_sessions: "No sessions yet",
+    complete_workout_hint: "Complete a workout to see it here",
+    // Workout tracker
+    how_did_you_feel: "How did you feel?",
+    save_workout: "Save workout",
+    keep_training: "Keep training",
+    // Notifications
+    notifications: "Notifications",
+    no_notifications: "No notifications",
+    notif_hint: "When someone interacts with your posts, it will show here",
+    liked_post: "liked ❤️ your post",
+    replied_feedback: "replied to your feedback",
+    commented_post: "commented on your post",
+    now_label: "now",
+    close: "Close",
+    // Exercise difficulty
+    difficulty_easy: "Easy", difficulty_medium: "Intermediate", difficulty_hard: "Hard",
   }
 };
 

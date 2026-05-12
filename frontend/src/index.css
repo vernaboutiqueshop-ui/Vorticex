@@ -1,41 +1,72 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
 
+/* ═══════════════════════════════════════════════════════════
+   VÓRTICE HEALTH — DESIGN SYSTEM v3
+   Surface elevation: 4 levels, all cool-black family
+   Text: 3 semantic tokens only
+   Borders: 2 tokens (subtle / default)
+   color-scheme: dark → prevents OS warm-gray override
+   ═══════════════════════════════════════════════════════════ */
+
 :root {
-  /* ── LEGACY (keep for backwards compat) ── */
-  --accent-agent: #8b5cf6;
-  --accent-gym: #00C9FF;
-  --bg-app: #0a0a0a;
-  --bg-card: rgba(17, 17, 17, 0.95);
-  --bg-glass: rgba(17, 17, 17, 0.85);
-  --border-color: rgba(255, 255, 255, 0.07);
-  --text-primary: #e5e5e5;
-  --text-muted: #666666;
-  --glass-border: rgba(255, 255, 255, 0.07);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
-  --radius-xl: 1rem;
+  color-scheme: dark;
 
-  /* ── DESIGN SYSTEM v2 ── */
-  --color-primary:    #00C9FF;
-  --color-accent:     #7B2FBE;
-  --color-success:    #22C55E;
-  --color-warning:    #F59E0B;
-  --color-danger:     #EF4444;
-  --color-bg:         #0a0a0a;
-  --color-card:       #111111;
-  --color-card-alt:   #141824;
-  --color-border:     rgba(255,255,255,0.07);
-  --color-text:       #e5e5e5;
-  --color-text-muted: #666666;
-  --radius-card:      16px;
-  --radius-input:     10px;
-  --radius-pill:      999px;
+  /* ── SURFACE SYSTEM (4 levels) ─────────────────────────── */
+  --surface-0: #0a0a0a;    /* app background */
+  --surface-1: #111114;    /* card */
+  --surface-2: #18181c;    /* elevated card, modal, section bg */
+  --surface-3: #1e1e24;    /* input, interactive surface */
 
-  /* ── SHADOWS ── */
-  --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
-  --shadow-glow-primary: 0 0 20px rgba(0,201,255,0.15);
+  /* ── TEXT HIERARCHY (3 tokens only) ───────────────────── */
+  --text-primary:   #f0f0f2;   /* headings, values, names */
+  --text-secondary: #a0a0b0;   /* section labels, supporting text */
+  --text-muted:     #5a5a6e;   /* hints, metadata, inactive */
+
+  /* ── ACCENT PALETTE ────────────────────────────────────── */
+  --color-primary:  #00c9ff;   /* cyan — CTA, active states */
+  --color-accent:   #7b2fbe;   /* purple — secondary accent */
+  --color-success:  #22c55e;   /* green — protein, positive */
+  --color-warning:  #f59e0b;   /* amber — carbs, caution */
+  --color-danger:   #ef4444;   /* red — delete, alert */
+  --color-kcal:     #f59e0b;   /* semantic alias for calorie display */
+
+  /* ── BORDERS ──────────────────────────────────────────── */
+  --border-subtle:  rgba(255, 255, 255, 0.07);   /* card outlines */
+  --border-default: rgba(255, 255, 255, 0.12);   /* inputs, separators */
+
+  /* ── SHADOWS ──────────────────────────────────────────── */
+  --shadow-card:         0 4px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow-primary: 0 0 20px rgba(0, 201, 255, 0.15);
+  --shadow-premium:      0 0 60px rgba(0, 0, 0, 0.8);
+  --shadow-sm:           0 2px 8px rgba(0, 0, 0, 0.3);
+
+  /* ── RADII ─────────────────────────────────────────────── */
+  --radius-card:  16px;
+  --radius-input: 10px;
+  --radius-pill:  999px;
+  --radius-xl:    1rem;
+  --radius-lg:    14px;
+
+  /* ── LEGACY ALIASES (keep for backwards compat) ────────── */
+  --bg-app:           var(--surface-0);
+  --bg-card:          rgba(17, 17, 20, 0.95);
+  --bg-glass:         rgba(17, 17, 20, 0.85);
+  --border-color:     var(--border-subtle);
+  --glass-border:     var(--border-subtle);
+  --glass-shadow:     0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  --color-bg:         var(--surface-0);
+  --color-card:       var(--surface-1);
+  --color-card-alt:   var(--surface-2);
+  --color-text:       var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-border:     var(--border-subtle);
+  --accent-gym:       var(--color-primary);
+  --accent-agent:     #8b5cf6;
+  --text-primary:     #f0f0f2;  /* override legacy value */
+  --text-muted:       #5a5a6e;  /* override legacy value */
 }
 
-/* MOBILE FIRST BASE */
+/* ── MOBILE BREAKPOINT ─────────────────────────────────── */
 @media (max-width: 768px) {
   :root {
     --radius-xl: 1.25rem;
@@ -69,6 +100,7 @@
   }
 }
 
+/* ── RESET ─────────────────────────────────────────────── */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -76,22 +108,31 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ── BASE ──────────────────────────────────────────────── */
+html {
+  color-scheme: dark;
+}
+
 body {
-  background-color: var(--color-bg);
+  color-scheme: dark;
+  background-color: var(--surface-0);
+  background-attachment: fixed;
   background-image:
-    radial-gradient(ellipse at 0% 0%, rgba(0,201,255,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse at 100% 100%, rgba(123,47,190,0.04) 0%, transparent 60%);
-  color: var(--color-text);
+    radial-gradient(ellipse at 0% 0%, rgba(0, 201, 255, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse at 100% 100%, rgba(123, 47, 190, 0.04) 0%, transparent 60%);
+  color: var(--text-primary);
   font-family: 'Outfit', 'Inter', -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   margin: 0;
   min-height: 100vh;
 }
 
-/* ── LOGO GLOW (solo glow, sin escala) ── */
+/* ── ANIMATIONS ─────────────────────────────────────────── */
+
+/* Logo glow (no scale — avoids jitter) */
 @keyframes logoGlow {
-  0%, 100% { filter: drop-shadow(0 0 3px rgba(0,201,255,0.3)); }
-  50%       { filter: drop-shadow(0 0 7px rgba(0,201,255,0.55)); }
+  0%, 100% { filter: drop-shadow(0 0 3px rgba(0, 201, 255, 0.3)); }
+  50%       { filter: drop-shadow(0 0 7px rgba(0, 201, 255, 0.55)); }
 }
 .logo-pulse {
   animation: logoGlow 3.5s ease-in-out infinite;
@@ -100,14 +141,20 @@ body {
   .logo-pulse { animation: none; }
 }
 
-/* ── AURORA PROFILE BANNER ── */
+/* Aurora profile banner */
 @keyframes aurora {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 .aurora-banner {
-  background: linear-gradient(135deg, rgba(0,201,255,0.15), rgba(123,47,190,0.15), rgba(34,197,94,0.1), rgba(0,201,255,0.15));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 201, 255, 0.15),
+    rgba(123, 47, 190, 0.15),
+    rgba(34, 197, 94, 0.1),
+    rgba(0, 201, 255, 0.15)
+  );
   background-size: 300% 300%;
   animation: aurora 6s ease infinite;
 }
@@ -115,7 +162,59 @@ body {
   .aurora-banner { animation: none; background-position: 0% 50%; }
 }
 
-/* ── TOAST SYSTEM ── */
+@keyframes slideUpFade {
+  0%   { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-in {
+  animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-3px); }
+}
+.logo-icon {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Dot pulse — online indicator */
+@keyframes dotPulse {
+  0%   { transform: scale(1); opacity: 1; }
+  50%  { transform: scale(1.2); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.pulse {
+  animation: dotPulse 2s infinite ease-in-out;
+}
+
+/* Linear progress — exercise filter */
+@keyframes filterProgress {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ── SKELETON SHIMMER ───────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; background: rgba(255, 255, 255, 0.05); }
+}
+
+/* ── TOAST SYSTEM ───────────────────────────────────────── */
 .toast-container {
   position: fixed;
   top: 1rem;
@@ -136,36 +235,21 @@ body {
   border-radius: var(--radius-card);
   font-size: 0.82rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   pointer-events: all;
 }
-.toast-success { background: rgba(34,197,94,0.2); border: 1px solid rgba(34,197,94,0.35); }
-.toast-info    { background: rgba(0,201,255,0.2); border: 1px solid rgba(0,201,255,0.35); }
-.toast-error   { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.35); }
+.toast-success { background: rgba(34, 197, 94, 0.18);  border: 1px solid rgba(34, 197, 94, 0.3); }
+.toast-info    { background: rgba(0, 201, 255, 0.18);  border: 1px solid rgba(0, 201, 255, 0.3); }
+.toast-error   { background: rgba(239, 68, 68, 0.18);  border: 1px solid rgba(239, 68, 68, 0.3); }
 
-/* ── SHIMMER SKELETON ── */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-.skeleton {
-  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease-in-out infinite;
-  border-radius: 8px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .skeleton { animation: none; background: rgba(255,255,255,0.05); }
-}
-
-/* --- MOBILE SHELL --- */
+/* ── SHELL ──────────────────────────────────────────────── */
 #root {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  background-color: var(--bg-app);
+  background-color: var(--surface-0);
   box-shadow: var(--shadow-premium);
   display: flex;
   flex-direction: column;
@@ -173,22 +257,14 @@ body {
   overflow-x: hidden;
 }
 
-/* --- GLASS LAYERS --- */
-.glass-effect {
-  background: var(--bg-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-glass);
-}
-
-/* --- NAVIGATION (Sticky Glass) --- */
+/* ── NAVIGATION (sticky glass — only place glass is used) ── */
 .tabs-nav {
   display: flex;
   background: rgba(10, 10, 10, 0.88);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+  border-top: 1px solid var(--border-subtle);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
   padding: 0.5rem 0.4rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
   justify-content: space-around;
   position: sticky;
@@ -199,7 +275,7 @@ body {
 .tab-btn {
   background: transparent;
   border: none;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -214,34 +290,30 @@ body {
   transition: color 0.2s ease;
   border-radius: var(--radius-pill);
 }
-
 .tab-btn.active {
   color: var(--color-primary);
 }
-
 .tab-btn.active svg {
-  filter: drop-shadow(0 0 6px rgba(0,201,255,0.5));
+  filter: drop-shadow(0 0 6px rgba(0, 201, 255, 0.5));
 }
-
+/* Unified active pill — same pattern for ALL tab/toggle components */
 .tab-btn-pill {
   position: absolute;
   inset: 0;
   border-radius: var(--radius-pill);
-  background: rgba(0,201,255,0.1);
-  border: 1px solid rgba(0,201,255,0.12);
+  background: rgba(0, 201, 255, 0.1);
+  border: 1px solid rgba(0, 201, 255, 0.15);
 }
-
 @media (prefers-reduced-motion: reduce) {
   .tab-btn, .tab-btn * { transition: none !important; animation: none !important; }
 }
 
-/* --- HEADER --- */
+/* ── HEADER ─────────────────────────────────────────────── */
 .top-header {
   padding: 1rem 1.15rem 0.5rem;
-  background: linear-gradient(180deg, var(--bg-app) 0%, transparent 100%);
+  background: linear-gradient(180deg, var(--surface-0) 0%, transparent 100%);
   z-index: 10;
 }
-
 .title-main {
   display: flex;
   align-items: center;
@@ -251,51 +323,83 @@ body {
   letter-spacing: -0.02em;
 }
 
-.logo-icon {
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
-}
-
-/* --- CARDS & UI --- */
+/* ── CARD COMPONENTS ────────────────────────────────────── */
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
   padding: 1.5rem;
   margin-bottom: 1.25rem;
   box-shadow: var(--shadow-sm);
-  transition: transform 0.3s ease, border-color 0.3s ease;
+  transition: border-color 0.2s ease;
   overflow: hidden;
 }
-
 .card:hover {
-  border-color: rgba(255,255,255,0.15);
+  border-color: var(--border-default);
 }
 
+/* glass-card: Surface 2 (NOT rgba(15,23,42) — that's blue-tinted slate) */
 .glass-card {
-  background: var(--bg-glass);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--border-glass);
-  border-radius: var(--radius-xl);
-  padding: 1.5rem;
-  margin-bottom: 1.25rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.6);
 }
 
-/* --- ANIMATIONS --- */
-@keyframes slideUpFade {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+.hevy-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.animate-in {
-  animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* ── INPUTS ─────────────────────────────────────────────── */
+.premium-input {
+  background: var(--surface-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.premium-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 201, 255, 0.12);
+}
+.premium-input::placeholder {
+  color: var(--text-muted);
 }
 
-/* --- BUTTONS PREMIUM --- */
+.hevy-input {
+  background: var(--surface-3);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 0.75rem;
+  color: var(--text-primary);
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+  width: 100%;
+  transition: border-color 0.2s, background 0.2s;
+  outline: none;
+}
+.hevy-input:focus {
+  border-color: var(--color-primary);
+  background: var(--surface-3);
+}
+.hevy-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ── BUTTONS ────────────────────────────────────────────── */
 .btn-premium {
   height: 3.5rem;
   border-radius: var(--radius-lg);
@@ -307,135 +411,106 @@ body {
   font-size: 1rem;
   cursor: pointer;
   border: none;
-  background: linear-gradient(135deg, var(--accent-gym), #4f46e5);
-  color: white;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: linear-gradient(135deg, var(--color-primary), var(--accent-agent));
+  color: #000;
+  transition: opacity 0.2s, transform 0.15s;
   width: 100%;
-  box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 8px 20px -5px rgba(0, 201, 255, 0.25);
 }
-
 .btn-premium:active {
   transform: scale(0.96);
 }
-
-/* --- INPUTS --- */
-.premium-input {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  padding: 1rem 1.25rem;
-  font-size: 1rem;
-  font-weight: 500;
-  outline: none;
-  transition: all 0.2s;
+.btn-premium:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-.premium-input:focus {
-  border-color: var(--accent-agent);
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.1);
-}
-
-/* --- SCROLLBAR --- */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-
-/* --- EXERCISE CARDS PREMIUM --- */
-.exercise-card-hover {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform, background;
-}
-
-.exercise-card-hover:active {
-  transform: scale(0.96);
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: var(--accent-gym) !important;
-}
-
-/* --- DOT PULSE (burbuja de estado online) --- */
-@keyframes dotPulse {
-  0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 0.6; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.pulse {
-  animation: dotPulse 2s infinite ease-in-out;
-}
-
-.loading-state {
-  display: flex;
-  justify-content: center;
+.btn-elite {
+  background: linear-gradient(135deg, var(--color-primary), #0099cc);
+  color: #000;
+  border: none;
+  border-radius: var(--radius-input);
+  padding: 0.5rem 1rem;
+  font-weight: 800;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
-  height: 200px;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.btn-elite:active { transform: scale(0.95); }
+.btn-elite:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Icon-only buttons: Surface 2 bg + secondary icon color */
+.btn-icon-elite {
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
-/* ========================================= */
-/* --- HEVY CLONE: ESTILOS DE ÉLITE --- */
-/* ========================================= */
-
-.hevy-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 20px;
-  padding: 1.25rem;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.hevy-input {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid transparent;
+  width: 42px;
+  height: 42px;
   border-radius: 12px;
-  padding: 0.75rem;
-  color: white;
-  text-align: center;
-  font-weight: 700;
-  font-size: 1rem;
-  width: 100%;
-  transition: all 0.2s ease;
-  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
 }
-
-.hevy-input:focus {
-  border-color: var(--accent-gym);
-  background: rgba(255, 255, 255, 0.08);
+.btn-icon-elite:hover {
+  background: var(--surface-3);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.btn-icon-elite.danger {
+  color: var(--color-danger) !important;
 }
 
 .hevy-btn {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-2);
   border: none;
   border-radius: 12px;
   padding: 0.75rem;
-  color: white;
+  color: var(--text-primary);
   font-weight: 800;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  transition: all 0.2s ease;
+  transition: background 0.2s;
 }
-
 .hevy-btn:active {
+  background: var(--surface-3);
   transform: scale(0.95);
-  background: rgba(255, 255, 255, 0.1);
 }
-
 .hevy-btn-primary {
-  background: var(--accent-gym);
-  color: white;
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+  background: var(--color-primary);
+  color: #000;
+  box-shadow: 0 4px 14px rgba(0, 201, 255, 0.25);
 }
 
-/* Modales */
+/* ── CHIPS & SELECTORS ──────────────────────────────────── */
+/* chip-folder-elite: inactive = Surface 2, active = primary tint */
+.chip-folder-elite {
+  padding: 0.8rem 1.6rem !important;
+  border-radius: 20px !important;
+  font-size: 0.85rem !important;
+  font-weight: 900 !important;
+  background: var(--surface-2) !important;
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-subtle) !important;
+  transition: background 0.2s, border-color 0.2s, color 0.2s !important;
+  cursor: pointer !important;
+}
+.chip-folder-elite.active {
+  background: rgba(0, 201, 255, 0.12) !important;
+  border-color: rgba(0, 201, 255, 0.3) !important;
+  color: var(--color-primary) !important;
+  box-shadow: 0 0 16px rgba(0, 201, 255, 0.15) !important;
+}
+
+/* ── MODALS ─────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -446,123 +521,77 @@ body {
   flex-direction: column;
   justify-content: flex-end;
 }
-
 .modal-content {
-  background: var(--bg-app);
+  background: var(--surface-2);
   border-top-left-radius: 30px;
   border-top-right-radius: 30px;
   padding: 2rem 1.5rem;
-  border-top: 1px solid var(--border-color);
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+  border-top: 1px solid var(--border-subtle);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
   animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   max-height: 90vh;
   overflow-y: auto;
 }
 
-/* Utils */
-.text-gradient {
-  background: linear-gradient(135deg, var(--accent-agent), var(--accent-gym));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* ── EXERCISE CARDS ─────────────────────────────────────── */
+.exercise-card-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, background;
+}
+.exercise-card-hover:active {
+  transform: scale(0.96);
+  background: var(--surface-3) !important;
+  border-color: var(--color-primary) !important;
 }
 
-.bg-blur {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* --- VÓRTICE ELITE 4.0: REFACTOR ESTÉTICO --- */
-
-.btn-icon-elite {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  color: var(--text-primary);
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-}
-
-.btn-icon-elite:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--accent-gym);
-  transform: translateY(-2px);
-}
-
-.btn-icon-elite.danger {
-  color: #ef4444 !important;
-}
-
+/* ── WORKOUT SUMMARY ────────────────────────────────────── */
 .summary-card-elite {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(15, 23, 42, 0.9));
-  border: 1px solid rgba(6, 182, 212, 0.4);
+  background: linear-gradient(135deg, rgba(0, 201, 255, 0.1), var(--surface-2));
+  border: 1px solid rgba(0, 201, 255, 0.25);
   border-radius: 28px;
   padding: 1.75rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
 }
-
 .summary-card-elite:hover {
-  border-color: var(--accent-gym);
+  border-color: var(--color-primary);
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px -10px rgba(6, 182, 212, 0.2);
+  box-shadow: 0 20px 40px -10px rgba(0, 201, 255, 0.15);
 }
 
+/* ── LABELS & TYPOGRAPHY UTILITIES ─────────────────────── */
+/* Section labels (BRÚJULA, AYUNO, ALACENA…): secondary text */
+.section-label {
+  font-size: 0.6rem;
+  font-weight: 900;
+  color: var(--text-secondary);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* label-elite: workout context label — keeps accent color intentionally */
 .label-elite {
   font-size: 0.75rem !important;
   font-weight: 900 !important;
-  color: var(--accent-gym) !important;
+  color: var(--color-primary) !important;
   text-transform: uppercase !important;
   letter-spacing: 2px !important;
   margin-bottom: 0.75rem !important;
   display: block !important;
 }
 
-.routine-title-input {
-  background: transparent !important;
-  border: none !important;
-  border-bottom: 2px solid rgba(255,255,255,0.1) !important;
-  color: #ffffff !important;
-  font-weight: 900 !important;
-  font-size: 2.8rem !important;
-  width: 100%;
-  outline: none;
-  padding: 0.5rem 0;
-  transition: all 0.3s;
-  letter-spacing: -2px;
+/* Gradient text utility */
+.text-gradient {
+  background: linear-gradient(135deg, var(--accent-agent), var(--color-primary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.routine-title-input:focus {
-  border-bottom-color: var(--accent-gym) !important;
-}
-
-.glass-card {
-  background: rgba(15, 23, 42, 0.9) !important;
-  backdrop-filter: blur(30px);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 20px;
-  padding: 1.25rem;
-  box-shadow: 0 8px 32px -8px rgba(0,0,0,0.6);
-}
-
+/* Set badge (workout tracker) */
 .set-badge-elite {
   height: 3.2rem;
   border-radius: 16px;
@@ -571,30 +600,29 @@ body {
   justify-content: center;
   font-weight: 900;
   font-size: 1.1rem;
-  color: #000000 !important;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+  color: #000 !important;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.chip-folder-elite {
-  padding: 0.8rem 1.6rem !important;
-  border-radius: 20px !important;
-  font-size: 0.85rem !important;
+/* Routine title input */
+.routine-title-input {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid var(--border-default) !important;
+  color: var(--text-primary) !important;
   font-weight: 900 !important;
-  background: rgba(255,255,255,0.06) !important;
-  color: #ffffff !important;
-  border: 1px solid transparent !important;
-  transition: all 0.2s !important;
-  cursor: pointer !important;
+  font-size: 2.8rem !important;
+  width: 100%;
+  outline: none;
+  padding: 0.5rem 0;
+  transition: border-color 0.3s;
+  letter-spacing: -2px;
+}
+.routine-title-input:focus {
+  border-bottom-color: var(--color-primary) !important;
 }
 
-.chip-folder-elite.active {
-  background: rgba(6, 182, 212, 0.25) !important;
-  border-color: var(--accent-gym) !important;
-  color: var(--accent-gym) !important;
-  box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
-}
-
-/* ═══ GLOBAL VIEW CONTAINER ═══ */
+/* ── GLOBAL VIEW LAYOUT ─────────────────────────────────── */
 .view-container {
   display: flex;
   flex-direction: column;
@@ -604,17 +632,51 @@ body {
   margin: 0 auto;
 }
 
-.section-label {
-  font-size: 0.6rem;
-  font-weight: 900;
-  color: #94a3b8;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-
+/* view-card: Surface 1 — not the blue-tinted slate */
 .view-card {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
   border-radius: 20px;
   padding: 1.25rem;
+}
+
+/* ── GLASS EFFECTS (nav bar and overlays ONLY) ──────────── */
+.glass-effect {
+  background: rgba(17, 17, 20, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ── SCROLLBAR ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+
+/* ── LOADING STATE ──────────────────────────────────────── */
+.loading-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* ── UTILS ──────────────────────────────────────────────── */
+.bg-blur {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

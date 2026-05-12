@@ -44,14 +44,14 @@ export default function ExerciseModal({ exercise, onClose, lang }) {
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
              <Dumbbell size={20} color="var(--accent-gym)" />
              <div>
-                <div style={{ color: '#64748b', fontSize: '0.7rem' }}>EQUIPMENT</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>EQUIPMENT</div>
                 <div style={{ color: 'white', fontSize: '0.85rem', fontWeight: 700 }}>{exercise.equipment || 'None'}</div>
              </div>
           </div>
           <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
              <Target size={20} color="#10b981" />
              <div>
-                <div style={{ color: '#64748b', fontSize: '0.7rem' }}>BODY PART</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>BODY PART</div>
                 <div style={{ color: 'white', fontSize: '0.85rem', fontWeight: 700 }}>{exercise.body_part || 'Full Body'}</div>
              </div>
           </div>
@@ -65,9 +65,9 @@ export default function ExerciseModal({ exercise, onClose, lang }) {
             {instructions.length > 0 ? instructions.map((step, i) => (
               <div key={i} style={{ display: 'flex', gap: '1rem' }}>
                 <div style={{ color: 'var(--accent-gym)', fontWeight: 900, fontSize: '0.9rem' }}>{i + 1}</div>
-                <div style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.4' }}>{step}</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.4' }}>{step}</div>
               </div>
-            )) : <p style={{ color: '#64748b' }}>{lang === 'en' ? 'No instructions available.' : 'No hay instrucciones disponibles.'}</p>}
+            )) : <p style={{ color: 'var(--text-muted)' }}>{lang === 'en' ? 'No instructions available.' : 'No hay instrucciones disponibles.'}</p>}
           </div>
         </div>
 

@@ -94,7 +94,7 @@ export default function BodyMap({ targets = [], bodyData: externalBodyData, scal
     gender,
     border: 'none',
     colors: ['#38bdf8', '#06b6d4', '#f59e0b'],
-    defaultFill: '#1e293b',
+    defaultFill: 'var(--surface-2)',
     defaultStroke: 'rgba(255,255,255,0.06)',
   };
 
@@ -172,7 +172,7 @@ export default function BodyMap({ targets = [], bodyData: externalBodyData, scal
             ].map((l, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                 <div style={{ width: 10, height: 10, borderRadius: 3, background: l.color }} />
-                <span style={{ fontSize: '0.55rem', color: '#64748b', fontWeight: 700 }}>{l.label}</span>
+                <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: 700 }}>{l.label}</span>
               </div>
             ))}
           </div>
@@ -183,7 +183,7 @@ export default function BodyMap({ targets = [], bodyData: externalBodyData, scal
               .slice(0, maxBars)
               .map(([slug, count]) => (
                 <div key={slug} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 700, width: '80px', textAlign: 'right' }}>
+                  <span style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 700, width: '80px', textAlign: 'right' }}>
                     {labels[slug] || slug.replace(/-/g, ' ')}
                   </span>
                   <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.04)', borderRadius: 99, overflow: 'hidden' }}>
@@ -193,7 +193,7 @@ export default function BodyMap({ targets = [], bodyData: externalBodyData, scal
                       background: count / maxC > 0.66 ? '#f59e0b' : count / maxC > 0.33 ? '#06b6d4' : '#0ea5e9',
                     }} />
                   </div>
-                  <span style={{ fontSize: '0.55rem', color: '#64748b', fontWeight: 800, width: '24px' }}>{count}</span>
+                  <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: 800, width: '24px' }}>{count}</span>
                 </div>
               ))}
           </div>

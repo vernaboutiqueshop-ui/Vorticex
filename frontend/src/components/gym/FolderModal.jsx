@@ -53,7 +53,7 @@ export default function FolderModal({ onCancel, onCreate }) {
               fontSize: "1.2rem",
             }}
           >
-            {lang === 'es' ? 'Crear nueva carpeta' : 'Create new folder'}
+            {t('create_folder_title')}
           </h3>
           <button
             onClick={onCancel}
@@ -69,7 +69,7 @@ export default function FolderModal({ onCancel, onCreate }) {
           onKeyDown={(e) => {
             if (e.key === "Enter" && name.trim()) onCreate(name.trim());
           }}
-          placeholder={t('folder_name_placeholder') || (lang === 'es' ? 'Nombre de carpeta' : 'Folder name')}
+          placeholder={t('folder_name_placeholder')}
           className="premium-input"
           style={{ height: "3rem", fontSize: "0.95rem" }}
           autoFocus
@@ -83,13 +83,13 @@ export default function FolderModal({ onCancel, onCreate }) {
               borderRadius: "14px",
               border: "1px solid rgba(255,255,255,0.1)",
               background: "transparent",
-              color: "#94a3b8",
+              color: "var(--text-secondary)",
               fontWeight: 800,
               fontSize: "0.85rem",
               cursor: "pointer",
             }}
           >
-            {t('cancel') || (lang === 'es' ? 'Cancelar' : 'Cancel')}
+            {t('cancel')}
           </button>
           <button
             onClick={() => {
@@ -107,7 +107,7 @@ export default function FolderModal({ onCancel, onCreate }) {
               cursor: "pointer",
             }}
           >
-            {lang === 'es' ? 'Crear carpeta' : 'Create folder'}
+            {t('create_folder_btn')}
           </button>
         </div>
       </motion.div>

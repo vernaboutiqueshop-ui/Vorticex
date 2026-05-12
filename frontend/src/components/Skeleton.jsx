@@ -5,9 +5,9 @@ const SkeletonBase = ({ style, className }) => (
   <div 
     className={`skeleton-pulse ${className || ''}`}
     style={{
-      background: 'linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%)',
+      background: 'linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%)',
       backgroundSize: '200% 100%',
-      animation: 'pulse 1.5s ease-in-out infinite',
+      animation: 'shimmer 1.4s ease-in-out infinite',
       borderRadius: '8px',
       ...style
     }}
@@ -28,7 +28,7 @@ export const ExerciseSkeleton = () => (
 // Skeleton para post de comunidad
 export const PostSkeleton = () => (
   <div style={{ 
-    background: 'rgba(15, 23, 42, 0.6)', 
+    background: 'var(--surface-1)',
     borderRadius: '16px', 
     padding: '16px',
     marginBottom: '12px'
@@ -52,7 +52,7 @@ export const PostSkeleton = () => (
 // Skeleton para rutina
 export const RoutineSkeleton = () => (
   <div style={{ 
-    background: 'rgba(15, 23, 42, 0.6)', 
+    background: 'var(--surface-1)',
     borderRadius: '12px', 
     padding: '14px',
     marginBottom: '8px'

@@ -82,7 +82,7 @@ export default function SummaryModal({ exercises, onClose }) {
               fontSize: "1.3rem",
             }}
           >
-            {t('muscle_summary') || (lang === 'es' ? 'Resumen muscular' : 'Muscle summary')}
+            {t('muscle_summary')}
           </h3>
           <button
             onClick={onClose}
@@ -123,12 +123,12 @@ export default function SummaryModal({ exercises, onClose }) {
             <div
               style={{
                 fontSize: "0.6rem",
-                color: "#94a3b8",
+                color: "var(--text-secondary)",
                 fontWeight: 700,
                 letterSpacing: "1px",
               }}
             >
-              {t('estimated_duration') || (lang === 'es' ? 'Duración estimada' : 'Estimated duration')}
+              {t('estimated_duration')}
             </div>
             <div
               style={{ fontWeight: 900, color: "#ffffff", fontSize: "1.05rem" }}
@@ -151,7 +151,7 @@ export default function SummaryModal({ exercises, onClose }) {
                 letterSpacing: "1.5px",
               }}
             >
-              {t('muscles_worked') || (lang === 'es' ? 'Músculos trabajados' : 'Muscles worked')}
+              {t('muscles_worked')}
             </div>
             {muscleEntries.map(([muscle, count], mIdx) => (
               <motion.div

@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sshpass -p Sanluis673!pregunta20 ssh -p5414 -o StrictHostKeyChecking=no -o ConnectTimeout=15 root@179.43.120.62 ' *)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -c \"import paramiko; print\\('paramiko ok'\\)\")",
+      "Bash(pip3 install *)",
+      "Bash(python3 -c \"import paramiko; print\\('ok'\\)\")",
+      "Bash(python3 -c \"import paramiko; print\\('paramiko disponible'\\)\")",
+      "Bash(pip3 show *)",
+      "Bash(\"/c/Program Files/Python311/python.exe\" -c \"import paramiko; print\\('ok'\\)\")",
+      "Bash('/c/Program Files/Python311/python.exe' -c ' *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "Bash(git merge *)",
+      "Bash(curl -s https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent -H 'Content-Type: application/json' -H 'X-goog-api-key: AIzaSyBNv1mhreYGdvefBbaZX2dgSwNdRLGJJ4E' -X POST -d '{ *)",
+      "Bash(ping -c 3 179.43.120.62)",
+      "Bash(curl -s --max-time 10 https://vorticex.vercel.app/api/health)",
+      "PowerShell(python -c $script 2>&1)",
+      "PowerShell(python \"C:\\\\Users\\\\Gonzalo\\\\entrenador-ia\\\\check_vps.py\" 2>&1)",
+      "PowerShell(python \"C:\\\\Users\\\\Gonzalo\\\\entrenador-ia\\\\test_semantic.py\" 2>&1)",
+      "Bash(npm run *)",
+      "WebSearch"
+    ]
+  }
+}

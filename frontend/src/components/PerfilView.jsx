@@ -286,7 +286,7 @@ export default function PerfilView({ perfil, onLogout }) {
                 </motion.div>
               </motion.div>
               <div style={{ fontWeight: 900, fontSize: '1.05rem', color: '#fff', lineHeight: 1 }}>{s.value}</div>
-              <div style={{ fontSize: '0.5rem', color: '#64748b', fontWeight: 800, marginTop: '0.15rem', letterSpacing: '0.5px' }}>{s.label}</div>
+              <div style={{ fontSize: '0.5rem', color: 'var(--text-muted)', fontWeight: 800, marginTop: '0.15rem', letterSpacing: '0.5px' }}>{s.label}</div>
             </motion.div>
           ))}
         </div>
@@ -299,7 +299,7 @@ export default function PerfilView({ perfil, onLogout }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
         style={{
-        background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)',
+        background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.1)',
         borderRadius: '18px', padding: '1rem 1.1rem',
       }}>
         {/* Header row */}
@@ -331,7 +331,7 @@ export default function PerfilView({ perfil, onLogout }) {
                   background: bodyGender === g.id ? 'rgba(6,182,212,0.18)' : 'transparent',
                   border: bodyGender === g.id ? '1px solid rgba(6,182,212,0.35)' : '1px solid transparent',
                   borderRadius: '9px', padding: '0.3rem 0.55rem', cursor: 'pointer',
-                  color: bodyGender === g.id ? '#06b6d4' : '#475569',
+                  color: bodyGender === g.id ? '#06b6d4' : 'var(--text-muted)',
                   fontSize: '0.6rem', fontWeight: 800, lineHeight: 1,
                   letterSpacing: '0.3px', transition: 'background 0.3s, border-color 0.3s, color 0.3s',
                 }}
@@ -359,7 +359,7 @@ export default function PerfilView({ perfil, onLogout }) {
                 flex: 1, padding: '0.4rem', borderRadius: '10px', border: 'none', cursor: 'pointer',
                 fontWeight: 800, fontSize: '0.65rem', letterSpacing: '0.5px', transition: 'all 0.2s',
                 background: musclePeriod === p.id ? 'rgba(6,182,212,0.15)' : 'rgba(255,255,255,0.03)',
-                color: musclePeriod === p.id ? '#06b6d4' : '#64748b',
+                color: musclePeriod === p.id ? '#06b6d4' : 'var(--text-muted)',
                 outline: musclePeriod === p.id ? '1px solid rgba(6,182,212,0.3)' : '1px solid transparent',
               }}
             >{p.label}</motion.button>
@@ -396,14 +396,14 @@ export default function PerfilView({ perfil, onLogout }) {
                 ].map((l, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: l.color }} />
-                    <span style={{ fontSize: '0.5rem', color: '#64748b', fontWeight: 700 }}>{l.label}</span>
+                    <span style={{ fontSize: '0.5rem', color: 'var(--text-muted)', fontWeight: 700 }}>{l.label}</span>
                   </div>
                 ))}
               </div>
 
               {/* Muscle chips — expandable */}
               {muscleLoading ? (
-                <div style={{ textAlign: 'center', padding: '0.5rem', color: '#475569', fontSize: '0.7rem', fontWeight: 700 }}>
+                <div style={{ textAlign: 'center', padding: '0.5rem', color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700 }}>
                   {lang === 'es' ? 'Cargando...' : 'Loading...'}
                 </div>
               ) : muscleData.muscles.length > 0 ? (
@@ -432,14 +432,14 @@ export default function PerfilView({ perfil, onLogout }) {
                         }}
                       >
                         <div style={{ width: 8, height: 8, borderRadius: '50%', background: dotColor, flexShrink: 0 }} />
-                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: isExpanded ? '#e2e8f0' : '#94a3b8' }}>{name}</span>
-                        <ChevronDown size={10} color="#475569" style={{ transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                        <span style={{ fontSize: '0.65rem', fontWeight: 800, color: isExpanded ? '#e2e8f0' : 'var(--text-secondary)' }}>{name}</span>
+                        <ChevronDown size={10} color="var(--text-muted)" style={{ transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                       </motion.button>
                     );
                   })}
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '0.75rem', color: '#475569', fontSize: '0.7rem', fontWeight: 700 }}>
+                <div style={{ textAlign: 'center', padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700 }}>
                   {lang === 'es' ? 'Sin datos en este periodo' : 'No data for this period'}
                 </div>
               )}
@@ -468,7 +468,7 @@ export default function PerfilView({ perfil, onLogout }) {
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ fontWeight: 900, fontSize: '0.8rem', color: '#e2e8f0' }}>{name}</span>
-                          <span style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700 }}>
+                          <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 700 }}>
                             {lang === 'es' ? 'Fatiga' : 'Fatigue'}: {Math.round(pct * 100)}%
                           </span>
                         </div>
@@ -489,9 +489,9 @@ export default function PerfilView({ perfil, onLogout }) {
                             { label: lang === 'es' ? 'Últ. vez' : 'Last', value: m.days_since_last === 0 ? (lang === 'es' ? 'Hoy' : 'Today') : `${m.days_since_last}d`, icon: HiOutlineClock },
                           ].map((s, si) => (
                             <div key={si} style={{ textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', padding: '0.4rem' }}>
-                              <s.icon size={12} color="#475569" style={{ margin: '0 auto 0.15rem' }} />
+                              <s.icon size={12} color="var(--text-muted)" style={{ margin: '0 auto 0.15rem' }} />
                               <div style={{ fontWeight: 900, fontSize: '0.85rem', color: '#fff', lineHeight: 1 }}>{s.value}</div>
-                              <div style={{ fontSize: '0.5rem', color: '#64748b', fontWeight: 800, marginTop: '0.1rem' }}>{s.label}</div>
+                              <div style={{ fontSize: '0.5rem', color: 'var(--text-muted)', fontWeight: 800, marginTop: '0.1rem' }}>{s.label}</div>
                             </div>
                           ))}
                         </div>
@@ -511,7 +511,7 @@ export default function PerfilView({ perfil, onLogout }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
         style={{
-        background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)',
+        background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.1)',
         borderRadius: '18px', padding: '1rem 1.1rem',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
@@ -558,7 +558,7 @@ export default function PerfilView({ perfil, onLogout }) {
                 onFocus={e => e.currentTarget.parentElement.style.borderColor = 'rgba(6,182,212,0.4)'}
                 onBlur={e => e.currentTarget.parentElement.style.borderColor = 'rgba(255,255,255,0.06)'}
               />
-              <div style={{ fontSize: '0.55rem', color: '#475569', fontWeight: 700, marginTop: '0.15rem' }}>{f.unit}</div>
+              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: 700, marginTop: '0.15rem' }}>{f.unit}</div>
             </motion.div>
           ))}
         </div>
@@ -622,7 +622,7 @@ function AdminFeedbackPanel() {
   };
 
   const card = {
-    background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.06)',
+    background: 'var(--surface-1)', border: '1px solid rgba(255,255,255,0.06)',
     borderRadius: '16px', overflow: 'hidden',
   };
 
@@ -639,14 +639,14 @@ function AdminFeedbackPanel() {
         <span style={{ color: '#fff', fontWeight: 800, fontSize: '0.8rem', flex: 1, textAlign: 'left' }}>
           FEEDBACK DE USUARIOS
         </span>
-        <ChevronRight size={16} color="#64748b" style={{ transition: '0.2s', transform: open ? 'rotate(90deg)' : 'none' }} />
+        <ChevronRight size={16} color="var(--text-muted)" style={{ transition: '0.2s', transform: open ? 'rotate(90deg)' : 'none' }} />
       </button>
 
       {open && (
         <div style={{ padding: '0 0.85rem 0.85rem', maxHeight: '60vh', overflowY: 'auto' }}>
-          {loading && <div style={{ color: '#64748b', fontSize: '0.7rem', textAlign: 'center', padding: '1rem' }}>Cargando...</div>}
+          {loading && <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textAlign: 'center', padding: '1rem' }}>Cargando...</div>}
           {!loading && feedbackList.length === 0 && (
-            <div style={{ color: '#475569', fontSize: '0.7rem', textAlign: 'center', padding: '1rem' }}>Sin feedback aún</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', textAlign: 'center', padding: '1rem' }}>Sin feedback aún</div>
           )}
           {feedbackList.map(fb => (
             <div key={fb.id} style={{
@@ -661,7 +661,7 @@ function AdminFeedbackPanel() {
                   flexShrink: 0,
                 }} />
                 <span style={{ color: '#06b6d4', fontWeight: 800, fontSize: '0.72rem' }}>{fb.user_name}</span>
-                <span style={{ color: '#475569', fontSize: '0.6rem', marginLeft: 'auto' }}>{timeAgo(fb.created_at)}</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem', marginLeft: 'auto' }}>{timeAgo(fb.created_at)}</span>
               </div>
               <div style={{ color: '#e2e8f0', fontSize: '0.73rem', lineHeight: 1.5, marginBottom: '0.4rem' }}>
                 {fb.message}

@@ -37,7 +37,7 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
   const gender = localStorage.getItem('vortice_body_gender') || 'male';
 
   const card = {
-    background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(255,255,255,0.06)',
+    background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.06)',
     borderRadius: '20px', overflow: 'hidden',
   };
 
@@ -55,7 +55,7 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#050508', color: '#fff', padding: '2rem', textAlign: 'center' }}>
       <Zap size={40} color="#f43f5e" style={{ marginBottom: '1rem' }} />
       <h2 style={{ fontWeight: 900, fontSize: '1.3rem', margin: 0 }}>Rutina no encontrada</h2>
-      <p style={{ color: '#64748b', marginTop: '0.5rem', fontSize: '0.85rem' }}>El enlace expiró o fue eliminado</p>
+      <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', fontSize: '0.85rem' }}>El enlace expiró o fue eliminado</p>
       <button onClick={() => window.location.href = '/'} style={{
         marginTop: '1.5rem', background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', color: '#000',
         border: 'none', borderRadius: '14px', padding: '0.75rem 2rem', fontWeight: 900, cursor: 'pointer',
@@ -80,7 +80,7 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
         <button onClick={() => window.location.href = '/'} style={{
           background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '10px', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-        }}><ChevronLeft size={18} color="#94a3b8" /></button>
+        }}><ChevronLeft size={18} color="var(--text-secondary)" /></button>
         <Zap size={18} color="#06b6d4" />
         <span style={{ fontWeight: 900, fontSize: '0.9rem' }}>Vórtice</span>
         <span style={{
@@ -114,12 +114,12 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '2.5rem', marginTop: '1.75rem' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#06b6d4' }}>{rutina.ejercicios.length}</div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: '#64748b', letterSpacing: '1px' }}>EJERCICIOS</div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1px' }}>EJERCICIOS</div>
             </div>
             <div style={{ width: 1, background: 'rgba(255,255,255,0.06)' }} />
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#06b6d4' }}>{totalSets}</div>
-              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: '#64748b', letterSpacing: '1px' }}>SERIES</div>
+              <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1px' }}>SERIES</div>
             </div>
           </div>
         </motion.div>
@@ -131,12 +131,12 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
           transition={{ duration: 0.4, delay: 0.1 }}
           style={{ ...card, padding: '1.5rem', marginBottom: '1rem', textAlign: 'center' }}
         >
-          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#64748b', letterSpacing: '1px', marginBottom: '1rem' }}>MÚSCULOS TRABAJADOS</div>
+          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '1rem' }}>MÚSCULOS TRABAJADOS</div>
           <BodyMap targets={rutina.ejercicios.map(e => e.target)} scale={0.9} showBars gender={gender} />
         </motion.div>
 
         {/* Exercises */}
-        <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#64748b', letterSpacing: '1px', marginBottom: '0.75rem', paddingLeft: '0.25rem' }}>
+        <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '0.75rem', paddingLeft: '0.25rem' }}>
           EJERCICIOS ({rutina.ejercicios.length})
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
@@ -164,11 +164,11 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.2rem' }}>
                   <span style={{ color: '#06b6d4', fontSize: '0.6rem', fontWeight: 800 }}>{ej.target}</span>
                   <span style={{ color: 'rgba(255,255,255,0.1)' }}>·</span>
-                  <span style={{ color: '#64748b', fontSize: '0.6rem', fontWeight: 700 }}>{ej.sets_count || 3} series</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem', fontWeight: 700 }}>{ej.sets_count || 3} series</span>
                 </div>
               </div>
               <div style={{
-                fontSize: '0.75rem', fontWeight: 900, color: '#334155',
+                fontSize: '0.75rem', fontWeight: 900, color: 'var(--surface-3)',
                 width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.03)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>{idx + 1}</div>

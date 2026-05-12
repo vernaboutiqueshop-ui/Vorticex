@@ -626,7 +626,7 @@ export default function NutricionView({ perfil }) {
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        style={{ order: 1, background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+        style={{ order: 1, background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
       >
         {[
           { label: 'KCAL', val: macrosHoy.calorias, goal: metas.cal_goal, color: '#00C9FF', unit: '' },
@@ -648,7 +648,7 @@ export default function NutricionView({ perfil }) {
                   style={{ height: '100%', background: m.color, borderRadius: 99 }}
                 />
               </div>
-              <span style={{ fontSize: '0.42rem', fontWeight: 800, color: '#475569', letterSpacing: '0.3px' }}>{m.label} {pct}%</span>
+              <span style={{ fontSize: '0.42rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.3px' }}>{m.label} {pct}%</span>
             </div>
           );
         })}
@@ -679,10 +679,10 @@ export default function NutricionView({ perfil }) {
               { key: 'fat_goal', label: 'Grasas', unit: 'g' },
             ].map(f => (
               <div key={f.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                <span style={{ fontSize: '0.65rem', color: '#94a3b8', fontWeight: 800, width: '70px' }}>{f.label}</span>
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', fontWeight: 800, width: '70px' }}>{f.label}</span>
                 <input type="number" value={metas[f.key]} onChange={e => setMetas(prev => ({ ...prev, [f.key]: parseFloat(e.target.value) || 0 }))}
                   className="premium-input" style={{ flex: 1, height: '2rem', fontSize: '0.75rem', textAlign: 'center' }} />
-                <span style={{ fontSize: '0.6rem', color: '#64748b', width: '25px' }}>{f.unit}</span>
+                <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', width: '25px' }}>{f.unit}</span>
               </div>
             ))}
             <button onClick={() => saveMetas(metas)} className="btn-elite" style={{ width: '100%', height: '2rem', fontSize: '0.7rem', marginTop: '0.3rem' }}>GUARDAR METAS</button>
@@ -715,7 +715,7 @@ export default function NutricionView({ perfil }) {
                 style={{ fontSize: '1.3rem', fontWeight: 900, color: nutriScore >= 80 ? '#22c55e' : nutriScore >= 50 ? '#f59e0b' : '#ef4444', lineHeight: 1 }}>
                 {nutriScore}
               </motion.div>
-              <span style={{ fontSize: '0.45rem', color: '#64748b', fontWeight: 800, marginTop: '0.1rem' }}>SCORE</span>
+              <span style={{ fontSize: '0.45rem', color: 'var(--text-muted)', fontWeight: 800, marginTop: '0.1rem' }}>SCORE</span>
             </div>
           </div>
 
@@ -726,7 +726,7 @@ export default function NutricionView({ perfil }) {
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: r.color, flexShrink: 0 }} />
-                  <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 800, width: '30px' }}>{r.label}</span>
+                  <span style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 800, width: '30px' }}>{r.label}</span>
                   <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.04)', borderRadius: 99, overflow: 'hidden' }}>
                     <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(pct, 100)}%` }}
                       transition={{ duration: 0.8, delay: 0.3 + i * 0.1 }}
@@ -735,7 +735,7 @@ export default function NutricionView({ perfil }) {
                   <span style={{ fontSize: '0.6rem', color: '#fff', fontWeight: 900, width: '35px', textAlign: 'right' }}>
                     {r.label === 'KCAL' ? Math.round(r.value) : `${Math.round(r.value)}g`}
                   </span>
-                  <span style={{ fontSize: '0.5rem', color: '#475569', fontWeight: 700 }}>{pct}%</span>
+                  <span style={{ fontSize: '0.5rem', color: 'var(--text-muted)', fontWeight: 700 }}>{pct}%</span>
                 </div>
               );
             })}
@@ -748,7 +748,7 @@ export default function NutricionView({ perfil }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        style={{ order: 5, background: 'rgba(15,23,42,0.95)', border: ayuno.en_ayuno ? '1px solid rgba(6,182,212,0.4)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
+        style={{ order: 5, background: 'var(--surface-2)', border: ayuno.en_ayuno ? '1px solid rgba(6,182,212,0.4)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{fontSize: '0.65rem', fontWeight: 900, display:'flex', alignItems:'center', gap:'0.4rem', color: '#06b6d4', letterSpacing: '0.5px'}}>
             <MdOutlineTimer size={14} /> AYUNO
@@ -823,13 +823,13 @@ export default function NutricionView({ perfil }) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.15 }}
-          style={{ order: 3, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}
+          style={{ order: 3, background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
             <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#06b6d4', letterSpacing: '0.5px', margin: 0, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <GiMeal size={12} /> LOG HOY
             </h3>
-            <span style={{ fontSize: '0.55rem', fontWeight: 800, color: '#475569' }}>
+            <span style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--text-muted)' }}>
               {comidasHoy.length} {comidasHoy.length === 1 ? 'comida' : 'comidas'}
             </span>
           </div>
@@ -945,12 +945,12 @@ export default function NutricionView({ perfil }) {
                 </span>
               );
             })()}
-            <span style={{ fontSize: '0.5rem', color: '#475569' }}>{hybridResults.length} resultados</span>
+            <span style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>{hybridResults.length} resultados</span>
           </div>
         )}
 
         {hybridSource === 'none' && !searching && multiPending.length === 0 && naturalItems.length === 0 && (
-          <p style={{ fontSize: '0.7rem', color: '#64748b', textAlign: 'center', marginTop: '0.5rem' }}>Sin resultados. Probá con otro término.</p>
+          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.5rem' }}>Sin resultados. Probá con otro término.</p>
         )}
 
         {/* Multi-food confirmation panel */}
@@ -1104,9 +1104,9 @@ export default function NutricionView({ perfil }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.6rem' }}>
                 <div>
                   <div style={{ fontSize: '0.85rem', fontWeight: 900, color: '#fff' }}>{selectedFood.nombre}</div>
-                  {selectedFood.marca && <div style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700 }}>{selectedFood.marca}</div>}
+                  {selectedFood.marca && <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 700 }}>{selectedFood.marca}</div>}
                 </div>
-                <button onClick={() => setSelectedFood(null)} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}><X size={14} /></button>
+                <button onClick={() => setSelectedFood(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={14} /></button>
               </div>
 
               {/* Macros per 100g */}
@@ -1121,12 +1121,12 @@ export default function NutricionView({ perfil }) {
                     {Math.round(m.val)}{m.label === 'KCAL' ? '' : 'g'} {m.label}
                   </span>
                 ))}
-                <span style={{ fontSize: '0.45rem', color: '#475569', fontWeight: 700, alignSelf: 'center' }}>/ 100g</span>
+                <span style={{ fontSize: '0.45rem', color: 'var(--text-muted)', fontWeight: 700, alignSelf: 'center' }}>/ 100g</span>
               </div>
 
               {/* Grams input */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 800 }}>Porción:</span>
+                <span style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', fontWeight: 800 }}>Porción:</span>
                 <div style={{ display: 'flex', gap: '0.25rem' }}>
                   {[50, 100, 150, 200, 300].map(g => (
                     <button key={g} onClick={() => setGramosInput(g)}
@@ -1134,7 +1134,7 @@ export default function NutricionView({ perfil }) {
                         fontSize: '0.6rem', fontWeight: 800, padding: '0.25rem 0.5rem', borderRadius: '6px', cursor: 'pointer',
                         border: gramosInput === g ? '1px solid rgba(6,182,212,0.4)' : '1px solid rgba(255,255,255,0.06)',
                         background: gramosInput === g ? 'rgba(6,182,212,0.12)' : 'rgba(255,255,255,0.03)',
-                        color: gramosInput === g ? '#06b6d4' : '#94a3b8',
+                        color: gramosInput === g ? '#06b6d4' : 'var(--text-secondary)',
                       }}>{g}g</button>
                   ))}
                 </div>
@@ -1152,7 +1152,7 @@ export default function NutricionView({ perfil }) {
                 ].map(m => (
                   <div key={m.label} style={{ flex: 1, textAlign: 'center' }}>
                     <div style={{ fontSize: '0.85rem', fontWeight: 900, color: m.color }}>{Math.round(m.val)}</div>
-                    <div style={{ fontSize: '0.45rem', color: '#64748b', fontWeight: 800 }}>{m.label.toUpperCase()}</div>
+                    <div style={{ fontSize: '0.45rem', color: 'var(--text-muted)', fontWeight: 800 }}>{m.label.toUpperCase()}</div>
                   </div>
                 ))}
               </div>
@@ -1174,7 +1174,7 @@ export default function NutricionView({ perfil }) {
       </motion.div>
 
       {/* 5. ALACENA */}
-      <div style={{ order: 6, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem', borderLeft: '3px solid #f59e0b' }}>
+      <div style={{ order: 6, background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem', borderLeft: '3px solid #f59e0b' }}>
         <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#f59e0b', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><GiCookingPot size={14} color="#f59e0b" /> ALACENA</h3>
         <div style={{display:'flex', gap:'0.5rem', marginTop:'0.75rem'}}>
           <input value={newIngrediente} onChange={e => setNewIngrediente(e.target.value)} onKeyDown={e => e.key === 'Enter' && agregarAlacena()} className="premium-input" placeholder="Nuevo..." style={{ flex: 1, height: '2.8rem', fontSize: '0.85rem' }} />
@@ -1302,7 +1302,7 @@ export default function NutricionView({ perfil }) {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.35 }}
-          style={{ order: 8, background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
+          style={{ order: 8, background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
           <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: '#06b6d4', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
             <HiOutlineChartBar size={14} /> SEMANA
           </h3>
@@ -1314,7 +1314,7 @@ export default function NutricionView({ perfil }) {
                 const day = new Date(h.fecha + 'T12:00:00');
                 return (
                   <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}>
-                    <span style={{ fontSize: '0.5rem', color: '#94a3b8', fontWeight: 800 }}>{Math.round(h.calorias || 0)}</span>
+                    <span style={{ fontSize: '0.5rem', color: 'var(--text-secondary)', fontWeight: 800 }}>{Math.round(h.calorias || 0)}</span>
                     <motion.div
                       initial={{ height: 0 }}
                       animate={{ height: `${Math.max(pct * 55, 4)}px` }}
@@ -1324,7 +1324,7 @@ export default function NutricionView({ perfil }) {
                         background: pct > 0.8 ? 'linear-gradient(to top, #22c55e, #22c55e90)' : pct > 0.4 ? 'linear-gradient(to top, #f59e0b, #f59e0b90)' : 'linear-gradient(to top, #ef4444, #ef444490)',
                       }}
                     />
-                    <span style={{ fontSize: '0.5rem', color: '#64748b', fontWeight: 800 }}>
+                    <span style={{ fontSize: '0.5rem', color: 'var(--text-muted)', fontWeight: 800 }}>
                       {DIAS_LABEL[day.getDay()]}
                     </span>
                   </div>

@@ -52,7 +52,7 @@ const SPORT_COLOR_MAP = {
   "tenis": "#a3e635", "básquet": "#f97316", "basquet": "#f97316",
   "boxeo": "#ef4444", "rugby": "#8b5cf6", "yoga": "#a78bfa",
   "pádel": "#14b8a6", "padel": "#14b8a6", "crossfit": "#f43f5e",
-  "caminar": "#64748b", "hockey": "#38bdf8", "voley": "#facc15",
+  "caminar": "var(--text-muted)", "hockey": "#38bdf8", "voley": "#facc15",
   "surf": "#22d3ee", "escalada": "#a3a3a3", "senderismo": "#84cc16",
   "bailar": "#e879f9", "artes marciales": "#dc2626", "patinaje": "#7dd3fc",
   "remo": "#0ea5e9", "esquí": "#e0f2fe", "golf": "#16a34a", "ping pong": "#fb923c",
@@ -77,7 +77,7 @@ const QUICK_SPORTS = [
   { name: "Yoga", color: "#a78bfa" },
   { name: "Pádel", color: "#14b8a6" },
   { name: "CrossFit", color: "#f43f5e" },
-  { name: "Caminar", color: "#64748b" },
+  { name: "Caminar", color: "var(--text-muted)" },
   { name: "Hockey", color: "#38bdf8" },
   { name: "Voley", color: "#facc15" },
   { name: "Surf", color: "#22d3ee" },
@@ -245,7 +245,7 @@ export default function SportsView({ perfil }) {
               onClick={() => setShowHelp(p => !p)}
               style={{ background: "none", border: "none", cursor: "pointer", padding: "0.15rem" }}
             >
-              <HelpCircle size={14} color="#475569" />
+              <HelpCircle size={14} color="var(--text-muted)" />
             </motion.button>
           </div>
           <motion.button
@@ -275,7 +275,7 @@ export default function SportsView({ perfil }) {
               <div style={{
                 background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.15)",
                 borderRadius: "12px", padding: "0.65rem 0.8rem",
-                fontSize: "0.7rem", color: "#94a3b8", fontWeight: 600, lineHeight: 1.5, whiteSpace: "pre-line",
+                fontSize: "0.7rem", color: "var(--text-secondary)", fontWeight: 600, lineHeight: 1.5, whiteSpace: "pre-line",
               }}>
                 {lang === "es"
                   ? "1. Agregá deportes con el botón + Agregar\n2. Tocá un deporte para registrar una sesión\n3. Elegí duración e intensidad, y listo"
@@ -294,8 +294,8 @@ export default function SportsView({ perfil }) {
               border: "1px dashed rgba(255,255,255,0.1)",
             }}
           >
-            <Activity size={32} color="#475569" style={{ marginBottom: "0.5rem" }} />
-            <div style={{ color: "#64748b", fontSize: "0.8rem", fontWeight: 600 }}>
+            <Activity size={32} color="var(--text-muted)" style={{ marginBottom: "0.5rem" }} />
+            <div style={{ color: "var(--text-muted)", fontSize: "0.8rem", fontWeight: 600 }}>
               {lang === "es" ? "Agregá un deporte para empezar" : "Add a sport to get started"}
             </div>
           </motion.div>
@@ -333,11 +333,11 @@ export default function SportsView({ perfil }) {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 900, fontSize: "1rem", color: "#fff" }}>{sport.name}</div>
                     {lastSession ? (
-                      <div style={{ fontSize: "0.68rem", color: "#64748b", fontWeight: 600, marginTop: "0.15rem" }}>
+                      <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontWeight: 600, marginTop: "0.15rem" }}>
                         {Math.round(lastSession.calorias)} kcal · {Math.round(lastSession.duracion_min)}min · {new Date(lastSession.timestamp + "Z").toLocaleDateString(lang === "es" ? "es-AR" : "en-US", { day: "numeric", month: "short" })}
                       </div>
                     ) : (
-                      <div style={{ fontSize: "0.68rem", color: "#475569", fontWeight: 600, marginTop: "0.15rem" }}>
+                      <div style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontWeight: 600, marginTop: "0.15rem" }}>
                         {t('tap_to_log')}
                       </div>
                     )}
@@ -364,7 +364,7 @@ export default function SportsView({ perfil }) {
               background: "rgba(255,255,255,0.03)", borderRadius: "16px",
               border: "1px solid rgba(255,255,255,0.08)", padding: "0.85rem",
             }}>
-              <div style={{ fontSize: "0.65rem", fontWeight: 900, color: "#475569", marginBottom: "0.5rem", letterSpacing: "0.5px" }}>
+              <div style={{ fontSize: "0.65rem", fontWeight: 900, color: "var(--text-muted)", marginBottom: "0.5rem", letterSpacing: "0.5px" }}>
                 {t('popular_sports')}
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.5rem" }}>
@@ -377,7 +377,7 @@ export default function SportsView({ perfil }) {
                       display: "flex", alignItems: "center", gap: "0.3rem",
                       padding: "0.35rem 0.55rem", borderRadius: "10px",
                       background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-                      cursor: "pointer", fontSize: "0.68rem", fontWeight: 700, color: "#94a3b8",
+                      cursor: "pointer", fontSize: "0.68rem", fontWeight: 700, color: "var(--text-secondary)",
                     }}
                   >
                     <SportIcon name={qs.name} size={16} color={qs.color} /> {qs.name}
@@ -398,7 +398,7 @@ export default function SportsView({ perfil }) {
                 </motion.button>
               )}
 
-              <div style={{ fontSize: "0.65rem", fontWeight: 900, color: "#475569", marginBottom: "0.4rem", letterSpacing: "0.5px" }}>
+              <div style={{ fontSize: "0.65rem", fontWeight: 900, color: "var(--text-muted)", marginBottom: "0.4rem", letterSpacing: "0.5px" }}>
                 {t('create_custom')}
               </div>
               <div style={{ display: "flex", gap: "0.35rem", alignItems: "center" }}>
@@ -431,7 +431,7 @@ export default function SportsView({ perfil }) {
                     padding: "0.5rem 0.7rem", borderRadius: "10px",
                     background: customName.trim() ? "#06b6d4" : "rgba(255,255,255,0.05)",
                     border: "none", cursor: customName.trim() ? "pointer" : "not-allowed",
-                    color: customName.trim() ? "#000" : "#475569", fontWeight: 900, fontSize: "0.75rem",
+                    color: customName.trim() ? "#000" : "var(--text-muted)", fontWeight: 900, fontSize: "0.75rem",
                   }}
                 >
                   <Plus size={15} />
@@ -439,7 +439,7 @@ export default function SportsView({ perfil }) {
               </div>
               {sports.length > 0 && (
                 <div style={{ marginTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "0.6rem" }}>
-                  <div style={{ fontSize: "0.6rem", fontWeight: 900, color: "#475569", marginBottom: "0.4rem" }}>
+                  <div style={{ fontSize: "0.6rem", fontWeight: 900, color: "var(--text-muted)", marginBottom: "0.4rem" }}>
                     {t('my_sports_list')}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
@@ -508,7 +508,7 @@ export default function SportsView({ perfil }) {
                     background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
                     borderRadius: "10px", width: 28, height: 28, cursor: "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    color: "#94a3b8", fontSize: "1rem", lineHeight: 1, padding: 0,
+                    color: "var(--text-secondary)", fontSize: "1rem", lineHeight: 1, padding: 0,
                   }}
                   aria-label="Cerrar"
                 >✕</button>
@@ -559,7 +559,7 @@ export default function SportsView({ perfil }) {
                         <div style={{ fontSize: "1.3rem", fontWeight: 900, color: stat.color, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.2rem" }}>
                           {stat.icon} {stat.val}
                         </div>
-                        <div style={{ fontSize: "0.55rem", color: "#64748b", fontWeight: 800, marginTop: "0.2rem" }}>{stat.label}</div>
+                        <div style={{ fontSize: "0.55rem", color: "var(--text-muted)", fontWeight: 800, marginTop: "0.2rem" }}>{stat.label}</div>
                       </motion.div>
                     ))}
                   </div>
@@ -571,7 +571,7 @@ export default function SportsView({ perfil }) {
                     transition={{ delay: 0.5 }}
                     style={{ marginBottom: "0.75rem" }}
                   >
-                    <div style={{ fontSize: "0.6rem", fontWeight: 900, color: "#475569", marginBottom: "0.4rem" }}>
+                    <div style={{ fontSize: "0.6rem", fontWeight: 900, color: "var(--text-muted)", marginBottom: "0.4rem" }}>
                       {lang === "es" ? "¿CÓMO TE SENTISTE?" : "HOW DID IT FEEL?"}
                     </div>
                     <div style={{ display: "flex", justifyContent: "center", gap: "0.3rem" }}>
@@ -584,7 +584,7 @@ export default function SportsView({ perfil }) {
                         >
                           <Star
                             size={24}
-                            color={star <= resultRating ? "#f59e0b" : "#334155"}
+                            color={star <= resultRating ? "#f59e0b" : "var(--surface-3)"}
                             fill={star <= resultRating ? "#f59e0b" : "none"}
                             style={{ transition: "all 0.15s" }}
                           />
@@ -593,7 +593,7 @@ export default function SportsView({ perfil }) {
                     </div>
                   </motion.div>
 
-                  <div style={{ fontSize: "0.62rem", color: "#334155", marginBottom: "0.75rem" }}>
+                  <div style={{ fontSize: "0.62rem", color: "var(--surface-3)", marginBottom: "0.75rem" }}>
                     MET {sessionResult.met_base} → {sessionResult.met_ajustado} · int. {sessionResult.intensidad}/10
                   </div>
 
@@ -638,7 +638,7 @@ export default function SportsView({ perfil }) {
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.5rem" }}>
                       <Clock size={13} color="#06b6d4" />
-                      <span style={{ fontSize: "0.65rem", fontWeight: 900, color: "#94a3b8" }}>
+                      <span style={{ fontSize: "0.65rem", fontWeight: 900, color: "var(--text-secondary)" }}>
                         {lang === "es" ? "DURACIÓN" : "DURATION"}
                       </span>
                     </div>
@@ -655,7 +655,7 @@ export default function SportsView({ perfil }) {
                             border: "1px solid",
                             background: duration === min ? "rgba(6,182,212,0.18)" : "rgba(255,255,255,0.03)",
                             borderColor: duration === min ? "#06b6d4" : "rgba(255,255,255,0.07)",
-                            color: duration === min ? "#06b6d4" : "#64748b",
+                            color: duration === min ? "#06b6d4" : "var(--text-muted)",
                             transition: "all 0.15s",
                           }}
                         >
@@ -670,7 +670,7 @@ export default function SportsView({ perfil }) {
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
                         <Zap size={13} color="#f97316" />
-                        <span style={{ fontSize: "0.65rem", fontWeight: 900, color: "#94a3b8" }}>
+                        <span style={{ fontSize: "0.65rem", fontWeight: 900, color: "var(--text-secondary)" }}>
                           {lang === "es" ? "INTENSIDAD" : "INTENSITY"}
                         </span>
                       </div>
@@ -715,7 +715,7 @@ export default function SportsView({ perfil }) {
                           )}
                           <span style={{
                             fontSize: "0.6rem", fontWeight: 900, position: "relative", zIndex: 1,
-                            color: n <= intensity ? intensityColor(n) : "#334155",
+                            color: n <= intensity ? intensityColor(n) : "var(--surface-3)",
                           }}>{n}</span>
                         </motion.button>
                       ))}
@@ -787,7 +787,7 @@ export default function SportsView({ perfil }) {
                         {Math.round(s.intensidad)}/10
                       </span>
                     </div>
-                    <div style={{ fontSize: "0.6rem", color: "#475569", fontWeight: 600, marginTop: "0.1rem", display: "flex", alignItems: "center", gap: "0.3rem", position: "relative" }}>
+                    <div style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontWeight: 600, marginTop: "0.1rem", display: "flex", alignItems: "center", gap: "0.3rem", position: "relative" }}>
                       <motion.span
                         whileTap={{ scale: 0.95 }}
                         onClick={(e) => { e.stopPropagation(); setEditingDateId(isEditingDate ? null : s.id); }}
@@ -829,7 +829,7 @@ export default function SportsView({ perfil }) {
                       }}
                       style={{ background: "none", border: "none", cursor: "pointer", padding: "0.15rem" }}
                     >
-                      <Trash2 size={13} color="#334155" />
+                      <Trash2 size={13} color="var(--surface-3)" />
                     </motion.button>
                   </div>
                 </motion.div>

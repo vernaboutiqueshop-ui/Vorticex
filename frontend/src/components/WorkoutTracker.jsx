@@ -247,7 +247,7 @@ export default function WorkoutTracker({
             </svg>
             <div style={{
               position: "absolute", inset: 3, borderRadius: "50%",
-              background: "linear-gradient(135deg, rgba(6,182,212,0.2), rgba(15,23,42,0.95))",
+              background: "linear-gradient(135deg, rgba(6,182,212,0.2), var(--surface-2))",
               backdropFilter: "blur(12px)",
               border: "1px solid rgba(6,182,212,0.3)",
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
@@ -303,7 +303,7 @@ export default function WorkoutTracker({
               alignItems: "center", justifyContent: "center", cursor: "pointer",
             }}
           >
-            <Minimize2 size={16} color="#94a3b8" />
+            <Minimize2 size={16} color="var(--text-secondary)" />
           </button>
           <button
             onClick={() => {
@@ -328,7 +328,7 @@ export default function WorkoutTracker({
           >
             {formatTime(timer)}
           </div>
-          <div style={{ fontSize: "0.55rem", color: "#64748b", fontWeight: 700, letterSpacing: "1px" }}>
+          <div style={{ fontSize: "0.55rem", color: "var(--text-muted)", fontWeight: 700, letterSpacing: "1px" }}>
             {doneSets}/{totalSets} SERIES
           </div>
         </div>
@@ -338,7 +338,7 @@ export default function WorkoutTracker({
           disabled={doneSets === 0}
           style={{
             background: doneSets > 0 ? "linear-gradient(135deg, #06b6d4, #0891b2)" : "rgba(255,255,255,0.06)",
-            color: doneSets > 0 ? "#000" : "#475569",
+            color: doneSets > 0 ? "#000" : "var(--text-muted)",
             border: "none", borderRadius: "12px", padding: "0.6rem 1.2rem",
             fontWeight: 900, fontSize: "0.85rem", cursor: doneSets > 0 ? "pointer" : "not-allowed",
             boxShadow: doneSets > 0 ? "0 0 15px rgba(6,182,212,0.3)" : "none",
@@ -390,7 +390,7 @@ export default function WorkoutTracker({
               style={{
                 background: "rgba(255,255,255,0.06)", border: "none", borderRadius: 8,
                 width: 32, height: 32, display: "flex", alignItems: "center",
-                justifyContent: "center", cursor: "pointer", color: "#94a3b8",
+                justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)",
                 fontWeight: 900, fontSize: "0.7rem",
               }}
             >
@@ -401,7 +401,7 @@ export default function WorkoutTracker({
               style={{
                 background: "rgba(255,255,255,0.06)", border: "none", borderRadius: 8,
                 width: 32, height: 32, display: "flex", alignItems: "center",
-                justifyContent: "center", cursor: "pointer", color: "#94a3b8",
+                justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)",
                 fontWeight: 900, fontSize: "0.7rem",
               }}
             >
@@ -437,7 +437,7 @@ export default function WorkoutTracker({
               <div
                 key={ejIdx}
                 style={{
-                  background: ejDone ? "rgba(6,182,212,0.06)" : "rgba(15,23,42,0.95)",
+                  background: ejDone ? "rgba(6,182,212,0.06)" : "var(--surface-2)",
                   border: `1px solid ${ejDone ? "rgba(6,182,212,0.2)" : "rgba(255,255,255,0.08)"}`,
                   borderRadius: "18px",
                   overflow: "hidden",
@@ -476,13 +476,13 @@ export default function WorkoutTracker({
                       {ej?.nombre_es}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.15rem" }}>
-                      <span style={{ fontSize: "0.6rem", color: "#64748b", fontWeight: 700 }}>
+                      <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontWeight: 700 }}>
                         {ejSetsCompleted}/{ej.sets.length} series
                       </span>
                       {lastW && (
                         <span
                           style={{
-                            fontSize: "0.55rem", color: "#475569", fontWeight: 700,
+                            fontSize: "0.55rem", color: "var(--text-muted)", fontWeight: 700,
                             background: "rgba(255,255,255,0.04)", padding: "0.1rem 0.35rem",
                             borderRadius: 4,
                           }}
@@ -494,7 +494,7 @@ export default function WorkoutTracker({
                     </div>
                   </div>
                   <ChevronDown
-                    size={16} color="#475569"
+                    size={16} color="var(--text-muted)"
                     style={{
                       transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
                       transition: "transform 0.2s", flexShrink: 0,
@@ -520,13 +520,13 @@ export default function WorkoutTracker({
                         alignItems: "center",
                       }}
                     >
-                      <div style={{ fontSize: "0.5rem", fontWeight: 900, color: "#475569", textAlign: "center", letterSpacing: "0.5px" }}>
+                      <div style={{ fontSize: "0.5rem", fontWeight: 900, color: "var(--text-muted)", textAlign: "center", letterSpacing: "0.5px" }}>
                         SERIE
                       </div>
-                      <div style={{ fontSize: "0.5rem", fontWeight: 900, color: "#475569", textAlign: "center", letterSpacing: "0.5px" }}>
+                      <div style={{ fontSize: "0.5rem", fontWeight: 900, color: "var(--text-muted)", textAlign: "center", letterSpacing: "0.5px" }}>
                         KG
                       </div>
-                      <div style={{ fontSize: "0.5rem", fontWeight: 900, color: "#475569", textAlign: "center", letterSpacing: "0.5px" }}>
+                      <div style={{ fontSize: "0.5rem", fontWeight: 900, color: "var(--text-muted)", textAlign: "center", letterSpacing: "0.5px" }}>
                         REPS
                       </div>
                       <div />
@@ -685,20 +685,20 @@ export default function WorkoutTracker({
                 )}
                 {gifDetail?.target && (
                   <span style={{
-                    background: "rgba(255,255,255,0.07)", color: "#94a3b8", fontSize: "0.6rem",
+                    background: "rgba(255,255,255,0.07)", color: "var(--text-secondary)", fontSize: "0.6rem",
                     fontWeight: 800, padding: "0.2rem 0.6rem", borderRadius: 99, textTransform: "capitalize",
                   }}>{gifDetail.target}</span>
                 )}
                 {gifDetail?.equipment && (
                   <span style={{
-                    background: "rgba(255,255,255,0.07)", color: "#94a3b8", fontSize: "0.6rem",
+                    background: "rgba(255,255,255,0.07)", color: "var(--text-secondary)", fontSize: "0.6rem",
                     fontWeight: 800, padding: "0.2rem 0.6rem", borderRadius: 99, textTransform: "capitalize",
                   }}>{gifDetail.equipment}</span>
                 )}
               </div>
             </div>
             {(gifDetail?.instructions || gifDetail?.descripcion) && (
-              <div style={{ fontSize: "0.82rem", color: "#94a3b8", lineHeight: 1.6, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "1rem" }}>
+              <div style={{ fontSize: "0.82rem", color: "var(--text-secondary)", lineHeight: 1.6, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "1rem" }}>
                 {gifDetail.instructions || gifDetail.descripcion}
               </div>
             )}
@@ -706,7 +706,7 @@ export default function WorkoutTracker({
               onClick={() => setGifDetail(null)}
               style={{
                 background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: 14, padding: "0.85rem", color: "#94a3b8",
+                borderRadius: 14, padding: "0.85rem", color: "var(--text-secondary)",
                 fontWeight: 800, fontSize: "0.85rem", cursor: "pointer", width: "100%",
               }}
             >Cerrar</button>
@@ -739,14 +739,14 @@ export default function WorkoutTracker({
               <h3 style={{ margin: 0, fontWeight: 900, color: "#fff", fontSize: "1.3rem" }}>
                 {progressPct >= 80 ? "¡Bestia total!" : progressPct >= 50 ? "¡Buen trabajo!" : "¿Terminamos?"}
               </h3>
-              <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: "0.5rem" }}>
+              <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", marginTop: "0.5rem" }}>
                 {doneSets} de {totalSets} series · {formatTime(timer)} · {totalVolume.toFixed(0)}kg volumen
               </p>
             </div>
 
             {/* Star rating */}
             <div style={{ textAlign: 'center', margin: '0.5rem 0' }}>
-              <div style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 700, marginBottom: '0.4rem' }}>
+              <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '0.4rem' }}>
                 {t('how_did_you_feel')}
               </div>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '0.3rem' }}>
@@ -759,7 +759,7 @@ export default function WorkoutTracker({
                   >
                     <Star
                       size={28}
-                      color={star <= sessionRating ? '#f59e0b' : '#334155'}
+                      color={star <= sessionRating ? '#f59e0b' : 'var(--surface-3)'}
                       fill={star <= sessionRating ? '#f59e0b' : 'none'}
                       style={{ transition: 'all 0.15s' }}
                     />
@@ -787,7 +787,7 @@ export default function WorkoutTracker({
                 onClick={() => setFinishModal(false)}
                 style={{
                   background: "none", border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "14px", padding: "0.85rem", color: "#94a3b8",
+                  borderRadius: "14px", padding: "0.85rem", color: "var(--text-secondary)",
                   fontWeight: 700, fontSize: "0.85rem", cursor: "pointer",
                 }}
               >

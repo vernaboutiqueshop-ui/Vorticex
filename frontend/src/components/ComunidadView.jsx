@@ -62,7 +62,7 @@ const Avatar = ({ src, name, size = 36, level }) => {
         <div style={{
           position: 'absolute', bottom: -1, right: -1,
           minWidth: badgeSize, height: badgeSize, borderRadius: 99,
-          background: level >= 30 ? 'var(--color-accent)' : level >= 20 ? 'var(--color-warning)' : level >= 10 ? '#3b82f6' : '#475569',
+          background: level >= 30 ? 'var(--color-accent)' : level >= 20 ? 'var(--color-warning)' : level >= 10 ? '#3b82f6' : 'var(--text-muted)',
           color: '#fff',
           fontSize: size < 30 ? '0.35rem' : '0.42rem',
           fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -333,7 +333,7 @@ export default function ComunidadView({ perfil }) {
 
           {/* ════ COMPOSER ════ */}
           <div style={{
-            background: 'rgba(15,23,42,0.95)', backdropFilter: 'blur(40px)',
+            background: 'var(--surface-2)', backdropFilter: 'blur(40px)',
             border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px',
             padding: '1rem 1.1rem', boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
           }}>
@@ -391,16 +391,16 @@ export default function ComunidadView({ perfil }) {
                       boxShadow: '0 8px 24px rgba(0,0,0,0.5)', maxHeight: 180, overflowY: 'auto',
                     }}>
                       {myRoutines.length === 0 ? (
-                        <div style={{ padding: '0.75rem', textAlign: 'center', color: '#64748b', fontSize: '0.72rem', fontWeight: 700 }}>
+                        <div style={{ padding: '0.75rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.72rem', fontWeight: 700 }}>
                           No tenés rutinas cargadas. ¡Creá una desde el Gym!
                         </div>
                       ) : (
                         <>
-                          <div style={{ padding: '0.4rem 0.6rem', fontSize: '0.5rem', fontWeight: 900, color: '#64748b', letterSpacing: '1px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <div style={{ padding: '0.4rem 0.6rem', fontSize: '0.5rem', fontWeight: 900, color: 'var(--text-muted)', letterSpacing: '1px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                             ADJUNTAR RUTINA
                           </div>
                           {myRoutines.filter(r => r.name.toLowerCase().includes(mentionQuery)).length === 0 ? (
-                            <div style={{ padding: '0.6rem', textAlign: 'center', color: '#475569', fontSize: '0.7rem' }}>Sin coincidencias</div>
+                            <div style={{ padding: '0.6rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.7rem' }}>Sin coincidencias</div>
                           ) : (
                             myRoutines.filter(r => r.name.toLowerCase().includes(mentionQuery)).map((r, i) => (
                               <button
@@ -423,7 +423,7 @@ export default function ComunidadView({ perfil }) {
                                 <Dumbbell size={13} color="#06b6d4" />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontWeight: 800, fontSize: '0.75rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
-                                  <div style={{ fontSize: '0.5rem', color: '#64748b' }}>{Array.isArray(r.ejercicios) ? `${r.ejercicios.length} ejercicios` : ''}</div>
+                                  <div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>{Array.isArray(r.ejercicios) ? `${r.ejercicios.length} ejercicios` : ''}</div>
                                 </div>
                               </button>
                             ))
@@ -462,7 +462,7 @@ export default function ComunidadView({ perfil }) {
                       {selectedRoutine.name}
                     </span>
                     <button onClick={() => setSelectedRoutineId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                      <X size={12} color="#94a3b8" />
+                      <X size={12} color="var(--text-secondary)" />
                     </button>
                   </div>
                 )}
@@ -481,7 +481,7 @@ export default function ComunidadView({ perfil }) {
                         border: `1px solid ${mediaPreview ? 'rgba(6,182,212,0.3)' : 'rgba(255,255,255,0.08)'}`,
                         borderRadius: '10px', padding: '0.35rem 0.6rem', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', gap: '0.25rem',
-                        color: mediaPreview ? '#06b6d4' : '#64748b', fontSize: '0.65rem', fontWeight: 800,
+                        color: mediaPreview ? '#06b6d4' : 'var(--text-muted)', fontSize: '0.65rem', fontWeight: 800,
                       }}
                     >
                       <ImageIcon size={13} /> Media
@@ -494,7 +494,7 @@ export default function ComunidadView({ perfil }) {
                           border: `1px solid ${showRoutinePicker ? 'rgba(6,182,212,0.3)' : 'rgba(255,255,255,0.08)'}`,
                           borderRadius: '10px', padding: '0.35rem 0.6rem', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: '0.25rem',
-                          color: showRoutinePicker ? '#06b6d4' : '#64748b', fontSize: '0.65rem', fontWeight: 800,
+                          color: showRoutinePicker ? '#06b6d4' : 'var(--text-muted)', fontSize: '0.65rem', fontWeight: 800,
                         }}
                       >
                         <Dumbbell size={13} /> {tx.routine}
@@ -507,7 +507,7 @@ export default function ComunidadView({ perfil }) {
                     style={{
                       background: (isPosting || (!newPost.trim() && !selectedRoutineId && !mediaBase64))
                         ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #06b6d4, #0891b2)',
-                      color: (isPosting || (!newPost.trim() && !selectedRoutineId && !mediaBase64)) ? '#475569' : '#000',
+                      color: (isPosting || (!newPost.trim() && !selectedRoutineId && !mediaBase64)) ? 'var(--text-muted)' : '#000',
                       border: 'none', borderRadius: '10px', padding: '0.4rem 1rem',
                       fontWeight: 900, fontSize: '0.72rem', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', gap: '0.3rem',
@@ -527,7 +527,7 @@ export default function ComunidadView({ perfil }) {
                 paddingTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.3rem',
                 maxHeight: '160px', overflowY: 'auto',
               }}>
-                <div style={{ fontSize: '0.55rem', fontWeight: 900, color: '#64748b', letterSpacing: '1px', marginBottom: '0.2rem' }}>
+                <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '0.2rem' }}>
                   COMPARTIR RUTINA
                 </div>
                 {myRoutines.map(r => (
@@ -542,12 +542,12 @@ export default function ComunidadView({ perfil }) {
                       textAlign: 'left', width: '100%',
                     }}
                   >
-                    <Dumbbell size={13} color={selectedRoutineId === r.id ? '#06b6d4' : '#475569'} />
+                    <Dumbbell size={13} color={selectedRoutineId === r.id ? '#06b6d4' : 'var(--text-muted)'} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 800, fontSize: '0.75rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {r.name}
                       </div>
-                      <div style={{ fontSize: '0.55rem', color: '#64748b', fontWeight: 600 }}>
+                      <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: 600 }}>
                         {Array.isArray(r.ejercicios) ? `${r.ejercicios.length} ejercicios` : ''}
                       </div>
                     </div>
@@ -559,7 +559,7 @@ export default function ComunidadView({ perfil }) {
 
           {/* ════ FEED ════ */}
           {posts.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#475569' }}>
+            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
               <MessageCircle size={40} style={{ margin: '0 auto 0.75rem', opacity: 0.2 }} />
               <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{tx.noPostsYet}</div>
               <div style={{ fontSize: '0.75rem', marginTop: '0.2rem', opacity: 0.5 }}>{tx.beFirst}</div>
@@ -573,7 +573,7 @@ export default function ComunidadView({ perfil }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: postIdx * 0.05, duration: 0.3 }}
               style={{
-              background: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)',
+              background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: '18px', overflow: 'hidden',
             }}>
               {/* User Header */}
@@ -584,7 +584,7 @@ export default function ComunidadView({ perfil }) {
                   </div>
                   <div>
                     <h4 onClick={() => setViewingProfile(post.user_name)} style={{ margin: 0, fontSize: '0.9rem', fontWeight: 900, color: '#ffffff', cursor: 'pointer' }}>{post.user_name}</h4>
-                    <span style={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 600 }}>{timeAgo(post.created_at)}</span>
+                    <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 600 }}>{timeAgo(post.created_at)}</span>
                   </div>
                 </div>
                 {post.user_name?.toLowerCase() !== perfil?.toLowerCase() && (
@@ -595,7 +595,7 @@ export default function ComunidadView({ perfil }) {
                       border: `1px solid ${followState[post.user_name] ? 'rgba(6,182,212,0.3)' : 'rgba(255,255,255,0.08)'}`,
                       borderRadius: '10px', padding: '0.3rem 0.6rem', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', gap: '0.2rem',
-                      color: followState[post.user_name] ? '#06b6d4' : '#64748b',
+                      color: followState[post.user_name] ? '#06b6d4' : 'var(--text-muted)',
                       fontSize: '0.6rem', fontWeight: 800,
                     }}
                   >
@@ -673,7 +673,7 @@ export default function ComunidadView({ perfil }) {
                             }}>
                               <img src={ex.gif_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                             </div>
-                            <div style={{ fontSize: '0.42rem', color: '#94a3b8', fontWeight: 700, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontSize: '0.42rem', color: 'var(--text-secondary)', fontWeight: 700, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {ex.name || ''}
                             </div>
                           </div>
@@ -690,7 +690,7 @@ export default function ComunidadView({ perfil }) {
                       </div>
                     )}
                     {(!post.routine_exercises || post.routine_exercises.length === 0) && (
-                      <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.65rem', color: '#475569', fontStyle: 'italic' }}>
+                      <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.65rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
                         {tx.sharedRoutine}
                       </div>
                     )}
@@ -735,7 +735,7 @@ export default function ComunidadView({ perfil }) {
                 {post.user_name?.toLowerCase() === perfil?.toLowerCase() && (
                   <button
                     onClick={() => handleDeletePost(post.id)}
-                    style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', color: '#64748b', marginLeft: 'auto', opacity: 0.6 }}
+                    style={{ background: 'none', border: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', color: 'var(--text-muted)', marginLeft: 'auto', opacity: 0.6 }}
                     title="Eliminar publicación"
                   >
                     <Trash2 size={14} strokeWidth={2.5} />
@@ -763,7 +763,7 @@ export default function ComunidadView({ perfil }) {
                                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', opacity: 0.5 }}
                                   title="Eliminar comentario"
                                 >
-                                  <Trash2 size={10} color="#64748b" />
+                                  <Trash2 size={10} color="var(--text-muted)" />
                                 </button>
                               )}
                             </div>
@@ -810,7 +810,7 @@ export default function ComunidadView({ perfil }) {
             </div>
           )}
           {!hasMore && posts.length > 0 && (
-            <p style={{ textAlign: 'center', color: '#475569', fontSize: '0.7rem', fontWeight: 700, padding: '0.5rem 0' }}>
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.7rem', fontWeight: 700, padding: '0.5rem 0' }}>
               {tx.noMorePosts}
             </p>
           )}
