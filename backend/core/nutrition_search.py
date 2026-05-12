@@ -330,6 +330,59 @@ def _es_plato_compuesto(query: str) -> bool:
     return palabra_count >= 3 and any(kw in q for kw in _PLATO_KEYWORDS)
 
 
+_NATURAL_UNITS = ['tostada', 'tostadas', 'vaso', 'vasos', 'taza', 'tazas', 'copa', 'copas',
+                  'porción', 'porciones', 'pedazo', 'pedazos', 'rebanada', 'rebanadas',
+                  'unidad', 'unidades', 'rodaja', 'rodajas']
+
+def _tiene_items_naturales(query: str) -> bool:
+    """Detecta si el query combina al menos dos ítems con unidades naturales o conteos."""
+    q = query.lower()
+    has_connector = ' con ' in q or ' y ' in q or ' más ' in q or ' mas ' in q
+    if not has_connector:
+        return False
+    has_natural = any(u in q for u in _NATURAL_UNITS) or bool(re.search(r'\b\d+\s+(?:taza|vaso|tostada|unidad|porci)', q))
+    return has_natural
+
+
+async def _parsear_plato_natural(query: str) -> list | None:
+    """Parsea un plato con múltiples componentes a ítems con porciones naturales via Groq."""
+    groq_key = os.getenv("GROQ_API_KEY", "")
+    if not groq_key:
+        return None
+    prompt = (
+        f"El usuario quiere registrar: '{query}'. "
+        "Dividí esto en ítems separados con porciones naturales (tazas, unidades, vasos, etc). "
+        "Para cada ítem estimá los macros TOTALES de la porción (no por 100g). "
+        "Respondé SOLO JSON array sin texto extra: "
+        '[{"nombre":"...", "cantidad": 1, "unidad": "taza", "kcal": 0, "proteinas": 0, "carbos": 0, "grasas": 0}]'
+    )
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                json={
+                    "model": "llama-3.1-8b-instant",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.1,
+                    "max_tokens": 400,
+                }
+            )
+        if resp.status_code != 200:
+            return None
+        text = resp.json()["choices"][0]["message"]["content"]
+        match = re.search(r'\[.*\]', text, re.DOTALL)
+        if not match:
+            return None
+        items = json.loads(match.group(0))
+        if not isinstance(items, list) or len(items) == 0:
+            return None
+        return items
+    except Exception as e:
+        print(f"[GROQ natural] Error: {e}")
+        return None
+
+
 async def busqueda_hibrida(perfil: str, query: str) -> dict:
     """
     Pipeline inteligente:
@@ -345,6 +398,12 @@ async def busqueda_hibrida(perfil: str, query: str) -> dict:
 
     # Normalizar sinónimos argentinos
     query_norm = _normalizar(query)
+
+    # ── Paso 0a: Plato con unidades naturales → parseo directo ──
+    if _tiene_items_naturales(query_norm):
+        natural = await _parsear_plato_natural(query_norm)
+        if natural:
+            return {"cache": [], "external": [], "natural_items": natural, "source": "natural"}
 
     # ── Paso 0: Plato compuesto → Groq IA directo ──
     if _es_plato_compuesto(query_norm):

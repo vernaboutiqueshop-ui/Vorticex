@@ -107,6 +107,7 @@ export default function NutricionView({ perfil }) {
   const [gramosInput, setGramosInput] = useState(100);
   const [loggingFood, setLoggingFood] = useState(false);
   const [multiPending, setMultiPending] = useState([]);
+  const [naturalItems, setNaturalItems] = useState([]);
   const [loggingMulti, setLoggingMulti] = useState(false);
   const [registrarTab, setRegistrarTab] = useState('texto'); // 'texto' | 'foto' | 'alacena'
   const [alacena, setAlacena] = useState([]);
@@ -392,6 +393,7 @@ export default function NutricionView({ perfil }) {
       setSelectedFood(null);
       setHybridSource('');
       setMultiPending([]);
+      setNaturalItems([]);
       const results = [];
       for (const part of parts) {
         try {
@@ -417,6 +419,7 @@ export default function NutricionView({ perfil }) {
     setSelectedFood(null);
     setHybridSource('');
     setMultiPending([]);
+    setNaturalItems([]);
     try {
       const res = await authFetch(`${API}/api/nutricion/buscar`, {
         method: 'POST',
@@ -424,7 +427,10 @@ export default function NutricionView({ perfil }) {
         body: JSON.stringify({ perfil, query: nombre })
       });
       const data = await res.json();
-      if (data.items && data.items.length > 0) {
+      if (data.source === 'natural' && data.natural_items?.length > 0) {
+        setNaturalItems(data.natural_items);
+        setHybridSource('natural');
+      } else if (data.items && data.items.length > 0) {
         setHybridResults(data.items);
         setHybridSource(data.source || '');
       } else {
@@ -457,6 +463,33 @@ export default function NutricionView({ perfil }) {
       } catch {}
     }
     setMultiPending([]);
+    setSearchText('');
+    fetchMacros();
+    fetchComidas();
+    fetchHistorial();
+    setLoggingMulti(false);
+  };
+
+  const logAllNatural = async () => {
+    setLoggingMulti(true);
+    for (const item of naturalItems) {
+      try {
+        await authFetch(`${API}/api/nutricion/log-from-cache`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            perfil,
+            nombre: `${item.nombre} (${item.cantidad} ${item.unidad})`,
+            cal_100: item.kcal,
+            prot_100: item.proteinas,
+            carb_100: item.carbos,
+            fat_100: item.grasas,
+            gramos: 100,
+          })
+        });
+      } catch {}
+    }
+    setNaturalItems([]);
     setSearchText('');
     fetchMacros();
     fetchComidas();
@@ -562,9 +595,9 @@ export default function NutricionView({ perfil }) {
   };
 
   const macrosData = [
-    { name: 'Prot', value: macrosHoy.proteinas || 0, color: '#3b82f6' },
-    { name: 'Carb', value: macrosHoy.carbos || 0, color: '#10b981' },
-    { name: 'Gras', value: macrosHoy.grasas || 0, color: '#f59e0b' }
+    { name: 'Prot', value: macrosHoy.proteinas || 0, color: '#22C55E' },
+    { name: 'Carb', value: macrosHoy.carbos || 0, color: '#F59E0B' },
+    { name: 'Gras', value: macrosHoy.grasas || 0, color: '#7B2FBE' }
   ];
   const totalMacros = macrosData.reduce((a, b) => a + b.value, 0);
   const DIAS_LABEL = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
@@ -574,7 +607,7 @@ export default function NutricionView({ perfil }) {
     { label: 'KCAL', value: macrosHoy.calorias, goal: metas.cal_goal, color: 'var(--color-primary)', colorHex: '#00C9FF', radius: 52 },
     { label: 'PROT', value: macrosHoy.proteinas, goal: metas.prot_goal, color: 'var(--color-success)', colorHex: '#22C55E', radius: 42 },
     { label: 'CARB', value: macrosHoy.carbos, goal: metas.carb_goal, color: 'var(--color-warning)', colorHex: '#F59E0B', radius: 32 },
-    { label: 'GRAS', value: macrosHoy.grasas, goal: metas.fat_goal, color: 'var(--color-danger)', colorHex: '#EF4444', radius: 22 },
+    { label: 'GRAS', value: macrosHoy.grasas, goal: metas.fat_goal, color: 'var(--color-accent)', colorHex: '#7B2FBE', radius: 22 },
   ];
 
   // Nutrition score (0-100)
@@ -596,10 +629,10 @@ export default function NutricionView({ perfil }) {
         style={{ order: 1, background: 'rgba(15,23,42,0.9)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
       >
         {[
-          { label: 'KCAL', val: macrosHoy.calorias, goal: metas.cal_goal, color: '#ef4444', unit: '' },
-          { label: 'PROT', val: macrosHoy.proteinas, goal: metas.prot_goal, color: '#06b6d4', unit: 'g' },
-          { label: 'CARB', val: macrosHoy.carbos, goal: metas.carb_goal, color: '#10b981', unit: 'g' },
-          { label: 'GRAS', val: macrosHoy.grasas, goal: metas.fat_goal, color: '#f59e0b', unit: 'g' },
+          { label: 'KCAL', val: macrosHoy.calorias, goal: metas.cal_goal, color: '#00C9FF', unit: '' },
+          { label: 'PROT', val: macrosHoy.proteinas, goal: metas.prot_goal, color: '#22C55E', unit: 'g' },
+          { label: 'CARB', val: macrosHoy.carbos, goal: metas.carb_goal, color: '#F59E0B', unit: 'g' },
+          { label: 'GRAS', val: macrosHoy.grasas, goal: metas.fat_goal, color: '#7B2FBE', unit: 'g' },
         ].map(m => {
           const pct = m.goal > 0 ? Math.min(Math.round((m.val / m.goal) * 100), 999) : 0;
           return (
@@ -830,9 +863,9 @@ export default function NutricionView({ perfil }) {
                     {gramos && <span style={{ marginLeft: '0.3rem', fontSize: '0.6rem', fontWeight: 700, color: '#06b6d4', background: 'rgba(6,182,212,0.1)', padding: '0.05rem 0.3rem', borderRadius: '4px' }}>{gramos}g</span>}
                   </div>
                   <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.58rem', fontWeight: 800, color: '#06b6d4' }}>P <span style={{ color: '#e2e8f0' }}>{prot}g</span></span>
-                    <span style={{ fontSize: '0.58rem', fontWeight: 800, color: '#f59e0b' }}>C <span style={{ color: '#e2e8f0' }}>{carb}g</span></span>
-                    <span style={{ fontSize: '0.58rem', fontWeight: 800, color: '#f43f5e' }}>G <span style={{ color: '#e2e8f0' }}>{gras}g</span></span>
+                    <span style={{ fontSize: '0.58rem', fontWeight: 800, color: '#22C55E' }}>P <span style={{ color: '#e2e8f0' }}>{prot}g</span></span>
+                    <span style={{ fontSize: '0.58rem', fontWeight: 800, color: '#F59E0B' }}>C <span style={{ color: '#e2e8f0' }}>{carb}g</span></span>
+                    <span style={{ fontSize: '0.58rem', fontWeight: 800, color: '#7B2FBE' }}>G <span style={{ color: '#e2e8f0' }}>{gras}g</span></span>
                   </div>
                 </div>
                 <button onClick={() => eliminarComida(c.id)} className="btn-icon-elite danger" style={{ width: '28px', height: '28px', flexShrink: 0 }}><X size={12} /></button>
@@ -916,7 +949,7 @@ export default function NutricionView({ perfil }) {
           </div>
         )}
 
-        {hybridSource === 'none' && !searching && multiPending.length === 0 && (
+        {hybridSource === 'none' && !searching && multiPending.length === 0 && naturalItems.length === 0 && (
           <p style={{ fontSize: '0.7rem', color: '#64748b', textAlign: 'center', marginTop: '0.5rem' }}>Sin resultados. Probá con otro término.</p>
         )}
 
@@ -965,6 +998,43 @@ export default function NutricionView({ perfil }) {
             >
               {loggingMulti ? <Loader2 size={14} className="spin" /> : <Plus size={14} />}
               REGISTRAR TODOS ({multiPending.filter(i => i.food).length}/{multiPending.length})
+            </button>
+          </div>
+        )}
+
+        {/* Natural portions panel */}
+        {naturalItems.length > 0 && !searching && (
+          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+            <div style={{ fontSize: '0.58rem', fontWeight: 900, color: '#7B2FBE', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+              <span>✦</span> IA DETECTÓ {naturalItems.length} ÍTEM{naturalItems.length > 1 ? 'S' : ''}
+            </div>
+            {naturalItems.map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.06, type: 'spring', stiffness: 400, damping: 28 }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', background: 'rgba(123,47,190,0.06)', border: '1px solid rgba(123,47,190,0.2)', borderRadius: '12px', padding: '0.6rem 0.75rem' }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.nombre}</div>
+                  <div style={{ fontSize: '0.6rem', fontWeight: 800, color: '#7B2FBE', marginTop: '0.1rem' }}>
+                    {item.cantidad} {item.unidad} · <span style={{ color: '#00C9FF' }}>{item.kcal} kcal</span>
+                  </div>
+                  <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: 700, marginTop: '0.05rem' }}>
+                    P <span style={{ color: '#22C55E' }}>{item.proteinas}g</span> · C <span style={{ color: '#F59E0B' }}>{item.carbos}g</span> · G <span style={{ color: '#7B2FBE' }}>{item.grasas}g</span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+            <button
+              onClick={logAllNatural}
+              disabled={loggingMulti}
+              className="btn-premium"
+              style={{ marginTop: '0.1rem', fontSize: '0.75rem', height: '2.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+            >
+              {loggingMulti ? <Loader2 size={14} className="spin" /> : <Plus size={14} />}
+              REGISTRAR TODOS ({naturalItems.length})
             </button>
           </div>
         )}
@@ -1042,10 +1112,10 @@ export default function NutricionView({ perfil }) {
               {/* Macros per 100g */}
               <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
                 {[
-                  { label: 'KCAL', val: selectedFood.cal_100, color: '#ef4444' },
-                  { label: 'PROT', val: selectedFood.prot_100, color: '#3b82f6' },
-                  { label: 'CARB', val: selectedFood.carb_100, color: '#10b981' },
-                  { label: 'GRAS', val: selectedFood.fat_100, color: '#f59e0b' },
+                  { label: 'KCAL', val: selectedFood.cal_100, color: '#00C9FF' },
+                  { label: 'PROT', val: selectedFood.prot_100, color: '#22C55E' },
+                  { label: 'CARB', val: selectedFood.carb_100, color: '#F59E0B' },
+                  { label: 'GRAS', val: selectedFood.fat_100, color: '#7B2FBE' },
                 ].map(m => (
                   <span key={m.label} style={{ fontSize: '0.55rem', fontWeight: 900, color: m.color, background: `${m.color}15`, padding: '0.15rem 0.4rem', borderRadius: '6px' }}>
                     {Math.round(m.val)}{m.label === 'KCAL' ? '' : 'g'} {m.label}
@@ -1075,10 +1145,10 @@ export default function NutricionView({ perfil }) {
               {/* Scaled macros preview */}
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.6rem', padding: '0.4rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
                 {[
-                  { label: 'Kcal', val: selectedFood.cal_100 * gramosInput / 100, color: '#ef4444' },
-                  { label: 'Prot', val: selectedFood.prot_100 * gramosInput / 100, color: '#3b82f6' },
-                  { label: 'Carb', val: selectedFood.carb_100 * gramosInput / 100, color: '#10b981' },
-                  { label: 'Gras', val: selectedFood.fat_100 * gramosInput / 100, color: '#f59e0b' },
+                  { label: 'Kcal', val: selectedFood.cal_100 * gramosInput / 100, color: '#00C9FF' },
+                  { label: 'Prot', val: selectedFood.prot_100 * gramosInput / 100, color: '#22C55E' },
+                  { label: 'Carb', val: selectedFood.carb_100 * gramosInput / 100, color: '#F59E0B' },
+                  { label: 'Gras', val: selectedFood.fat_100 * gramosInput / 100, color: '#7B2FBE' },
                 ].map(m => (
                   <div key={m.label} style={{ flex: 1, textAlign: 'center' }}>
                     <div style={{ fontSize: '0.85rem', fontWeight: 900, color: m.color }}>{Math.round(m.val)}</div>
