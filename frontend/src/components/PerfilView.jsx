@@ -248,8 +248,7 @@ export default function PerfilView({ perfil, onLogout }) {
         </div>
 
         {/* Stats row */}
-        <div style={{ padding: '0 1.1rem 1.1rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', background: 'rgba(255,255,255,0.03)', borderRadius: '14px', border: '1px solid var(--color-border)', padding: '0.65rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginTop: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '14px', border: '1px solid var(--color-border)', padding: '0.65rem' }}>
           {[
             { icon: GiFlame, label: lang === 'es' ? 'RACHA' : 'STREAK', value: `${gymStats.current_streak}d`, color: '#f59e0b',
               anim: { scale: [1, 1.15, 1], rotate: [0, -5, 5, 0] }, timing: { repeat: Infinity, duration: 1.8, ease: 'easeInOut' } },
@@ -291,7 +290,7 @@ export default function PerfilView({ perfil, onLogout }) {
             </motion.div>
           ))}
         </div>
-        </div>{/* end padding wrapper */}
+        </div>
       </motion.div>
 
       {/* ═══ BODY HEATMAP ═══ */}

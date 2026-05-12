@@ -1154,7 +1154,8 @@ const ExerciseSelectorView = ({
           ))}
 
           {/* Contenido real — oculto durante skeleton */}
-          {!(filterPending || isFilterStale) && <>
+          {!(filterPending || isFilterStale) && (
+          <React.Fragment>
           {showPopularSection &&
             popularList.length > 0 &&
             currentPage === 1 && (
@@ -1242,7 +1243,8 @@ const ExerciseSelectorView = ({
               )}
             </motion.div>
           )}
-          </>{/* fin contenido real */}
+          </React.Fragment>
+          )}
         </div>
 
         {/* Controles de paginación */}

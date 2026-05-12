@@ -837,7 +837,8 @@ export default function NutricionView({ perfil }) {
                 </div>
                 <button onClick={() => eliminarComida(c.id)} className="btn-icon-elite danger" style={{ width: '28px', height: '28px', flexShrink: 0 }}><X size={12} /></button>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
       )}
