@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo, useRef } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { Camera, Search, Plus, X, Loader2 } from 'lucide-react';
+import { Camera, Search, Plus, X, Loader2, Target, ChevronRight, History } from 'lucide-react';
 import { GiFlame, GiCookingPot, GiMeal, GiTargetArrows } from 'react-icons/gi';
-import { MdOutlineTimer, MdOutlineSettings } from 'react-icons/md';
+import { MdOutlineTimer } from 'react-icons/md';
 import { IoWater } from 'react-icons/io5';
 import { FiCheck, FiEdit3 } from 'react-icons/fi';
 import { HiOutlineChartBar } from 'react-icons/hi';
@@ -94,7 +94,7 @@ const getProximaEtapa = (horasDecimal) => {
   return idx >= 0 && idx < ETAPAS_AYUNO.length - 1 ? ETAPAS_AYUNO[idx + 1] : null;
 };
 
-export default function NutricionView({ perfil }) {
+export default function NutricionView({ perfil, onNavigateTo }) {
   const [macrosHoy, setMacrosHoy] = useState({ calorias: 0, proteinas: 0, carbos: 0, grasas: 0 });
   const [searchText, setSearchText] = useState('');
   const [searching, setSearching] = useState(false);
@@ -109,6 +109,11 @@ export default function NutricionView({ perfil }) {
   const [multiPending, setMultiPending] = useState([]);
   const [naturalItems, setNaturalItems] = useState([]);
   const [loggingMulti, setLoggingMulti] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestionTimer = useRef(null);
+  const brujulaRef = useRef(null);
+  const searchInputRef = useRef(null);
   const [registrarTab, setRegistrarTab] = useState('texto'); // 'texto' | 'foto' | 'alacena'
   const [alacena, setAlacena] = useState([]);
   const [newIngrediente, setNewIngrediente] = useState('');
@@ -254,6 +259,34 @@ export default function NutricionView({ perfil }) {
       .then(r => r.json())
       .then(d => { if (d.historial) setHistorial(d.historial); })
       .catch(console.error);
+  };
+
+  const handleSearchInput = (val) => {
+    setSearchText(val);
+    clearTimeout(suggestionTimer.current);
+    if (val.trim().length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
+    suggestionTimer.current = setTimeout(async () => {
+      try {
+        const res = await authFetch(`${API}/api/nutricion/buscar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ perfil, query: val.trim() })
+        });
+        const data = await res.json();
+        const items = [...(data.cache || []), ...(data.items || [])].slice(0, 5);
+        setSuggestions(items);
+        setShowSuggestions(items.length > 0);
+      } catch { setSuggestions([]); }
+    }, 280);
+  };
+
+  const selectSuggestion = (food) => {
+    setSelectedFood(food);
+    setGramosInput(100);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setHybridResults([]);
+    setHybridSource('');
   };
 
   const addWater = async () => {
@@ -621,12 +654,13 @@ export default function NutricionView({ perfil }) {
   return (
     <div className="view-container">
 
-      {/* 0. MACRO BAR RÁPIDO — siempre visible arriba */}
+      {/* 0. MACRO BAR — clickable, scrolls to Brújula */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        style={{ order: 1, background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+        onClick={() => brujulaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        style={{ order: 1, background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', borderRadius: '14px', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', gap: '0.5rem' }}
       >
         {[
           { label: 'KCAL', val: macrosHoy.calorias, goal: metas.cal_goal, color: 'var(--color-kcal)', unit: '' },
@@ -636,38 +670,59 @@ export default function NutricionView({ perfil }) {
         ].map(m => {
           const pct = m.goal > 0 ? Math.min(Math.round((m.val / m.goal) * 100), 999) : 0;
           return (
-            <div key={m.label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem' }}>
-              <span style={{ fontSize: '0.65rem', fontWeight: 900, color: m.color }}>
-                {Math.round(m.val)}{m.unit}
+            <div key={m.label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.15rem' }}>
+              <span style={{ fontSize: '0.68rem', fontWeight: 900, color: m.color, lineHeight: 1 }}>
+                {Math.round(m.val)}<span style={{ fontSize: '0.48rem', fontWeight: 700 }}>{m.unit}</span>
               </span>
-              <div style={{ width: 36, height: 3, background: 'var(--surface-2)', borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: 3, background: 'var(--surface-3)', borderRadius: 99, overflow: 'hidden' }}>
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(pct, 100)}%` }}
-                  transition={{ duration: 0.8 }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
                   style={{ height: '100%', background: m.color, borderRadius: 99 }}
                 />
               </div>
-              <span style={{ fontSize: '0.42rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.3px' }}>{m.label} {pct}%</span>
+              <span style={{ fontSize: '0.4rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.2px' }}>{m.label} {pct}%</span>
             </div>
           );
         })}
+        <ChevronRight size={12} color="var(--text-muted)" style={{ flexShrink: 0 }} />
       </motion.div>
 
       {/* 1. Brújula Metabólica — Apple Watch Rings */}
       <motion.div
+        ref={brujulaRef}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         style={{ order: 4, background: 'linear-gradient(135deg, var(--color-card), var(--color-card-alt))', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-card)', padding: '1rem 1.1rem', boxShadow: 'var(--shadow-card)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
           <h3 style={{ color: 'var(--color-primary)', fontSize: '0.65rem', fontWeight: 900, letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <GiTargetArrows size={14} /> BRÚJULA
+            <GiTargetArrows size={14} /> BRÚJULA METABÓLICA
           </h3>
-          <button onClick={() => setShowMetasEditor(s => !s)} style={{ background: 'var(--surface-2)', border: 'none', color: 'var(--text-muted)', borderRadius: '8px', padding: '0.35rem', cursor: 'pointer' }}>
-            <FiEdit3 size={12} />
-          </button>
+          <div style={{ display: 'flex', gap: '0.3rem' }}>
+            {onNavigateTo && (
+              <button onClick={() => onNavigateTo('graficos')} style={{ background: 'var(--surface-2)', border: 'none', color: 'var(--text-secondary)', borderRadius: '8px', padding: '0.3rem 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.5rem', fontWeight: 800 }}>
+                <History size={10} /> HISTORIAL
+              </button>
+            )}
+            <button onClick={() => setShowMetasEditor(s => !s)} style={{ background: showMetasEditor ? 'rgba(0,201,255,0.12)' : 'var(--surface-2)', border: showMetasEditor ? '1px solid rgba(0,201,255,0.3)' : 'none', color: showMetasEditor ? 'var(--color-primary)' : 'var(--text-muted)', borderRadius: '8px', padding: '0.3rem 0.5rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.5rem', fontWeight: 800 }}>
+              <Target size={10} /> METAS
+            </button>
+          </div>
         </div>
+        {metas.cal_goal === 2200 && metas.prot_goal === 150 && !showMetasEditor && macrosHoy.calorias === 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+            onClick={() => setShowMetasEditor(true)}
+            style={{ background: 'rgba(0,201,255,0.06)', border: '1px dashed rgba(0,201,255,0.2)', borderRadius: '10px', padding: '0.5rem 0.75rem', marginBottom: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Target size={14} color="var(--color-primary)" />
+            <div>
+              <div style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--color-primary)' }}>Configurá tus metas diarias</div>
+              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>Tocá para ajustar kcal, proteína, carbos y grasas según tu objetivo</div>
+            </div>
+            <ChevronRight size={14} color="var(--text-muted)" style={{ marginLeft: 'auto', flexShrink: 0 }} />
+          </motion.div>
+        )}
 
         {showMetasEditor && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
@@ -748,69 +803,104 @@ export default function NutricionView({ perfil }) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        style={{ order: 5, background: 'var(--surface-2)', border: ayuno.en_ayuno ? '1px solid rgba(0,201,255,0.4)' : '1px solid var(--border-default)', borderRadius: '18px', padding: '1rem 1.1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{fontSize: '0.65rem', fontWeight: 900, display:'flex', alignItems:'center', gap:'0.4rem', color: 'var(--color-primary)', letterSpacing: '0.5px'}}>
-            <MdOutlineTimer size={14} /> AYUNO
-          </h3>
-          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-            <button onClick={() => setShowAyunoSettings(s => !s)} style={{ background: 'var(--surface-2)', border: 'none', color: 'var(--text-muted)', borderRadius: '8px', padding: '0.4rem' }}>
-              <MdOutlineSettings size={14} />
-            </button>
-            <button onClick={toggleAyuno} className="btn-elite" style={{ padding:'0.4rem 0.8rem', background: ayuno.en_ayuno ? '#ef4444' : 'var(--accent-gym)', color:'black', fontSize: '0.75rem' }}>
-              {ayuno.en_ayuno ? 'PARAR' : 'INICIAR'}
-            </button>
+        style={{ order: 5, background: 'var(--surface-2)', border: ayuno.en_ayuno ? '1px solid rgba(0,201,255,0.35)' : '1px solid var(--border-subtle)', borderRadius: '18px', padding: '1rem 1.1rem', transition: 'border-color 0.4s' }}>
+
+        {/* Header + toggle */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+          <div>
+            <h3 style={{ fontSize: '0.65rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.4rem', color: ayuno.en_ayuno ? 'var(--color-primary)' : 'var(--text-secondary)', letterSpacing: '0.5px' }}>
+              <MdOutlineTimer size={14} /> AYUNO INTERMITENTE
+            </h3>
+            {!ayuno.en_ayuno && (
+              <div style={{ fontSize: '0.52rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>Meta: {metaHorasLocal}h · Tocá para iniciar</div>
+            )}
           </div>
+          {/* Visual pill toggle */}
+          <motion.button
+            whileTap={{ scale: 0.92 }}
+            onClick={toggleAyuno}
+            style={{
+              width: 60, height: 30, borderRadius: 15,
+              background: ayuno.en_ayuno ? 'rgba(239,68,68,0.15)' : 'rgba(0,201,255,0.1)',
+              border: ayuno.en_ayuno ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(0,201,255,0.3)',
+              cursor: 'pointer', position: 'relative', padding: 0, flexShrink: 0,
+            }}
+          >
+            <motion.div
+              animate={{ x: ayuno.en_ayuno ? 32 : 4 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              style={{
+                width: 22, height: 22, borderRadius: '50%', position: 'absolute', top: 3,
+                background: ayuno.en_ayuno ? '#ef4444' : 'var(--color-primary)',
+                boxShadow: `0 2px 8px ${ayuno.en_ayuno ? 'rgba(239,68,68,0.4)' : 'rgba(0,201,255,0.4)'}`,
+              }}
+            />
+          </motion.button>
         </div>
 
-        {showAyunoSettings && (
-          <div style={{ marginTop: '0.75rem', background: 'var(--surface-2)', borderRadius: '12px', padding: '0.75rem' }}>
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
-              {[12, 14, 16, 18, 20, 24].map(h => (
-                <button key={h} onClick={() => setMetaHorasLocal(h)} className={`chip-folder-elite ${metaHorasLocal===h?'active':''}`} style={{fontSize:'0.7rem', padding:'0.4rem 0.8rem'}}>{h}H</button>
-              ))}
-            </div>
-            <button onClick={guardarMetaAyuno} className="btn-elite" style={{ width: '100%', height: '2.4rem', fontSize: '0.8rem' }}>GUARDAR META</button>
+        {/* Duration selector — always visible when not in ayuno */}
+        {!ayuno.en_ayuno && (
+          <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.75rem', overflowX: 'auto' }}>
+            {[12, 14, 16, 18, 20, 24].map(h => (
+              <motion.button
+                key={h}
+                whileTap={{ scale: 0.92 }}
+                onClick={() => { setMetaHorasLocal(h); guardarMetaAyuno(); }}
+                style={{
+                  flexShrink: 0, padding: '0.35rem 0.65rem', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                  fontSize: '0.68rem', fontWeight: 900,
+                  background: metaHorasLocal === h ? 'rgba(0,201,255,0.15)' : 'var(--surface-3)',
+                  color: metaHorasLocal === h ? 'var(--color-primary)' : 'var(--text-muted)',
+                  outline: metaHorasLocal === h ? '1px solid rgba(0,201,255,0.35)' : 'none',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {h}H
+              </motion.button>
+            ))}
           </div>
         )}
 
+        {/* Active fasting ring */}
         {ayuno.en_ayuno && (() => {
           const etapa = getEtapaActual(horasDecimal);
           return (
-            <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{ position: 'relative', width: '130px', height: '130px' }}>
-                <svg width="130" height="130" style={{ transform: 'rotate(-90deg)' }}>
-                  <circle cx="65" cy="65" r="58" fill="none" stroke="var(--surface-hover)" strokeWidth="8" />
-                  <circle cx="65" cy="65" r="58" fill="none" stroke={etapa.color} strokeWidth="8" strokeLinecap="round"
-                    strokeDasharray={`${2 * Math.PI * 58}`} strokeDashoffset={`${2 * Math.PI * 58 * (1 - progresoAyuno / 100)}`}
-                    style={{ transition: 'stroke-dashoffset 1s linear', filter: `drop-shadow(0 0 5px ${etapa.color})` }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+              <div style={{ position: 'relative', width: '100px', height: '100px', flexShrink: 0 }}>
+                <svg width="100" height="100" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx="50" cy="50" r="44" fill="none" stroke="var(--surface-3)" strokeWidth="7" />
+                  <circle cx="50" cy="50" r="44" fill="none" stroke={etapa.color} strokeWidth="7" strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 44}`} strokeDashoffset={`${2 * Math.PI * 44 * (1 - progresoAyuno / 100)}`}
+                    style={{ transition: 'stroke-dashoffset 1s linear', filter: `drop-shadow(0 0 6px ${etapa.color})` }} />
                 </svg>
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 900, color: etapa.color }}>{horasAyunoStr.slice(0, 5)}</div>
-                  <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>DE {ayuno.meta_horas}H</div>
+                  <div style={{ fontSize: '1rem', fontWeight: 900, color: etapa.color, fontVariantNumeric: 'tabular-nums' }}>{horasAyunoStr.slice(0, 5)}</div>
+                  <div style={{ fontSize: '0.48rem', color: 'var(--text-muted)', fontWeight: 800 }}>DE {ayuno.meta_horas}H</div>
                 </div>
               </div>
-              <div style={{ marginTop: '0.75rem', background: `${etapa.color}15`, padding: '0.3rem 0.75rem', borderRadius: '10px', color: etapa.color, fontSize: '0.7rem', fontWeight: 900 }}>
-                {etapa.badge.toUpperCase()}
+              <div>
+                <div style={{ background: `${etapa.color}18`, padding: '0.25rem 0.6rem', borderRadius: '8px', display: 'inline-block', marginBottom: '0.4rem' }}>
+                  <span style={{ color: etapa.color, fontSize: '0.68rem', fontWeight: 900 }}>{etapa.badge}</span>
+                </div>
+                <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>{etapa.desc}</div>
+                <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', marginTop: '0.3rem', fontStyle: 'italic' }}>{etapa.tip}</div>
               </div>
             </div>
           );
         })()}
 
+        {/* Streak dots */}
         {rachaAyuno.length > 0 && (
-          <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'space-between', padding: '0 0.5rem' }}>
+          <div style={{ marginTop: '0.8rem', display: 'flex', justifyContent: 'space-between', padding: '0 0.25rem' }}>
             {rachaAyuno.map((dia, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
+              <motion.div key={i} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.15 + i * 0.05, type: 'spring', stiffness: 400, damping: 25 }}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}
               >
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', border: `2px solid ${dia.completado ? 'var(--accent-gym)' : 'var(--surface-2)'}`, background: dia.completado ? 'rgba(0,201,255,0.1)' : 'transparent', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  {dia.completado && <FiCheck size={12} color="var(--color-primary)" />}
+                <div style={{ width: 22, height: 22, borderRadius: '50%', border: `1.5px solid ${dia.completado ? 'var(--color-primary)' : 'var(--border-subtle)'}`, background: dia.completado ? 'rgba(0,201,255,0.12)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {dia.completado && <FiCheck size={10} color="var(--color-primary)" />}
                 </div>
-                <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: 800 }}>{DIAS_LABEL[new Date(dia.fecha + 'T12:00:00').getDay()]}</span>
+                <span style={{ fontSize: '0.48rem', color: 'var(--text-muted)', fontWeight: 800 }}>{DIAS_LABEL[new Date(dia.fecha + 'T12:00:00').getDay()]}</span>
               </motion.div>
             ))}
           </div>
@@ -908,11 +998,79 @@ export default function NutricionView({ perfil }) {
         <AnimatePresence mode="wait">
           {registrarTab === 'texto' && (
             <motion.div key="texto" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.15 }}>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input value={searchText} onChange={e => setSearchText(e.target.value)} onKeyDown={e => e.key === 'Enter' && buscarAlimento()} className="premium-input" placeholder="Ej: 200g pechuga y 150g arroz..." style={{ flex: 1, height: '2.8rem', fontSize: '0.85rem' }} />
-                <motion.button whileTap={{ scale: 0.92 }} className="btn-elite" style={{ width: '3rem', height: '2.8rem', padding: 0 }} onClick={buscarAlimento} disabled={searching}>
-                  {searching ? <Loader2 size={16} className="spin" /> : <Search size={16} />}
-                </motion.button>
+              <div style={{ position: 'relative' }}>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <Search size={15} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', pointerEvents: 'none', flexShrink: 0 }} />
+                    <input
+                      ref={searchInputRef}
+                      value={searchText}
+                      onChange={e => handleSearchInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { setShowSuggestions(false); buscarAlimento(); } if (e.key === 'Escape') setShowSuggestions(false); }}
+                      onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                      className="premium-input"
+                      placeholder="Buscar alimento o plato..."
+                      style={{ width: '100%', height: '2.8rem', fontSize: '0.85rem', paddingLeft: '2.2rem' }}
+                    />
+                  </div>
+                  <motion.button whileTap={{ scale: 0.92 }} className="btn-elite" style={{ width: '3rem', height: '2.8rem', padding: 0, flexShrink: 0 }} onClick={() => { setShowSuggestions(false); buscarAlimento(); }} disabled={searching}>
+                    {searching ? <Loader2 size={16} className="spin" /> : <Search size={16} />}
+                  </motion.button>
+                </div>
+
+                {/* Autocomplete dropdown */}
+                <AnimatePresence>
+                  {showSuggestions && suggestions.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -4, scaleY: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                      exit={{ opacity: 0, y: -4, scaleY: 0.9 }}
+                      transition={{ duration: 0.12 }}
+                      style={{
+                        position: 'absolute', top: '100%', left: 0, right: '3.5rem',
+                        marginTop: '0.3rem', background: 'var(--surface-2)', border: '1px solid var(--border-default)',
+                        borderRadius: '12px', overflow: 'hidden', zIndex: 50,
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                        transformOrigin: 'top',
+                      }}
+                    >
+                      {suggestions.map((food, idx) => {
+                        const cal = Math.round(food.cal_100 || 0);
+                        const prot = Math.round(food.prot_100 || 0);
+                        return (
+                          <motion.button
+                            key={idx}
+                            initial={{ opacity: 0, x: -6 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.03 }}
+                            onClick={() => selectSuggestion(food)}
+                            style={{
+                              width: '100%', background: 'transparent', border: 'none',
+                              borderBottom: idx < suggestions.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                              padding: '0.55rem 0.75rem', cursor: 'pointer', display: 'flex',
+                              alignItems: 'center', gap: '0.6rem', textAlign: 'left',
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <div style={{ width: 32, height: 32, borderRadius: '8px', background: `rgba(${cal > 400 ? '239,68,68' : cal > 200 ? '245,158,11' : '34,197,94'},0.1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.85rem' }}>
+                              {cal > 400 ? '🥩' : cal > 200 ? '🌾' : '🥗'}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{food.nombre}</div>
+                              <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', display: 'flex', gap: '0.4rem', marginTop: '0.1rem' }}>
+                                <span style={{ color: 'var(--color-kcal)', fontWeight: 800 }}>{cal} kcal</span>
+                                <span>P {prot}g</span>
+                                {food.source && <span style={{ color: food.source.startsWith('semantic') ? 'var(--color-carb)' : 'var(--text-muted)', fontWeight: 700 }}>· {food.source.startsWith('semantic') ? '~' : '✓'}</span>}
+                              </div>
+                            </div>
+                            <Plus size={14} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                          </motion.button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           )}
@@ -1174,33 +1332,71 @@ export default function NutricionView({ perfil }) {
       </motion.div>
 
       {/* 5. ALACENA */}
-      <div style={{ order: 6, background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: '18px', padding: '1rem 1.1rem', borderLeft: '3px solid var(--color-kcal)' }}>
-        <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--color-kcal)', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}><GiCookingPot size={14} color="var(--color-kcal)" /> ALACENA</h3>
-        <div style={{display:'flex', gap:'0.5rem', marginTop:'0.75rem'}}>
-          <input value={newIngrediente} onChange={e => setNewIngrediente(e.target.value)} onKeyDown={e => e.key === 'Enter' && agregarAlacena()} className="premium-input" placeholder="Nuevo..." style={{ flex: 1, height: '2.8rem', fontSize: '0.85rem' }} />
-          <button className="btn-elite" style={{width:'2.8rem', height:'2.8rem', padding: 0}} onClick={agregarAlacena}><Plus size={18} /></button>
+      <div style={{ order: 6, background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', borderRadius: '18px', padding: '1rem 1.1rem', borderLeft: '3px solid var(--color-kcal)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+          <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--color-kcal)', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <GiCookingPot size={14} color="var(--color-kcal)" /> ALACENA
+          </h3>
+          {alacena.length > 0 && (
+            <button className="btn-elite" style={{ height: '1.8rem', padding: '0 0.6rem', fontSize: '0.58rem', background: 'rgba(245,158,11,0.12)', color: 'var(--color-kcal)', border: '1px solid rgba(245,158,11,0.25)' }} onClick={pedirReceta} disabled={loadingReceta}>
+              {loadingReceta ? <Loader2 size={12} className="spin" /> : <><GiMeal size={12} /> SUGERIR RECETA</>}
+            </button>
+          )}
         </div>
-        <div style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-           {alacena.map((item, aIdx) => (
-             <motion.div
-               key={item.id}
-               initial={{ opacity: 0, scale: 0.85 }}
-               animate={{ opacity: 1, scale: 1 }}
-               transition={{ delay: aIdx * 0.03, type: 'spring', stiffness: 400, damping: 25 }}
-               whileTap={{ scale: 0.93 }}
-               style={{ background: 'var(--surface-2)', padding: '0.4rem 0.75rem', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-             >
-               <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>{item.ingrediente}</span>
-               <button onClick={() => eliminarAlacena(item.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}><X size={12} /></button>
-             </motion.div>
-           ))}
+
+        {/* Input styled consistently */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+          <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <GiCookingPot size={14} color="var(--text-muted)" style={{ position: 'absolute', left: '0.75rem', pointerEvents: 'none' }} />
+            <input
+              value={newIngrediente}
+              onChange={e => setNewIngrediente(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && agregarAlacena()}
+              className="premium-input"
+              placeholder="Agregar ingrediente..."
+              style={{ width: '100%', height: '2.6rem', fontSize: '0.82rem', paddingLeft: '2.1rem' }}
+            />
+          </div>
+          <motion.button whileTap={{ scale: 0.9 }} className="btn-elite" style={{ width: '2.6rem', height: '2.6rem', padding: 0, flexShrink: 0 }} onClick={agregarAlacena}>
+            <Plus size={16} />
+          </motion.button>
         </div>
-        {alacena.length > 0 && (
-          <button className="btn-elite" style={{ marginTop: '0.75rem', width: '100%', height: '2.8rem', background: 'rgba(245,158,11,0.1)', color: 'var(--color-kcal)', borderColor: 'var(--color-kcal)' }} onClick={pedirReceta} disabled={loadingReceta}>
-            {loadingReceta ? <Loader2 size={16} className="spin" /> : <><GiMeal size={16} /> RECETA</>}
-          </button>
+
+        {/* Chips — tappable: click to search that ingredient */}
+        {alacena.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.65rem' }}>
+            Tu alacena está vacía — agregá ingredientes para obtener recetas personalizadas
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+            {alacena.map((item, aIdx) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: aIdx * 0.03, type: 'spring', stiffness: 500, damping: 28 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 0, borderRadius: '20px', overflow: 'hidden', background: 'var(--surface-3)', border: '1px solid var(--border-subtle)' }}
+              >
+                <motion.button
+                  whileTap={{ scale: 0.94 }}
+                  onClick={() => { setRegistrarTab('texto'); handleSearchInput(item.ingrediente); setSearchText(item.ingrediente); buscarAlimento(); }}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.35rem 0.6rem', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-primary)' }}
+                >
+                  {item.ingrediente}
+                </motion.button>
+                <button onClick={() => eliminarAlacena(item.id)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.35rem 0.45rem 0.35rem 0', lineHeight: 1 }}>
+                  <X size={11} />
+                </button>
+              </motion.div>
+            ))}
+          </div>
         )}
-        {receta && <div style={{ marginTop: '0.75rem', background: 'var(--surface-2)', padding: '1rem', borderRadius: '12px', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{receta}</div>}
+
+        {receta && (
+          <div style={{ marginTop: '0.75rem', background: 'var(--surface-3)', padding: '0.85rem', borderRadius: '12px', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.6', whiteSpace: 'pre-wrap', borderLeft: '2px solid var(--color-kcal)' }}>
+            {receta}
+          </div>
+        )}
       </div>
 
       {/* 6. WATER TRACKER */}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense, memo, useMemo, useCallback, createContext, useContext } from 'react';
-import { MessageSquare, Apple, Activity, BarChart2, User, Zap, Send, X, Bell, Heart, MessageCircle, Lock, Smartphone, ChevronDown } from 'lucide-react';
+import { Flame, Dumbbell, Users, TrendingUp, CircleUser, Zap, Send, X, Bell, Heart, MessageCircle, Lock, Smartphone, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { API, authFetch, track } from './config';
 
@@ -227,11 +227,11 @@ function AppContent() {
 
   // Memoizado: tabs no cambian entre renders
   const tabs = useMemo(() => [
-    { id: 'nutricion', icon: Apple,         label: t('nutrition') },
-    { id: 'gym',       icon: Activity,      label: t('gym') },
-    { id: 'comunidad', icon: MessageSquare, label: t('community') },
-    { id: 'graficos',  icon: BarChart2,     label: t('stats') },
-    { id: 'perfil',    icon: User,          label: t('profile') },
+    { id: 'nutricion', icon: Flame,       label: t('nutrition') },
+    { id: 'gym',       icon: Dumbbell,    label: t('gym') },
+    { id: 'comunidad', icon: Users,       label: t('community') },
+    { id: 'graficos',  icon: TrendingUp,  label: t('stats') },
+    { id: 'perfil',    icon: CircleUser,  label: t('profile') },
   ], [t]);
 
   // ═══ EARLY RETURNS (después de todos los hooks) ═══
@@ -439,7 +439,7 @@ function AppContent() {
         <ErrorBoundary>
         <Suspense fallback={<TabLoader />}>
           <div style={{ display: activeTab === 'nutricion' ? 'block' : 'none' }}>
-            {mountedTabs.nutricion && (isAdmin ? <NutricionView perfil={perfil} /> : <ComingSoon label={t('nutrition')} />)}
+            {mountedTabs.nutricion && (isAdmin ? <NutricionView perfil={perfil} onNavigateTo={setActiveTab} /> : <ComingSoon label={t('nutrition')} />)}
           </div>
           <div style={{ display: activeTab === 'gym' ? 'block' : 'none' }}>
             {mountedTabs.gym && <GymView perfil={perfil} onStartSession={handleStartSession} sessionActive={sessionActive} sessionResult={sessionResult} onClearResult={() => { setSessionResult(null); }} />}
