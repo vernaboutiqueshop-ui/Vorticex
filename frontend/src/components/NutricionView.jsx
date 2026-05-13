@@ -94,7 +94,17 @@ const getProximaEtapa = (horasDecimal) => {
   return idx >= 0 && idx < ETAPAS_AYUNO.length - 1 ? ETAPAS_AYUNO[idx + 1] : null;
 };
 
-export default function NutricionView({ perfil, onNavigateTo }) {
+const FOOD_PLACEHOLDERS = [
+  'Ej: 200g de pechuga con arroz...',
+  'Ej: un choripán y una birra...',
+  'Ej: humita al plato con queso...',
+  'Ej: 2 medialunas y café con leche...',
+  'Ej: pizza casera, 2 porciones...',
+  'Ej: arroz con pollo casero...',
+  'Ej: lomito completo...',
+];
+
+export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
   const [macrosHoy, setMacrosHoy] = useState({ calorias: 0, proteinas: 0, carbos: 0, grasas: 0 });
   const [searchText, setSearchText] = useState('');
   const [searching, setSearching] = useState(false);
@@ -111,7 +121,11 @@ export default function NutricionView({ perfil, onNavigateTo }) {
   const [loggingMulti, setLoggingMulti] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchMsg, setSearchMsg] = useState('');
+  const [logSuccess, setLogSuccess] = useState(null);
+  const [phIdx, setPhIdx] = useState(0);
   const suggestionTimer = useRef(null);
+  const searchTimers = useRef([]);
   const brujulaRef = useRef(null);
   const searchInputRef = useRef(null);
   const [registrarTab, setRegistrarTab] = useState('texto'); // 'texto' | 'foto' | 'alacena'
@@ -349,6 +363,12 @@ export default function NutricionView({ perfil, onNavigateTo }) {
     return () => clearInterval(interval);
   }, [ayuno]);
 
+  // Rotating placeholder
+  useEffect(() => {
+    const t = setInterval(() => setPhIdx(i => (i + 1) % FOOD_PLACEHOLDERS.length), 3500);
+    return () => clearInterval(t);
+  }, []);
+
   const toggleAyuno = async () => {
     const nuevoEstado = !ayuno.en_ayuno;
     const inicio = nuevoEstado ? new Date().toISOString() : null;
@@ -453,6 +473,14 @@ export default function NutricionView({ perfil, onNavigateTo }) {
     setHybridSource('');
     setMultiPending([]);
     setNaturalItems([]);
+    // Phase messages so user knows what's happening
+    searchTimers.current.forEach(clearTimeout);
+    setSearchMsg('Buscando en tu historial...');
+    searchTimers.current = [
+      setTimeout(() => setSearchMsg('Analizando por similitud semántica...'), 550),
+      setTimeout(() => setSearchMsg('✨ Consultando IA nutricional...'), 1400),
+      setTimeout(() => setSearchMsg('Procesando respuesta...'), 3200),
+    ];
     try {
       const res = await authFetch(`${API}/api/nutricion/buscar`, {
         method: 'POST',
@@ -471,6 +499,8 @@ export default function NutricionView({ perfil, onNavigateTo }) {
         setHybridSource('none');
       }
     } catch (e) { console.error(e); }
+    searchTimers.current.forEach(clearTimeout);
+    setSearchMsg('');
     setSearching(false);
   };
 
@@ -495,6 +525,8 @@ export default function NutricionView({ perfil, onNavigateTo }) {
         });
       } catch {}
     }
+    const total = multiPending.filter(i => i.food).reduce((s, i) => s + Math.round(i.food.cal_100 * i.gramos / 100), 0);
+    if (total > 0) onShowToast?.(`${multiPending.filter(i=>i.food).length} alimentos registrados · ${total} kcal`, 'success');
     setMultiPending([]);
     setSearchText('');
     fetchMacros();
@@ -522,6 +554,8 @@ export default function NutricionView({ perfil, onNavigateTo }) {
         });
       } catch {}
     }
+    const totalKcal = naturalItems.reduce((s, i) => s + (i.kcal || 0), 0);
+    if (totalKcal > 0) onShowToast?.(`${naturalItems.length} ítems registrados · ${Math.round(totalKcal)} kcal`, 'success');
     setNaturalItems([]);
     setSearchText('');
     fetchMacros();
@@ -549,9 +583,15 @@ export default function NutricionView({ perfil, onNavigateTo }) {
       });
       const data = await res.json();
       if (data.status === 'success') {
+        const cal = Math.round(food.cal_100 * gramosInput / 100);
+        onShowToast?.(`${food.nombre} · ${cal} kcal`, 'success');
+        setLogSuccess(food.nombre);
+        setTimeout(() => setLogSuccess(null), 1600);
         setSearchResult(data.logged);
         setSelectedFood(null);
         setHybridResults([]);
+        setSuggestions([]);
+        setShowSuggestions(false);
         setSearchText('');
         setGramosInput(100);
         fetchMacros();
@@ -1009,7 +1049,7 @@ export default function NutricionView({ perfil, onNavigateTo }) {
                       onKeyDown={e => { if (e.key === 'Enter') { setShowSuggestions(false); buscarAlimento(); } if (e.key === 'Escape') setShowSuggestions(false); }}
                       onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                       className="premium-input"
-                      placeholder="Buscar alimento o plato..."
+                      placeholder={FOOD_PLACEHOLDERS[phIdx]}
                       style={{ width: '100%', height: '2.8rem', fontSize: '0.85rem', paddingLeft: '2.2rem' }}
                     />
                   </div>
@@ -1017,6 +1057,23 @@ export default function NutricionView({ perfil, onNavigateTo }) {
                     {searching ? <Loader2 size={16} className="spin" /> : <Search size={16} />}
                   </motion.button>
                 </div>
+
+                {/* AI phase messages */}
+                <AnimatePresence>
+                  {searching && searchMsg && (
+                    <motion.div
+                      key={searchMsg}
+                      initial={{ opacity: 0, y: -3 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.5rem', marginTop: '0.35rem', background: 'rgba(0,201,255,0.05)', borderRadius: '8px', border: '1px solid rgba(0,201,255,0.12)' }}
+                    >
+                      <Loader2 size={10} className="spin" color="var(--color-primary)" />
+                      <span style={{ fontSize: '0.58rem', color: 'var(--color-primary)', fontWeight: 700 }}>{searchMsg}</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Autocomplete dropdown */}
                 <AnimatePresence>
@@ -1084,9 +1141,42 @@ export default function NutricionView({ perfil, onNavigateTo }) {
           )}
         </AnimatePresence>
 
+        {/* Success flash */}
+        <AnimatePresence>
+          {logSuccess && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85, y: 4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.85, y: -4 }}
+              style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '10px', padding: '0.4rem 0.7rem' }}
+            >
+              <motion.span initial={{ scale: 0 }} animate={{ scale: [0, 1.3, 1] }} transition={{ duration: 0.35 }} style={{ fontSize: '0.9rem' }}>✓</motion.span>
+              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--color-prot)' }}>{logSuccess} registrado</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* "Did you mean?" badge — when semantic search corrected the query */}
+        <AnimatePresence>
+          {hybridSource === 'semantic' && hybridResults.length > 0 && searchText.trim() &&
+           hybridResults[0]?.nombre?.toLowerCase() !== searchText.trim().toLowerCase() && (
+            <motion.div
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              style={{ marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+            >
+              <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700 }}>IA detectó →</span>
+              <span style={{ fontSize: '0.58rem', fontWeight: 900, color: 'var(--color-carb)', background: 'rgba(0,201,255,0.08)', padding: '0.1rem 0.4rem', borderRadius: '6px' }}>
+                {hybridResults[0].nombre}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Hybrid search source badge */}
         {hybridSource && hybridSource !== 'none' && hybridResults.length > 0 && (
-          <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          <div style={{ marginTop: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
             {(() => {
               const isSemantic = hybridSource === 'semantic';
               const isCache = hybridSource === 'cache';
@@ -1099,7 +1189,7 @@ export default function NutricionView({ perfil, onNavigateTo }) {
                   background: isCache ? 'rgba(34,197,94,0.1)' : isOFF ? 'rgba(59,130,246,0.1)' : isSemantic ? 'rgba(0,201,255,0.1)' : isGroq ? 'rgba(251,146,60,0.1)' : 'rgba(168,85,247,0.1)',
                   color: isCache ? 'var(--color-prot)' : isOFF ? 'var(--color-primary)' : isSemantic ? 'var(--color-primary)' : isGroq ? '#fb923c' : 'var(--color-gras)',
                 }}>
-                  {isCache ? '⚡ CACHE LOCAL' : isOFF ? '🌍 OPEN FOOD FACTS' : isSemantic ? '🔍 SEMÁNTICO' : isGemini ? '🤖 GEMINI IA' : '🦙 GROQ IA'}
+                  {isCache ? '⚡ CACHE' : isOFF ? '🌍 OPEN FOOD FACTS' : isSemantic ? '🔍 SEMÁNTICO' : isGemini ? '🤖 GEMINI' : '🦙 GROQ IA'}
                 </span>
               );
             })()}

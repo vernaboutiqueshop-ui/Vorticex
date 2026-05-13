@@ -105,6 +105,7 @@ function ComingSoon({ label }) {
 }
 
 function AppContent() {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState('gym');
   const [pendingRutina, setPendingRutina] = useState(null);
   const [publicRoutineId, setPublicRoutineId] = useState(null);
@@ -439,7 +440,7 @@ function AppContent() {
         <ErrorBoundary>
         <Suspense fallback={<TabLoader />}>
           <div style={{ display: activeTab === 'nutricion' ? 'block' : 'none' }}>
-            {mountedTabs.nutricion && (isAdmin ? <NutricionView perfil={perfil} onNavigateTo={setActiveTab} /> : <ComingSoon label={t('nutrition')} />)}
+            {mountedTabs.nutricion && (isAdmin ? <NutricionView perfil={perfil} onNavigateTo={setActiveTab} onShowToast={toast} /> : <ComingSoon label={t('nutrition')} />)}
           </div>
           <div style={{ display: activeTab === 'gym' ? 'block' : 'none' }}>
             {mountedTabs.gym && <GymView perfil={perfil} onStartSession={handleStartSession} sessionActive={sessionActive} sessionResult={sessionResult} onClearResult={() => { setSessionResult(null); }} />}
