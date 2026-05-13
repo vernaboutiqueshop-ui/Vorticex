@@ -136,7 +136,7 @@ export default function GraficosView({ perfil }) {
               <span style={{ color: 'var(--color-warning)', fontWeight: 800, fontSize: '0.8rem' }}>{getRango(level)}</span>
             </div>
             {/* EXP bar con gradiente primary→accent */}
-            <div style={{ background: 'rgba(0,0,0,0.4)', height: 10, borderRadius: 99, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div style={{ background: 'rgba(0,0,0,0.4)', height: 10, borderRadius: 99, overflow: 'hidden', border: '1px solid var(--surface-2)' }}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${pctProgreso}%` }}
@@ -195,7 +195,7 @@ export default function GraficosView({ perfil }) {
           <h3 style={{ color: 'var(--color-primary)', fontSize: '0.65rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0, letterSpacing: '0.5px' }}>
             <CalendarDays size={14} /> CALENDARIO
           </h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.04)', padding: '0.15rem 0.4rem', borderRadius: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--surface-hover)', padding: '0.15rem 0.4rem', borderRadius: '10px' }}>
             <button onClick={() => setHeatmapMonthOffset(p => p - 1)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '0.15rem', display: 'flex' }}><ChevronRight size={14} style={{ transform: 'rotate(180deg)' }} /></button>
             <span style={{ color: 'var(--color-text)', fontSize: '0.72rem', fontWeight: 800, minWidth: '80px', textAlign: 'center', textTransform: 'capitalize' }}>
               {new Date(new Date().setMonth(new Date().getMonth() + heatmapMonthOffset)).toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }).replace('.', '')}
@@ -212,9 +212,9 @@ export default function GraficosView({ perfil }) {
             return (
               <motion.div key={dia.date} whileHover={{ scale: 1.1 }} title={`${dia.date}: ${dia.count} sesiones`}
                 style={{ aspectRatio: '1', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.58rem', fontWeight: 900, transition: 'all 0.2s',
-                  background: dia.isActive ? (dia.count > 2 ? 'var(--color-success)' : 'rgba(34,197,94,0.35)') : 'rgba(255,255,255,0.03)',
-                  border: dia.isActive ? '1px solid rgba(34,197,94,0.6)' : '1px solid rgba(255,255,255,0.04)',
-                  color: dia.isActive ? (dia.count > 2 ? '#000' : '#22c55e') : 'var(--color-text-muted)',
+                  background: dia.isActive ? (dia.count > 2 ? 'var(--color-success)' : 'rgba(34,197,94,0.35)') : 'var(--surface-1)',
+                  border: dia.isActive ? '1px solid rgba(34,197,94,0.6)' : '1px solid var(--surface-hover)',
+                  color: dia.isActive ? (dia.count > 2 ? '#000' : 'var(--color-prot)') : 'var(--color-text-muted)',
                 }}>
                 {dia.isActive ? '✓' : new Date(dia.date + 'T12:00:00').getDate()}
               </motion.div>
@@ -232,7 +232,7 @@ export default function GraficosView({ perfil }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
           {logros.map((l, i) => (
             <motion.div key={l.id} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.25 + i * 0.06 }}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: '0.75rem 0.5rem', borderRadius: '12px', background: l.unlocked ? 'rgba(0,201,255,0.06)' : 'rgba(255,255,255,0.02)', border: `1px solid ${l.unlocked ? 'rgba(0,201,255,0.2)' : 'rgba(255,255,255,0.05)'}`, filter: l.unlocked ? 'none' : 'grayscale(1)', opacity: l.unlocked ? 1 : 0.4 }}>
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem', padding: '0.75rem 0.5rem', borderRadius: '12px', background: l.unlocked ? 'rgba(0,201,255,0.06)' : 'var(--surface-1)', border: `1px solid ${l.unlocked ? 'rgba(0,201,255,0.2)' : 'var(--surface-2)'}`, filter: l.unlocked ? 'none' : 'grayscale(1)', opacity: l.unlocked ? 1 : 0.4 }}>
               <span style={{ fontSize: '1.5rem' }}>{l.icon}</span>
               <span style={{ fontSize: '0.52rem', fontWeight: 800, color: l.unlocked ? 'var(--color-text)' : 'var(--color-text-muted)', textAlign: 'center', lineHeight: 1.3 }}>{l.label}</span>
             </motion.div>

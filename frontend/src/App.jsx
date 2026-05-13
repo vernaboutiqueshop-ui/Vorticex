@@ -65,8 +65,8 @@ const TabLoader = memo(function TabLoader() {
     }}>
       <div style={{
         width: 48, height: 48, borderRadius: '50%',
-        border: '3px solid rgba(6,182,212,0.1)',
-        borderTopColor: '#06b6d4',
+        border: '3px solid rgba(0,201,255,0.1)',
+        borderTopColor: 'var(--color-primary)',
         animation: 'spin 1s linear infinite',
       }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -82,10 +82,10 @@ function ComingSoon({ label }) {
     }}>
       <div style={{
         width: 80, height: 80, borderRadius: '50%',
-        background: 'rgba(6,182,212,0.08)', border: '2px solid rgba(6,182,212,0.15)',
+        background: 'rgba(0,201,255,0.08)', border: '2px solid rgba(0,201,255,0.15)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
-        <Lock size={32} color="#06b6d4" />
+        <Lock size={32} color="var(--color-primary)" />
       </div>
       <h2 style={{ color: '#fff', margin: 0, fontSize: '1.3rem', fontWeight: 900 }}>
         {label}
@@ -94,9 +94,9 @@ function ComingSoon({ label }) {
         Próximamente disponible. Estamos trabajando para traerte esta funcionalidad.
       </p>
       <div style={{
-        background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.2)',
+        background: 'rgba(0,201,255,0.1)', border: '1px solid rgba(0,201,255,0.2)',
         borderRadius: '12px', padding: '0.6rem 1.2rem',
-        color: '#06b6d4', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '1px',
+        color: 'var(--color-primary)', fontWeight: 800, fontSize: '0.75rem', letterSpacing: '1px',
       }}>
         🚀 COMING SOON
       </div>
@@ -318,17 +318,17 @@ function AppContent() {
       {/* ═══ PWA Install Banner ═══ */}
       {showInstallBanner && (
         <div style={{
-          background: 'linear-gradient(135deg, rgba(6,182,212,0.12) 0%, var(--surface-2) 100%)',
-          border: '1px solid rgba(6,182,212,0.2)', borderRadius: '14px',
+          background: 'linear-gradient(135deg, rgba(0,201,255,0.12) 0%, var(--surface-2) 100%)',
+          border: '1px solid rgba(0,201,255,0.2)', borderRadius: '14px',
           margin: '0.5rem 0.75rem', padding: '0.7rem 0.85rem',
           position: 'relative', overflow: 'hidden',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <div style={{
               width: 32, height: 32, borderRadius: 10,
-              background: 'rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(0,201,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <Smartphone size={16} color="#06b6d4" />
+              <Smartphone size={16} color="var(--color-primary)" />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#fff', lineHeight: 1.3 }}>
@@ -341,13 +341,13 @@ function AppContent() {
             <button
               onClick={() => setInstallExpanded(!installExpanded)}
               style={{
-                background: 'rgba(6,182,212,0.15)', border: '1px solid rgba(6,182,212,0.3)',
+                background: 'rgba(0,201,255,0.15)', border: '1px solid rgba(0,201,255,0.3)',
                 borderRadius: 8, width: 28, height: 28, cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 transition: 'transform 0.2s', transform: installExpanded ? 'rotate(180deg)' : 'none',
               }}
             >
-              <ChevronDown size={14} color="#06b6d4" />
+              <ChevronDown size={14} color="var(--color-primary)" />
             </button>
             <button
               onClick={dismissInstallBanner}
@@ -362,7 +362,7 @@ function AppContent() {
           {installExpanded && (
             <div style={{
               marginTop: '0.7rem', paddingTop: '0.6rem',
-              borderTop: '1px solid rgba(255,255,255,0.06)',
+              borderTop: '1px solid var(--surface-2)',
             }}>
               {/* Platform toggle */}
               <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.6rem' }}>
@@ -376,9 +376,9 @@ function AppContent() {
                     style={{
                       flex: 1, padding: '0.35rem', borderRadius: 8, fontSize: '0.65rem', fontWeight: 800,
                       cursor: 'pointer', transition: '0.15s',
-                      background: installPlatform === p.id ? 'rgba(6,182,212,0.2)' : 'rgba(255,255,255,0.04)',
-                      border: installPlatform === p.id ? '1px solid rgba(6,182,212,0.4)' : '1px solid rgba(255,255,255,0.08)',
-                      color: installPlatform === p.id ? '#06b6d4' : 'var(--text-muted)',
+                      background: installPlatform === p.id ? 'rgba(0,201,255,0.2)' : 'var(--surface-hover)',
+                      border: installPlatform === p.id ? '1px solid rgba(0,201,255,0.4)' : '1px solid var(--surface-3)',
+                      color: installPlatform === p.id ? 'var(--color-primary)' : 'var(--text-muted)',
                     }}
                   >{p.label}</button>
                 ))}
@@ -398,10 +398,10 @@ function AppContent() {
                   <div key={s.n} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <div style={{
                       width: 20, height: 20, borderRadius: 6, flexShrink: 0,
-                      background: 'rgba(6,182,212,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.6rem', fontWeight: 900, color: '#06b6d4',
+                      background: 'rgba(0,201,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '0.6rem', fontWeight: 900, color: 'var(--color-primary)',
                     }}>{s.n}</div>
-                    <span style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{s.text}</span>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-secondary)' }}>{s.text}</span>
                   </div>
                 ))}
               </div>
@@ -510,16 +510,16 @@ function NotificationsModal({ perfil, onClose }) {
     }}>
       <div style={{
         width: 'min(92vw, 400px)', maxHeight: '70vh',
-        background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.08)',
+        background: 'var(--surface-2)', border: '1px solid var(--surface-3)',
         borderRadius: '20px', overflow: 'hidden', display: 'flex', flexDirection: 'column',
       }}>
         {/* Header */}
         <div style={{
-          padding: '1rem 1.25rem', borderBottom: '1px solid rgba(255,255,255,0.06)',
+          padding: '1rem 1.25rem', borderBottom: '1px solid var(--surface-2)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Bell size={18} color="#06b6d4" />
+            <Bell size={18} color="var(--color-primary)" />
             <span style={{ fontWeight: 900, fontSize: '1rem', color: '#fff' }}>{t('notifications')}</span>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -541,13 +541,13 @@ function NotificationsModal({ perfil, onClose }) {
             notifs.map(n => (
               <div key={n.id} style={{
                 display: 'flex', alignItems: 'center', gap: '0.65rem', padding: '0.65rem 0.75rem',
-                background: n.is_read ? 'transparent' : 'rgba(6,182,212,0.04)',
+                background: n.is_read ? 'transparent' : 'rgba(0,201,255,0.04)',
                 borderRadius: '12px', marginBottom: '0.2rem',
               }}>
                 {/* Avatar */}
                 <div style={{
                   width: 36, height: 36, borderRadius: 12, flexShrink: 0, overflow: 'hidden',
-                  background: n.from_avatar ? `url(${n.from_avatar}) center/cover` : 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+                  background: n.from_avatar ? `url(${n.from_avatar}) center/cover` : 'linear-gradient(135deg, var(--color-primary), #3b82f6)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#fff', fontWeight: 900, fontSize: '0.75rem',
                 }}>{!n.from_avatar && (n.from_user || '?')[0].toUpperCase()}</div>
@@ -555,7 +555,7 @@ function NotificationsModal({ perfil, onClose }) {
                 {/* Content */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '0.78rem', color: '#fff', lineHeight: 1.35 }}>
-                    <span style={{ fontWeight: 900, color: '#06b6d4' }}>{n.from_user}</span>
+                    <span style={{ fontWeight: 900, color: 'var(--color-primary)' }}>{n.from_user}</span>
                     {' '}
                     <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>
                       {n.type === 'like'
@@ -579,7 +579,7 @@ function NotificationsModal({ perfil, onClose }) {
                     ? <Heart size={14} color="#ef4444" fill="#ef4444" />
                     : n.type === 'admin_reply'
                     ? <Zap size={14} color="#f59e0b" />
-                    : <MessageCircle size={14} color="#06b6d4" />
+                    : <MessageCircle size={14} color="var(--color-primary)" />
                   }
                   <span style={{ fontSize: '0.5rem', color: 'var(--text-muted)', fontWeight: 700 }}>{timeAgo(n.created_at)}</span>
                 </div>
@@ -629,7 +629,7 @@ function FeedbackBubble({ perfil }) {
         <button onClick={() => setOpen(true)} style={{
           position: 'fixed', bottom: 'calc(5.2rem + env(safe-area-inset-bottom, 0px))',
           left: '0.75rem', zIndex: 8000, width: 40, height: 40, borderRadius: '50%',
-          background: 'linear-gradient(135deg, rgba(99,102,241,0.8), rgba(6,182,212,0.8))',
+          background: 'linear-gradient(135deg, rgba(99,102,241,0.8), rgba(0,201,255,0.8))',
           border: '1px solid rgba(255,255,255,0.15)', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
@@ -644,19 +644,19 @@ function FeedbackBubble({ perfil }) {
           position: 'fixed', bottom: 'calc(5.2rem + env(safe-area-inset-bottom, 0px))',
           left: '0.75rem', zIndex: 8000, width: 260,
           background: 'var(--surface-2)', backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px',
+          border: '1px solid var(--surface-3)', borderRadius: '16px',
           padding: '0.75rem', boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#06b6d4', letterSpacing: '0.5px' }}>SUGERENCIAS</span>
+            <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--color-primary)', letterSpacing: '0.5px' }}>SUGERENCIAS</span>
             <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               <X size={14} color="var(--text-muted)" />
             </button>
           </div>
           {status === 'sent' ? (
-            <div style={{ textAlign: 'center', padding: '0.5rem 0', color: '#10b981', fontSize: '0.75rem', fontWeight: 800 }}>Enviado!</div>
+            <div style={{ textAlign: 'center', padding: '0.5rem 0', color: 'var(--color-prot)', fontSize: '0.75rem', fontWeight: 800 }}>Enviado!</div>
           ) : status === 'limited' ? (
-            <div style={{ textAlign: 'center', padding: '0.5rem 0', color: '#f59e0b', fontSize: '0.7rem', fontWeight: 700 }}>Esperá {cooldown}s para enviar otro</div>
+            <div style={{ textAlign: 'center', padding: '0.5rem 0', color: 'var(--color-kcal)', fontSize: '0.7rem', fontWeight: 700 }}>Esperá {cooldown}s para enviar otro</div>
           ) : (
             <>
               <textarea
@@ -664,8 +664,8 @@ function FeedbackBubble({ perfil }) {
                 placeholder="Tu idea o sugerencia..."
                 rows={3}
                 style={{
-                  width: '100%', resize: 'none', background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px',
+                  width: '100%', resize: 'none', background: 'var(--surface-hover)',
+                  border: '1px solid var(--surface-3)', borderRadius: '10px',
                   padding: '0.5rem', color: '#fff', fontSize: '0.75rem', fontFamily: 'inherit',
                   outline: 'none',
                 }}
@@ -673,7 +673,7 @@ function FeedbackBubble({ perfil }) {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.4rem' }}>
                 <span style={{ fontSize: '0.5rem', color: 'var(--surface-3)' }}>{msg.length}/300</span>
                 <button onClick={handleSend} disabled={!msg.trim() || cooldown > 0} style={{
-                  background: msg.trim() ? 'linear-gradient(135deg, #06b6d4, #3b82f6)' : 'rgba(255,255,255,0.06)',
+                  background: msg.trim() ? 'linear-gradient(135deg, var(--color-primary), #3b82f6)' : 'var(--surface-2)',
                   border: 'none', borderRadius: '8px', padding: '0.35rem 0.7rem', cursor: msg.trim() ? 'pointer' : 'not-allowed',
                   display: 'flex', alignItems: 'center', gap: '0.2rem',
                   color: msg.trim() ? '#000' : 'var(--text-muted)', fontWeight: 900, fontSize: '0.65rem',

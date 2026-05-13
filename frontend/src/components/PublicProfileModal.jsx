@@ -9,19 +9,19 @@ function Avatar({ src, name, size = 48, level = 1 }) {
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
       {sanitized ? (
-        <img src={sanitized} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', border: '3px solid rgba(6,182,212,0.5)', boxShadow: '0 0 20px rgba(6,182,212,0.3)' }} />
+        <img src={sanitized} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', border: '3px solid rgba(0,201,255,0.5)', boxShadow: '0 0 20px rgba(0,201,255,0.3)' }} />
       ) : (
         <div style={{
           width: size, height: size, borderRadius: '50%',
-          background: 'linear-gradient(135deg, #06b6d4, #7c3aed)',
+          background: 'linear-gradient(135deg, var(--color-primary), #7c3aed)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           color: '#fff', fontWeight: 900, fontSize: size * 0.3,
-          border: '3px solid rgba(6,182,212,0.5)', boxShadow: '0 0 20px rgba(6,182,212,0.3)',
+          border: '3px solid rgba(0,201,255,0.5)', boxShadow: '0 0 20px rgba(0,201,255,0.3)',
         }}>{initials}</div>
       )}
       <div style={{
         position: 'absolute', bottom: -2, right: -2,
-        background: 'linear-gradient(135deg, #06b6d4, #7c3aed)',
+        background: 'linear-gradient(135deg, var(--color-primary), #7c3aed)',
         borderRadius: '50%', width: size * 0.36, height: size * 0.36,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: size * 0.17, fontWeight: 900, color: '#fff',
@@ -89,19 +89,19 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: '#0a0f1e', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '28px 28px 0 0', maxHeight: '90vh', overflowY: 'auto', animation: 'slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1)' }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: '100%', maxWidth: 480, background: '#0a0f1e', border: '1px solid var(--surface-3)', borderRadius: '28px 28px 0 0', maxHeight: '90vh', overflowY: 'auto', animation: 'slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1)' }}>
         <style>{`
           @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
           @keyframes spin { to { transform: rotate(360deg); } }
         `}</style>
 
         {/* Hero banner + avatar */}
-        <div style={{ position: 'relative', height: 110, background: 'linear-gradient(135deg, #06b6d415 0%, #7c3aed25 50%, #06b6d410 100%)', borderRadius: '28px 28px 0 0', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', height: 110, background: 'linear-gradient(135deg, var(--color-primary)15 0%, #7c3aed25 50%, var(--color-primary)10 100%)', borderRadius: '28px 28px 0 0', overflow: 'hidden' }}>
           {/* Decorative circles */}
-          <div style={{ position: 'absolute', top: -20, right: -20, width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(6,182,212,0.15) 0%, transparent 70%)' }} />
+          <div style={{ position: 'absolute', top: -20, right: -20, width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,201,255,0.15) 0%, transparent 70%)' }} />
           <div style={{ position: 'absolute', bottom: -30, left: -10, width: 100, height: 100, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%)' }} />
           {/* Close btn */}
-          <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', backdropFilter: 'blur(4px)' }}>
+          <button onClick={onClose} style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(0,0,0,0.4)', border: '1px solid var(--border-default)', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)', backdropFilter: 'blur(4px)' }}>
             <X size={15} />
           </button>
           {/* Pill handle */}
@@ -116,7 +116,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
 
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '5rem 0 3rem' }}>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(6,182,212,0.1)', borderTopColor: '#06b6d4', animation: 'spin 1s linear infinite' }} />
+            <div style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid rgba(0,201,255,0.1)', borderTopColor: 'var(--color-primary)', animation: 'spin 1s linear infinite' }} />
           </div>
         ) : !perfil ? (
           <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '5rem 2rem 3rem' }}>Usuario no encontrado</p>
@@ -136,9 +136,9 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
                 <button onClick={handleFollow} style={{
                   padding: '0.55rem 2rem', borderRadius: '14px', fontWeight: 800, fontSize: '0.82rem', cursor: 'pointer',
-                  background: following ? 'rgba(6,182,212,0.08)' : 'linear-gradient(135deg, #06b6d4, #7c3aed)',
-                  border: following ? '1px solid rgba(6,182,212,0.3)' : '1px solid transparent',
-                  color: following ? '#06b6d4' : '#fff',
+                  background: following ? 'rgba(0,201,255,0.08)' : 'linear-gradient(135deg, var(--color-primary), #7c3aed)',
+                  border: following ? '1px solid rgba(0,201,255,0.3)' : '1px solid transparent',
+                  color: following ? 'var(--color-primary)' : '#fff',
                   transition: 'all 0.2s', letterSpacing: '0.5px',
                 }}>
                   {following ? t('unfollow') : t('follow')}
@@ -147,16 +147,16 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
             )}
 
             {/* EXP bar */}
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '16px', padding: '0.9rem 1rem', marginBottom: '1rem' }}>
+            <div style={{ background: 'var(--surface-1)', border: '1px solid var(--surface-2)', borderRadius: '16px', padding: '0.9rem 1rem', marginBottom: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Zap size={13} color="#f59e0b" />
                   <span style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: 700 }}>{t('level_label')} {perfil.level}</span>
                 </div>
-                <span style={{ color: '#06b6d4', fontSize: '0.75rem', fontWeight: 900 }}>{perfil.exp.toLocaleString()} EXP</span>
+                <span style={{ color: 'var(--color-primary)', fontSize: '0.75rem', fontWeight: 900 }}>{perfil.exp.toLocaleString()} EXP</span>
               </div>
-              <div style={{ height: 7, background: 'rgba(255,255,255,0.05)', borderRadius: 99, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${expProgress}%`, background: 'linear-gradient(90deg, #06b6d4, #7c3aed)', borderRadius: 99, transition: 'width 0.6s ease', boxShadow: '0 0 8px rgba(6,182,212,0.5)' }} />
+              <div style={{ height: 7, background: 'var(--surface-2)', borderRadius: 99, overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${expProgress}%`, background: 'linear-gradient(90deg, var(--color-primary), #7c3aed)', borderRadius: 99, transition: 'width 0.6s ease', boxShadow: '0 0 8px rgba(0,201,255,0.5)' }} />
               </div>
             </div>
 
@@ -167,7 +167,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
                 { label: t('following_label'), value: perfil.following },
                 { label: 'Posts', value: perfil.total_posts },
               ].map(({ label, value }) => (
-                <div key={label} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '14px', padding: '0.8rem 0.5rem', textAlign: 'center' }}>
+                <div key={label} style={{ background: 'var(--surface-1)', border: '1px solid var(--surface-2)', borderRadius: '14px', padding: '0.8rem 0.5rem', textAlign: 'center' }}>
                   <div style={{ color: '#fff', fontWeight: 900, fontSize: '1.15rem', lineHeight: 1 }}>{value}</div>
                   <div style={{ color: 'var(--text-muted)', fontSize: '0.6rem', fontWeight: 700, marginTop: '0.25rem' }}>{label}</div>
                 </div>
@@ -181,7 +181,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                     {perfil.rutinas.map(rt => (
-                      <div key={rt.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '0.9rem 1rem' }}>
+                      <div key={rt.id} style={{ background: 'var(--surface-1)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '16px', padding: '0.9rem 1rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: rt.preview_gifs?.length ? '0.7rem' : 0 }}>
                           <div>
                             <div style={{ color: '#fff', fontWeight: 900, fontSize: '0.9rem' }}>{rt.name}</div>
@@ -196,10 +196,10 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
                               style={{
                                 display: 'flex', alignItems: 'center', gap: '0.35rem',
                                 padding: '0.4rem 0.8rem', borderRadius: '10px', border: 'none', cursor: clonedIds[rt.id] ? 'default' : 'pointer',
-                                background: clonedIds[rt.id] ? 'rgba(34,197,94,0.1)' : 'rgba(6,182,212,0.12)',
-                                color: clonedIds[rt.id] ? '#22c55e' : '#06b6d4',
+                                background: clonedIds[rt.id] ? 'rgba(34,197,94,0.1)' : 'rgba(0,201,255,0.12)',
+                                color: clonedIds[rt.id] ? '#22c55e' : 'var(--color-primary)',
                                 fontWeight: 800, fontSize: '0.7rem', transition: 'all 0.2s',
-                                border: `1px solid ${clonedIds[rt.id] ? 'rgba(34,197,94,0.2)' : 'rgba(6,182,212,0.2)'}`,
+                                border: `1px solid ${clonedIds[rt.id] ? 'rgba(34,197,94,0.2)' : 'rgba(0,201,255,0.2)'}`,
                                 flexShrink: 0,
                               }}
                             >
@@ -211,7 +211,7 @@ export default function PublicProfileModal({ nombre, onClose, currentUser }) {
                         {rt.preview_gifs?.length > 0 && (
                           <div style={{ display: 'flex', gap: '0.4rem' }}>
                             {rt.preview_gifs.map((gif, i) => (
-                              <div key={i} style={{ width: 52, height: 52, borderRadius: '10px', overflow: 'hidden', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)', flexShrink: 0 }}>
+                              <div key={i} style={{ width: 52, height: 52, borderRadius: '10px', overflow: 'hidden', background: 'rgba(0,0,0,0.3)', border: '1px solid var(--surface-2)', flexShrink: 0 }}>
                                 <img src={gif} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.style.display = 'none'; }} />
                               </div>
                             ))}

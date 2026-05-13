@@ -15,10 +15,10 @@ export default function ExerciseModal({ exercise, onClose, lang }) {
       zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center'
     }}>
       <div className="modal-content animate-slide-up" style={{
-        width: '100%', maxWidth: '500px', backgroundColor: '#0f172a',
+        width: '100%', maxWidth: '500px', backgroundColor: 'var(--surface-2)',
         borderTopLeftRadius: '30px', borderTopRightRadius: '30px',
         padding: '2rem', maxHeight: '90vh', overflowY: 'auto',
-        border: '1px solid rgba(255,255,255,0.1)', borderBottom: 'none'
+        border: '1px solid var(--border-default)', borderBottom: 'none'
       }}>
         <div style={{ width: '40px', height: '4px', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: '2px', margin: '0 auto 1.5rem' }} onClick={onClose} />
         
@@ -27,7 +27,7 @@ export default function ExerciseModal({ exercise, onClose, lang }) {
             <h2 style={{ color: 'white', margin: 0, fontSize: '1.5rem', fontWeight: 900 }}>{name}</h2>
             <div style={{ color: 'var(--accent-gym)', fontSize: '0.9rem', fontWeight: 700, textTransform: 'uppercase', marginTop: '0.25rem' }}>{exercise.target}</div>
           </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '50%', padding: '0.5rem', color: 'white' }}>
+          <button onClick={onClose} style={{ background: 'var(--surface-2)', border: 'none', borderRadius: '50%', padding: '0.5rem', color: 'white' }}>
             <X size={24} />
           </button>
         </div>
@@ -41,14 +41,14 @@ export default function ExerciseModal({ exercise, onClose, lang }) {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2rem' }}>
-          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ background: 'var(--surface-1)', padding: '1rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
              <Dumbbell size={20} color="var(--accent-gym)" />
              <div>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>EQUIPMENT</div>
                 <div style={{ color: 'white', fontSize: '0.85rem', fontWeight: 700 }}>{exercise.equipment || 'None'}</div>
              </div>
           </div>
-          <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ background: 'var(--surface-1)', padding: '1rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
              <Target size={20} color="#10b981" />
              <div>
                 <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>BODY PART</div>

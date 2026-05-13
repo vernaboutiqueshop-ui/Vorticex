@@ -317,10 +317,10 @@ export default function ComunidadView({ perfil }) {
             background: 'rgba(5,5,8,0.85)', backdropFilter: 'blur(12px)',
             borderRadius: '16px', padding: '1rem 1.5rem',
             display: 'flex', alignItems: 'center', gap: '0.6rem',
-            border: '1px solid rgba(6,182,212,0.15)',
+            border: '1px solid rgba(0,201,255,0.15)',
           }}>
-            <Loader size={18} color="#06b6d4" style={{ animation: 'spin 1s linear infinite' }} />
-            <span style={{ color: '#06b6d4', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.5px' }}>
+            <Loader size={18} color="var(--color-primary)" style={{ animation: 'spin 1s linear infinite' }} />
+            <span style={{ color: 'var(--color-primary)', fontWeight: 800, fontSize: '0.78rem', letterSpacing: '0.5px' }}>
               {loading ? 'CARGANDO FEED...' : 'ACTUALIZANDO...'}
             </span>
           </div>
@@ -334,7 +334,7 @@ export default function ComunidadView({ perfil }) {
           {/* ════ COMPOSER ════ */}
           <div style={{
             background: 'var(--surface-2)', backdropFilter: 'blur(40px)',
-            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '18px',
+            border: '1px solid var(--border-default)', borderRadius: '18px',
             padding: '1rem 1.1rem', boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
           }}>
             <div style={{ display: 'flex', gap: '0.65rem' }}>
@@ -377,7 +377,7 @@ export default function ComunidadView({ perfil }) {
                     }}
                     rows={2}
                     style={{
-                      width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+                      width: '100%', background: 'var(--surface-1)', border: '1px solid rgba(255,255,255,0.07)',
                       borderRadius: '12px', padding: '0.65rem 0.75rem', color: 'white', fontSize: '0.85rem',
                       resize: 'none', outline: 'none', fontFamily: 'inherit',
                     }}
@@ -387,7 +387,7 @@ export default function ComunidadView({ perfil }) {
                     <div className="animate-in" style={{
                       position: 'absolute', left: 0, right: 0, top: '100%', zIndex: 20,
                       marginTop: '0.25rem', borderRadius: '12px', overflow: 'hidden',
-                      background: 'rgba(10,15,30,0.98)', border: '1px solid rgba(6,182,212,0.2)',
+                      background: 'rgba(10,15,30,0.98)', border: '1px solid rgba(0,201,255,0.2)',
                       boxShadow: '0 8px 24px rgba(0,0,0,0.5)', maxHeight: 180, overflowY: 'auto',
                     }}>
                       {myRoutines.length === 0 ? (
@@ -396,7 +396,7 @@ export default function ComunidadView({ perfil }) {
                         </div>
                       ) : (
                         <>
-                          <div style={{ padding: '0.4rem 0.6rem', fontSize: '0.5rem', fontWeight: 900, color: 'var(--text-muted)', letterSpacing: '1px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <div style={{ padding: '0.4rem 0.6rem', fontSize: '0.5rem', fontWeight: 900, color: 'var(--text-muted)', letterSpacing: '1px', borderBottom: '1px solid var(--surface-hover)' }}>
                             ADJUNTAR RUTINA
                           </div>
                           {myRoutines.filter(r => r.name.toLowerCase().includes(mentionQuery)).length === 0 ? (
@@ -416,11 +416,11 @@ export default function ComunidadView({ perfil }) {
                                 style={{
                                   display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%',
                                   padding: '0.5rem 0.6rem', border: 'none', cursor: 'pointer', textAlign: 'left',
-                                  background: i === mentionIdx ? 'rgba(6,182,212,0.12)' : 'transparent',
-                                  borderBottom: '1px solid rgba(255,255,255,0.03)',
+                                  background: i === mentionIdx ? 'rgba(0,201,255,0.12)' : 'transparent',
+                                  borderBottom: '1px solid var(--surface-1)',
                                 }}
                               >
-                                <Dumbbell size={13} color="#06b6d4" />
+                                <Dumbbell size={13} color="var(--color-primary)" />
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ fontWeight: 800, fontSize: '0.75rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</div>
                                   <div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>{Array.isArray(r.ejercicios) ? `${r.ejercicios.length} ejercicios` : ''}</div>
@@ -436,7 +436,7 @@ export default function ComunidadView({ perfil }) {
 
                 {/* Media preview */}
                 {mediaPreview && (
-                  <div style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <div style={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', border: '1px solid var(--border-default)' }}>
                     {mediaType === 'video' ? (
                       <video src={mediaPreview} style={{ width: '100%', maxHeight: 180, objectFit: 'cover', display: 'block' }} muted />
                     ) : (
@@ -454,11 +454,11 @@ export default function ComunidadView({ perfil }) {
                 {selectedRoutine && (
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: '0.45rem',
-                    background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)',
+                    background: 'rgba(0,201,255,0.08)', border: '1px solid rgba(0,201,255,0.2)',
                     borderRadius: '10px', padding: '0.4rem 0.6rem',
                   }}>
-                    <Dumbbell size={13} color="#06b6d4" />
-                    <span style={{ flex: 1, fontSize: '0.7rem', fontWeight: 800, color: '#06b6d4', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <Dumbbell size={13} color="var(--color-primary)" />
+                    <span style={{ flex: 1, fontSize: '0.7rem', fontWeight: 800, color: 'var(--color-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {selectedRoutine.name}
                     </span>
                     <button onClick={() => setSelectedRoutineId(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
@@ -477,11 +477,11 @@ export default function ComunidadView({ perfil }) {
                     <button
                       onClick={() => fileInputRef.current.click()}
                       style={{
-                        background: mediaPreview ? 'rgba(6,182,212,0.15)' : 'rgba(255,255,255,0.04)',
-                        border: `1px solid ${mediaPreview ? 'rgba(6,182,212,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                        background: mediaPreview ? 'rgba(0,201,255,0.15)' : 'var(--surface-hover)',
+                        border: `1px solid ${mediaPreview ? 'rgba(0,201,255,0.3)' : 'var(--surface-3)'}`,
                         borderRadius: '10px', padding: '0.35rem 0.6rem', cursor: 'pointer',
                         display: 'flex', alignItems: 'center', gap: '0.25rem',
-                        color: mediaPreview ? '#06b6d4' : 'var(--text-muted)', fontSize: '0.65rem', fontWeight: 800,
+                        color: mediaPreview ? 'var(--color-primary)' : 'var(--text-muted)', fontSize: '0.65rem', fontWeight: 800,
                       }}
                     >
                       <ImageIcon size={13} /> Media
@@ -490,11 +490,11 @@ export default function ComunidadView({ perfil }) {
                       <button
                         onClick={() => setShowRoutinePicker(!showRoutinePicker)}
                         style={{
-                          background: showRoutinePicker ? 'rgba(6,182,212,0.15)' : 'rgba(255,255,255,0.04)',
-                          border: `1px solid ${showRoutinePicker ? 'rgba(6,182,212,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                          background: showRoutinePicker ? 'rgba(0,201,255,0.15)' : 'var(--surface-hover)',
+                          border: `1px solid ${showRoutinePicker ? 'rgba(0,201,255,0.3)' : 'var(--surface-3)'}`,
                           borderRadius: '10px', padding: '0.35rem 0.6rem', cursor: 'pointer',
                           display: 'flex', alignItems: 'center', gap: '0.25rem',
-                          color: showRoutinePicker ? '#06b6d4' : 'var(--text-muted)', fontSize: '0.65rem', fontWeight: 800,
+                          color: showRoutinePicker ? 'var(--color-primary)' : 'var(--text-muted)', fontSize: '0.65rem', fontWeight: 800,
                         }}
                       >
                         <Dumbbell size={13} /> {tx.routine}
@@ -506,7 +506,7 @@ export default function ComunidadView({ perfil }) {
                     disabled={isPosting || (!newPost.trim() && !selectedRoutineId && !mediaBase64)}
                     style={{
                       background: (isPosting || (!newPost.trim() && !selectedRoutineId && !mediaBase64))
-                        ? 'rgba(255,255,255,0.06)' : 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                        ? 'var(--surface-2)' : 'linear-gradient(135deg, var(--color-primary), #0891b2)',
                       color: (isPosting || (!newPost.trim() && !selectedRoutineId && !mediaBase64)) ? 'var(--text-muted)' : '#000',
                       border: 'none', borderRadius: '10px', padding: '0.4rem 1rem',
                       fontWeight: 900, fontSize: '0.72rem', cursor: 'pointer',
@@ -523,7 +523,7 @@ export default function ComunidadView({ perfil }) {
             {/* Routine picker */}
             {showRoutinePicker && (
               <div className="animate-in no-scrollbar" style={{
-                marginTop: '0.6rem', borderTop: '1px solid rgba(255,255,255,0.06)',
+                marginTop: '0.6rem', borderTop: '1px solid var(--surface-2)',
                 paddingTop: '0.6rem', display: 'flex', flexDirection: 'column', gap: '0.3rem',
                 maxHeight: '160px', overflowY: 'auto',
               }}>
@@ -536,13 +536,13 @@ export default function ComunidadView({ perfil }) {
                     onClick={() => { setSelectedRoutineId(r.id); setShowRoutinePicker(false); }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: '0.5rem',
-                      background: selectedRoutineId === r.id ? 'rgba(6,182,212,0.1)' : 'rgba(255,255,255,0.02)',
-                      border: `1px solid ${selectedRoutineId === r.id ? 'rgba(6,182,212,0.3)' : 'rgba(255,255,255,0.05)'}`,
+                      background: selectedRoutineId === r.id ? 'rgba(0,201,255,0.1)' : 'var(--surface-1)',
+                      border: `1px solid ${selectedRoutineId === r.id ? 'rgba(0,201,255,0.3)' : 'var(--surface-2)'}`,
                       borderRadius: '10px', padding: '0.5rem 0.6rem', cursor: 'pointer',
                       textAlign: 'left', width: '100%',
                     }}
                   >
-                    <Dumbbell size={13} color={selectedRoutineId === r.id ? '#06b6d4' : 'var(--text-muted)'} />
+                    <Dumbbell size={13} color={selectedRoutineId === r.id ? 'var(--color-primary)' : 'var(--text-muted)'} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontWeight: 800, fontSize: '0.75rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {r.name}
@@ -573,7 +573,7 @@ export default function ComunidadView({ perfil }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: postIdx * 0.05, duration: 0.3 }}
               style={{
-              background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.1)',
+              background: 'var(--surface-2)', border: '1px solid var(--border-default)',
               borderRadius: '18px', overflow: 'hidden',
             }}>
               {/* User Header */}
@@ -591,11 +591,11 @@ export default function ComunidadView({ perfil }) {
                   <button
                     onClick={() => handleFollow(post.user_name)}
                     style={{
-                      background: followState[post.user_name] ? 'rgba(6,182,212,0.1)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${followState[post.user_name] ? 'rgba(6,182,212,0.3)' : 'rgba(255,255,255,0.08)'}`,
+                      background: followState[post.user_name] ? 'rgba(0,201,255,0.1)' : 'var(--surface-hover)',
+                      border: `1px solid ${followState[post.user_name] ? 'rgba(0,201,255,0.3)' : 'var(--surface-3)'}`,
                       borderRadius: '10px', padding: '0.3rem 0.6rem', cursor: 'pointer',
                       display: 'flex', alignItems: 'center', gap: '0.2rem',
-                      color: followState[post.user_name] ? '#06b6d4' : 'var(--text-muted)',
+                      color: followState[post.user_name] ? 'var(--color-primary)' : 'var(--text-muted)',
                       fontSize: '0.6rem', fontWeight: 800,
                     }}
                   >
@@ -608,7 +608,7 @@ export default function ComunidadView({ perfil }) {
               {/* Content */}
               <div style={{ padding: '0 1rem 0.9rem' }}>
                 {post.content && (
-                  <p style={{ fontSize: '0.88rem', lineHeight: '1.55', color: '#e2e8f0', whiteSpace: 'pre-wrap', margin: '0 0 0.6rem', fontWeight: 500 }}>{post.content}</p>
+                  <p style={{ fontSize: '0.88rem', lineHeight: '1.55', color: 'var(--text-primary)', whiteSpace: 'pre-wrap', margin: '0 0 0.6rem', fontWeight: 500 }}>{post.content}</p>
                 )}
 
                 {/* Media */}
@@ -636,14 +636,14 @@ export default function ComunidadView({ perfil }) {
                 {/* Shared Routine Card */}
                 {post.routine_id && post.routine_name && (
                   <div style={{
-                    background: 'rgba(6,182,212,0.04)', border: '1px solid rgba(6,182,212,0.15)',
+                    background: 'rgba(0,201,255,0.04)', border: '1px solid rgba(0,201,255,0.15)',
                     borderRadius: '14px', overflow: 'hidden',
                   }}>
                     {/* Card header */}
-                    <div style={{ padding: '0.65rem 0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(6,182,212,0.08)' }}>
+                    <div style={{ padding: '0.65rem 0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,201,255,0.08)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <Dumbbell size={14} color="#06b6d4" />
-                        <span style={{ fontWeight: 900, fontSize: '0.75rem', color: '#06b6d4', letterSpacing: '0.3px' }}>
+                        <Dumbbell size={14} color="var(--color-primary)" />
+                        <span style={{ fontWeight: 900, fontSize: '0.75rem', color: 'var(--color-primary)', letterSpacing: '0.3px' }}>
                           {post.routine_name}
                         </span>
                       </div>
@@ -651,11 +651,11 @@ export default function ComunidadView({ perfil }) {
                         <button
                           onClick={() => handleCloneRoutine(post.routine_id, post.routine_name)}
                           style={{
-                            background: 'linear-gradient(135deg, rgba(6,182,212,0.2), rgba(6,182,212,0.1))',
-                            border: '1px solid rgba(6,182,212,0.3)',
+                            background: 'linear-gradient(135deg, rgba(0,201,255,0.2), rgba(0,201,255,0.1))',
+                            border: '1px solid rgba(0,201,255,0.3)',
                             borderRadius: '10px', padding: '0.3rem 0.65rem', cursor: 'pointer',
                             display: 'flex', alignItems: 'center', gap: '0.25rem',
-                            fontSize: '0.6rem', fontWeight: 900, color: '#06b6d4',
+                            fontSize: '0.6rem', fontWeight: 900, color: 'var(--color-primary)',
                           }}
                         >
                           <Copy size={11} /> {tx.cloneEdit}
@@ -669,7 +669,7 @@ export default function ComunidadView({ perfil }) {
                           <div key={i} style={{ flexShrink: 0, textAlign: 'center', width: 48 }}>
                             <div style={{
                               width: 48, height: 48, borderRadius: '10px', background: '#fff',
-                              overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)',
+                              overflow: 'hidden', border: '1px solid var(--surface-3)',
                             }}>
                               <img src={ex.gif_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                             </div>
@@ -681,8 +681,8 @@ export default function ComunidadView({ perfil }) {
                         {post.routine_exercises.length > 8 && (
                           <div style={{
                             flexShrink: 0, width: 48, height: 48, borderRadius: '10px',
-                            background: 'rgba(6,182,212,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '0.7rem', fontWeight: 900, color: '#06b6d4', border: '1px solid rgba(6,182,212,0.15)',
+                            background: 'rgba(0,201,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '0.7rem', fontWeight: 900, color: 'var(--color-primary)', border: '1px solid rgba(0,201,255,0.15)',
                           }}>
                             +{post.routine_exercises.length - 8}
                           </div>
@@ -700,7 +700,7 @@ export default function ComunidadView({ perfil }) {
 
               {/* Interaction Bar */}
               <div style={{
-                padding: '0.65rem 1rem', borderTop: '1px solid rgba(255,255,255,0.06)',
+                padding: '0.65rem 1rem', borderTop: '1px solid var(--surface-2)',
                 display: 'flex', gap: '1rem', alignItems: 'center',
               }}>
                 <motion.button
@@ -745,18 +745,18 @@ export default function ComunidadView({ perfil }) {
 
               {/* Comments Section */}
               {activeComments[post.id] && (
-                <div className="animate-in" style={{ background: 'rgba(0,0,0,0.15)', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '0.9rem 1rem' }}>
+                <div className="animate-in" style={{ background: 'rgba(0,0,0,0.15)', borderTop: '1px solid var(--surface-2)', padding: '0.9rem 1rem' }}>
                   {commentsData[post.id]?.length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.7rem' }}>
                       {commentsData[post.id].map(c => (
                         <div key={c.id} style={{ display: 'flex', gap: '0.45rem', alignItems: 'flex-start' }}>
                           <Avatar src={c.user_avatar} name={c.user_name} size={24} />
                           <div style={{
-                            flex: 1, background: 'rgba(255,255,255,0.03)', padding: '0.4rem 0.6rem',
-                            borderRadius: '10px', border: '1px solid rgba(255,255,255,0.04)',
+                            flex: 1, background: 'var(--surface-1)', padding: '0.4rem 0.6rem',
+                            borderRadius: '10px', border: '1px solid var(--surface-hover)',
                           }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div style={{ fontWeight: 900, fontSize: '0.6rem', color: '#06b6d4', marginBottom: '0.05rem' }}>{c.user_name}</div>
+                              <div style={{ fontWeight: 900, fontSize: '0.6rem', color: 'var(--color-primary)', marginBottom: '0.05rem' }}>{c.user_name}</div>
                               {c.user_name?.toLowerCase() === perfil?.toLowerCase() && (
                                 <button
                                   onClick={() => handleDeleteComment(post.id, c.id)}
@@ -767,7 +767,7 @@ export default function ComunidadView({ perfil }) {
                                 </button>
                               )}
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: '#e2e8f0', lineHeight: '1.35' }}>{c.content}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-primary)', lineHeight: '1.35' }}>{c.content}</div>
                           </div>
                         </div>
                       ))}
@@ -780,8 +780,8 @@ export default function ComunidadView({ perfil }) {
                       value={newComment[post.id] || ""}
                       onChange={(e) => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
                       style={{
-                        flex: 1, height: '2rem', fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.06)',
-                        background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '0 0.6rem',
+                        flex: 1, height: '2rem', fontSize: '0.75rem', border: '1px solid var(--surface-2)',
+                        background: 'var(--surface-1)', borderRadius: '10px', padding: '0 0.6rem',
                         color: '#fff', outline: 'none', fontFamily: 'inherit',
                       }}
                       onKeyDown={(e) => e.key === 'Enter' && handleSendComment(post.id)}
@@ -790,7 +790,7 @@ export default function ComunidadView({ perfil }) {
                       onClick={() => handleSendComment(post.id)}
                       style={{
                         width: '2rem', height: '2rem', borderRadius: '10px',
-                        background: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                        background: 'linear-gradient(135deg, var(--color-primary), #0891b2)',
                         border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0,
                       }}
                     >
@@ -806,7 +806,7 @@ export default function ComunidadView({ perfil }) {
           <div ref={sentinelRef} style={{ height: 1 }} />
           {loadingMore && (
             <div style={{ display: 'flex', justifyContent: 'center', padding: '1rem 0' }}>
-              <Loader size={18} color="#06b6d4" style={{ animation: 'spin 1s linear infinite' }} />
+              <Loader size={18} color="var(--color-primary)" style={{ animation: 'spin 1s linear infinite' }} />
             </div>
           )}
           {!hasMore && posts.length > 0 && (
@@ -836,7 +836,7 @@ export default function ComunidadView({ perfil }) {
           )}
           <button style={{
             position: 'absolute', top: 20, right: 20, width: 36, height: 36, borderRadius: 99,
-            background: 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer',
+            background: 'var(--border-default)', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}><X size={18} color="#fff" /></button>
         </div>

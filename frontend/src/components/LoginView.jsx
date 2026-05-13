@@ -154,14 +154,14 @@ export default function LoginView({ onLogin }) {
 
   const cardStyle = {
     background: 'var(--surface-2)', backdropFilter: 'blur(40px)',
-    border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px',
+    border: '1px solid var(--surface-3)', borderRadius: '24px',
     padding: '2rem 1.5rem', boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
     width: '100%', maxWidth: '420px',
   };
 
   const inputStyle = {
-    width: '100%', padding: '0.8rem 1rem', background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.1)', borderRadius: '14px',
+    width: '100%', padding: '0.8rem 1rem', background: 'var(--surface-hover)',
+    border: '1px solid var(--border-default)', borderRadius: '14px',
     color: '#fff', fontSize: '0.9rem', outline: 'none', fontFamily: 'inherit',
     transition: 'border-color 0.2s',
   };
@@ -175,16 +175,16 @@ export default function LoginView({ onLogin }) {
     <div style={{
       minHeight: '100vh', display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      background: 'radial-gradient(ellipse at 50% 0%, rgba(6,182,212,0.08) 0%, #050508 60%)',
+      background: 'radial-gradient(ellipse at 50% 0%, rgba(0,201,255,0.08) 0%, #050508 60%)',
       padding: '1.5rem',
     }}>
       {/* Logo — always visible */}
       <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
         <div style={{
           width: 52, height: 52, borderRadius: 16, margin: '0 auto 0.6rem',
-          background: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+          background: 'linear-gradient(135deg, var(--color-primary), #3b82f6)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 8px 24px rgba(6,182,212,0.3)',
+          boxShadow: '0 8px 24px rgba(0,201,255,0.3)',
         }}>
           <Zap size={26} color="#000" />
         </div>
@@ -204,12 +204,12 @@ export default function LoginView({ onLogin }) {
               <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem' }}>
                 <div style={{
                   height: 3, width: '100%', borderRadius: 99,
-                  background: i <= step ? '#06b6d4' : 'rgba(255,255,255,0.06)',
+                  background: i <= step ? 'var(--color-primary)' : 'var(--surface-2)',
                   transition: 'all 0.3s',
                 }} />
                 <span style={{
                   fontSize: '0.45rem', fontWeight: 800, letterSpacing: '0.5px',
-                  color: i <= step ? '#06b6d4' : 'var(--surface-3)',
+                  color: i <= step ? 'var(--color-primary)' : 'var(--surface-3)',
                 }}>{label.toUpperCase()}</span>
               </div>
             ))}
@@ -243,7 +243,7 @@ export default function LoginView({ onLogin }) {
               </div>
             )}
             <button type="submit" disabled={loading} style={{
-              background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', color: '#000',
+              background: 'linear-gradient(135deg, var(--color-primary), #3b82f6)', color: '#000',
               border: 'none', borderRadius: '14px', padding: '0.85rem',
               fontWeight: 900, cursor: 'pointer', fontSize: '0.9rem',
               opacity: loading ? 0.6 : 1, marginTop: '0.25rem',
@@ -253,7 +253,7 @@ export default function LoginView({ onLogin }) {
             <div style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
               ¿Primera vez?{' '}
               <button type="button" onClick={() => { setMode('wizard'); setStep(0); setError(''); }}
-                style={{ color: '#06b6d4', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>
+                style={{ color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>
                 Creá tu perfil
               </button>
               {' · '}
@@ -287,14 +287,14 @@ export default function LoginView({ onLogin }) {
               </div>
             )}
             {recoverResult && (
-              <div style={{ background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
+              <div style={{ background: 'rgba(0,201,255,0.08)', border: '1px solid rgba(0,201,255,0.2)', borderRadius: '12px', padding: '0.75rem 1rem' }}>
                 <div style={{ color: 'var(--text-secondary)', fontSize: '0.65rem', fontWeight: 800, marginBottom: '0.3rem' }}>TU CONTRASEÑA ES</div>
-                <div style={{ color: '#06b6d4', fontSize: '1.1rem', fontWeight: 900, letterSpacing: '0.05em' }}>{recoverResult}</div>
+                <div style={{ color: 'var(--color-primary)', fontSize: '1.1rem', fontWeight: 900, letterSpacing: '0.05em' }}>{recoverResult}</div>
               </div>
             )}
             {!recoverResult && (
               <button type="submit" disabled={loading || !recoverUsername.trim()} style={{
-                background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', color: '#000',
+                background: 'linear-gradient(135deg, var(--color-primary), #3b82f6)', color: '#000',
                 border: 'none', borderRadius: '14px', padding: '0.85rem',
                 fontWeight: 900, cursor: 'pointer', fontSize: '0.9rem',
                 opacity: (loading || !recoverUsername.trim()) ? 0.6 : 1,
@@ -374,12 +374,12 @@ export default function LoginView({ onLogin }) {
                       <button key={m.id} onClick={() => setWizardData(p => ({ ...p, meta: m.id }))}
                         style={{
                           padding: '0.85rem 0.7rem', borderRadius: '14px', cursor: 'pointer', textAlign: 'left',
-                          border: sel ? '2px solid #06b6d4' : '1px solid rgba(255,255,255,0.06)',
-                          background: sel ? 'rgba(6,182,212,0.08)' : 'rgba(255,255,255,0.02)',
+                          border: sel ? '2px solid var(--color-primary)' : '1px solid var(--surface-2)',
+                          background: sel ? 'rgba(0,201,255,0.08)' : 'var(--surface-1)',
                           transition: 'all 0.2s',
                         }}>
                         <div style={{ fontSize: '1.3rem', marginBottom: '0.2rem' }}>{m.icon}</div>
-                        <div style={{ fontWeight: 800, color: sel ? '#06b6d4' : '#e2e8f0', fontSize: '0.82rem' }}>{m.label}</div>
+                        <div style={{ fontWeight: 800, color: sel ? 'var(--color-primary)' : 'var(--text-primary)', fontSize: '0.82rem' }}>{m.label}</div>
                         <div style={{ color: 'var(--text-muted)', fontSize: '0.62rem', marginTop: '0.1rem', fontWeight: 600 }}>{m.desc}</div>
                       </button>
                     );
@@ -402,24 +402,24 @@ export default function LoginView({ onLogin }) {
                       <button key={d.id} onClick={() => toggleDeporte(d.id)}
                         style={{
                           padding: '0.6rem 0.3rem', borderRadius: '12px', cursor: 'pointer',
-                          border: sel ? '2px solid #06b6d4' : '1px solid rgba(255,255,255,0.06)',
-                          background: sel ? 'rgba(6,182,212,0.1)' : 'rgba(255,255,255,0.02)',
+                          border: sel ? '2px solid var(--color-primary)' : '1px solid var(--surface-2)',
+                          background: sel ? 'rgba(0,201,255,0.1)' : 'var(--surface-1)',
                           textAlign: 'center', transition: 'all 0.15s', position: 'relative',
                         }}>
                         {sel && (
                           <div style={{ position: 'absolute', top: 4, right: 4, width: 14, height: 14, borderRadius: 99,
-                            background: '#06b6d4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            background: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Check size={8} color="#000" strokeWidth={3} />
                           </div>
                         )}
                         <div style={{ fontSize: '1.2rem' }}>{d.icon}</div>
-                        <div style={{ fontWeight: 700, color: sel ? '#06b6d4' : 'var(--text-secondary)', fontSize: '0.6rem', marginTop: '0.15rem' }}>{d.label}</div>
+                        <div style={{ fontWeight: 700, color: sel ? 'var(--color-primary)' : 'var(--text-secondary)', fontSize: '0.6rem', marginTop: '0.15rem' }}>{d.label}</div>
                       </button>
                     );
                   })}
                 </div>
                 {wizardData.deportes.length > 0 && (
-                  <div style={{ fontSize: '0.65rem', color: '#06b6d4', fontWeight: 800 }}>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--color-primary)', fontWeight: 800 }}>
                     {wizardData.deportes.length} seleccionado{wizardData.deportes.length > 1 ? 's' : ''}
                   </div>
                 )}
@@ -441,17 +441,17 @@ export default function LoginView({ onLogin }) {
                       width: 110, height: 110, borderRadius: 28, cursor: 'pointer',
                       background: wizardData.profilePic
                         ? `url(${wizardData.profilePic}) center/cover`
-                        : 'linear-gradient(135deg, rgba(6,182,212,0.15), rgba(59,130,246,0.1))',
-                      border: '2px dashed rgba(6,182,212,0.3)',
+                        : 'linear-gradient(135deg, rgba(0,201,255,0.15), rgba(59,130,246,0.1))',
+                      border: '2px dashed rgba(0,201,255,0.3)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'all 0.2s',
                     }}>
-                    {!wizardData.profilePic && <Camera size={32} color="#06b6d4" style={{ opacity: 0.6 }} />}
+                    {!wizardData.profilePic && <Camera size={32} color="var(--color-primary)" style={{ opacity: 0.6 }} />}
                   </div>
                   <button onClick={() => fileRef.current?.click()} style={{
-                    background: 'rgba(6,182,212,0.08)', border: '1px solid rgba(6,182,212,0.2)',
+                    background: 'rgba(0,201,255,0.08)', border: '1px solid rgba(0,201,255,0.2)',
                     borderRadius: '12px', padding: '0.5rem 1.2rem', cursor: 'pointer',
-                    color: '#06b6d4', fontWeight: 800, fontSize: '0.75rem',
+                    color: 'var(--color-primary)', fontWeight: 800, fontSize: '0.75rem',
                   }}>
                     {wizardData.profilePic ? 'Cambiar foto' : 'Subir foto'}
                   </button>
@@ -471,8 +471,8 @@ export default function LoginView({ onLogin }) {
               <button
                 onClick={() => step === 0 ? setMode('login') : setStep(s => s - 1)}
                 style={{
-                  padding: '0.75rem 0.9rem', border: '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: '14px', background: 'rgba(255,255,255,0.03)',
+                  padding: '0.75rem 0.9rem', border: '1px solid var(--surface-3)',
+                  borderRadius: '14px', background: 'var(--surface-1)',
                   color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 700,
                   display: 'flex', alignItems: 'center', gap: '0.25rem',
                 }}>
@@ -487,7 +487,7 @@ export default function LoginView({ onLogin }) {
                     flex: 1, border: 'none', borderRadius: '14px', padding: '0.75rem',
                     fontWeight: 900, cursor: canContinue ? 'pointer' : 'not-allowed',
                     fontSize: '0.88rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem',
-                    background: canContinue ? 'linear-gradient(135deg, #06b6d4, #3b82f6)' : 'rgba(255,255,255,0.06)',
+                    background: canContinue ? 'linear-gradient(135deg, var(--color-primary), #3b82f6)' : 'var(--surface-2)',
                     color: canContinue ? '#000' : '#475569',
                     transition: 'all 0.2s',
                   }}>
@@ -500,7 +500,7 @@ export default function LoginView({ onLogin }) {
                   style={{
                     flex: 1, border: 'none', borderRadius: '14px', padding: '0.75rem',
                     fontWeight: 900, cursor: 'pointer', fontSize: '0.88rem',
-                    background: 'linear-gradient(135deg, #10b981, #06b6d4)',
+                    background: 'linear-gradient(135deg, #10b981, var(--color-primary))',
                     color: '#000', opacity: loading ? 0.6 : 1,
                   }}>
                   {loading ? 'Creando...' : 'Empezar'}

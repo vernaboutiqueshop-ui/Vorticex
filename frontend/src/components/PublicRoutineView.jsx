@@ -37,15 +37,15 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
   const gender = localStorage.getItem('vortice_body_gender') || 'male';
 
   const card = {
-    background: 'var(--surface-2)', border: '1px solid rgba(255,255,255,0.06)',
+    background: 'var(--surface-2)', border: '1px solid var(--surface-2)',
     borderRadius: '20px', overflow: 'hidden',
   };
 
   if (loading) return (
     <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050508' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-        <div style={{ width: 8, height: 8, borderRadius: 99, background: '#06b6d4', animation: 'pulse 1.5s infinite' }} />
-        <span style={{ color: '#06b6d4', fontWeight: 900, fontSize: '0.85rem', letterSpacing: '2px' }}>CARGANDO...</span>
+        <div style={{ width: 8, height: 8, borderRadius: 99, background: 'var(--color-primary)', animation: 'pulse 1.5s infinite' }} />
+        <span style={{ color: 'var(--color-primary)', fontWeight: 900, fontSize: '0.85rem', letterSpacing: '2px' }}>CARGANDO...</span>
       </div>
       <style>{`@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.3 } }`}</style>
     </div>
@@ -57,7 +57,7 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
       <h2 style={{ fontWeight: 900, fontSize: '1.3rem', margin: 0 }}>Rutina no encontrada</h2>
       <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem', fontSize: '0.85rem' }}>El enlace expiró o fue eliminado</p>
       <button onClick={() => window.location.href = '/'} style={{
-        marginTop: '1.5rem', background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', color: '#000',
+        marginTop: '1.5rem', background: 'linear-gradient(135deg, var(--color-primary), #3b82f6)', color: '#000',
         border: 'none', borderRadius: '14px', padding: '0.75rem 2rem', fontWeight: 900, cursor: 'pointer',
       }}>Volver al inicio</button>
     </div>
@@ -68,28 +68,28 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
   return (
     <div style={{
       minHeight: '100vh', color: '#fff', paddingBottom: '10rem',
-      background: 'radial-gradient(ellipse at 50% 0%, rgba(6,182,212,0.06) 0%, #050508 50%)',
+      background: 'radial-gradient(ellipse at 50% 0%, rgba(0,201,255,0.06) 0%, #050508 50%)',
     }}>
       {/* Header */}
       <header style={{
         position: 'sticky', top: 0, zIndex: 100, padding: '0.65rem 1rem',
         background: 'rgba(5,5,8,0.85)', backdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(255,255,255,0.04)',
+        borderBottom: '1px solid var(--surface-hover)',
         display: 'flex', alignItems: 'center', gap: '0.5rem',
       }}>
         <button onClick={() => window.location.href = '/'} style={{
-          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--surface-2)', border: '1px solid var(--surface-3)',
           borderRadius: '10px', width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
         }}><ChevronLeft size={18} color="var(--text-secondary)" /></button>
-        <Zap size={18} color="#06b6d4" />
+        <Zap size={18} color="var(--color-primary)" />
         <span style={{ fontWeight: 900, fontSize: '0.9rem' }}>Vórtice</span>
         <span style={{
-          fontSize: '0.5rem', fontWeight: 800, color: '#06b6d4', letterSpacing: '1px',
-          background: 'rgba(6,182,212,0.1)', padding: '2px 6px', borderRadius: 6,
+          fontSize: '0.5rem', fontWeight: 800, color: 'var(--color-primary)', letterSpacing: '1px',
+          background: 'rgba(0,201,255,0.1)', padding: '2px 6px', borderRadius: 6,
         }}>PÚBLICO</span>
         {perfil && (
           <motion.button whileTap={{ scale: 0.95 }} onClick={handleClone} disabled={saving} style={{
-            marginLeft: 'auto', background: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+            marginLeft: 'auto', background: 'linear-gradient(135deg, var(--color-primary), #3b82f6)',
             border: 'none', borderRadius: '10px', padding: '0.4rem 0.85rem', cursor: 'pointer',
             fontWeight: 900, fontSize: '0.7rem', color: '#000',
             display: 'flex', alignItems: 'center', gap: '0.25rem', opacity: saving ? 0.6 : 1,
@@ -105,20 +105,20 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          style={{ ...card, padding: '2rem 1.25rem', textAlign: 'center', marginBottom: '1rem', borderTop: '3px solid #06b6d4' }}
+          style={{ ...card, padding: '2rem 1.25rem', textAlign: 'center', marginBottom: '1rem', borderTop: '3px solid var(--color-primary)' }}
         >
-          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: '#06b6d4', letterSpacing: '2px', marginBottom: '0.75rem' }}>
+          <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--color-primary)', letterSpacing: '2px', marginBottom: '0.75rem' }}>
             RUTINA DE {(rutina.user_name || '').toUpperCase()}
           </div>
           <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-0.03em', color: '#fff' }}>{rutina.name}</h1>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '2.5rem', marginTop: '1.75rem' }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#06b6d4' }}>{rutina.ejercicios.length}</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--color-primary)' }}>{rutina.ejercicios.length}</div>
               <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1px' }}>EJERCICIOS</div>
             </div>
-            <div style={{ width: 1, background: 'rgba(255,255,255,0.06)' }} />
+            <div style={{ width: 1, background: 'var(--surface-2)' }} />
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#06b6d4' }}>{totalSets}</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--color-primary)' }}>{totalSets}</div>
               <div style={{ fontSize: '0.55rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '1px' }}>SERIES</div>
             </div>
           </div>
@@ -153,7 +153,7 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
                 onClick={() => ej.gif_url && setGifViewer({ url: ej.gif_url, name: ej.nombre_es || ej.name })}
                 style={{
                 width: 56, height: 56, borderRadius: 14, background: '#fff', overflow: 'hidden', flexShrink: 0,
-                border: '1px solid rgba(255,255,255,0.06)', cursor: ej.gif_url ? 'pointer' : 'default',
+                border: '1px solid var(--surface-2)', cursor: ej.gif_url ? 'pointer' : 'default',
               }}>
                 <img src={ej.gif_url} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="" />
               </div>
@@ -162,14 +162,14 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
                   {ej.nombre_es || ej.name}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.2rem' }}>
-                  <span style={{ color: '#06b6d4', fontSize: '0.6rem', fontWeight: 800 }}>{ej.target}</span>
-                  <span style={{ color: 'rgba(255,255,255,0.1)' }}>·</span>
+                  <span style={{ color: 'var(--color-primary)', fontSize: '0.6rem', fontWeight: 800 }}>{ej.target}</span>
+                  <span style={{ color: 'var(--border-default)' }}>·</span>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.6rem', fontWeight: 700 }}>{ej.sets_count || 3} series</span>
                 </div>
               </div>
               <div style={{
                 fontSize: '0.75rem', fontWeight: 900, color: 'var(--surface-3)',
-                width: 28, height: 28, borderRadius: 8, background: 'rgba(255,255,255,0.03)',
+                width: 28, height: 28, borderRadius: 8, background: 'var(--surface-1)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>{idx + 1}</div>
             </motion.div>
@@ -211,7 +211,7 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
             </motion.div>
             <button onClick={() => setGifViewer(null)} style={{
               position: 'absolute', top: '1rem', right: '1rem',
-              background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
+              background: 'var(--border-default)', border: 'none', borderRadius: '50%',
               width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
             }}><X size={18} color="#fff" /></button>
           </motion.div>
@@ -227,9 +227,9 @@ export default function PublicRoutineView({ routineId, onLoginRedirect, perfil, 
         }}>
           <div style={{
             maxWidth: 420, margin: '0 auto',
-            background: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+            background: 'linear-gradient(135deg, var(--color-primary), #3b82f6)',
             borderRadius: '20px', padding: '1.25rem', color: '#000',
-            boxShadow: '0 15px 40px rgba(6,182,212,0.25)',
+            boxShadow: '0 15px 40px rgba(0,201,255,0.25)',
           }}>
             <div style={{ fontWeight: 900, fontSize: '1.05rem', marginBottom: '0.2rem' }}>Entrená esta rutina</div>
             <div style={{ fontSize: '0.78rem', opacity: 0.8, fontWeight: 600, marginBottom: '0.85rem' }}>

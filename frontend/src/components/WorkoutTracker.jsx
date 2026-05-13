@@ -8,7 +8,7 @@ import { API, authFetch } from "../config";
 import { useLanguage } from "../LanguageContext";
 
 const SET_TYPES = [
-  { id: "normal", label: "N", color: "#06b6d4", desc: "Normal" },
+  { id: "normal", label: "N", color: "var(--color-primary)", desc: "Normal" },
   { id: "warmup", label: "C", color: "#f59e0b", desc: "Calentamiento" },
   { id: "dropset", label: "D", color: "#ef4444", desc: "Drop Set" },
   { id: "failure", label: "F", color: "#8b5cf6", desc: "Al fallo" },
@@ -220,7 +220,7 @@ export default function WorkoutTracker({
       <>
         <style>{`
           @keyframes bubbleBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
-          @keyframes bubbleGlow { 0%,100%{box-shadow:0 4px 20px rgba(6,182,212,0.3)} 50%{box-shadow:0 4px 28px rgba(6,182,212,0.5)} }
+          @keyframes bubbleGlow { 0%,100%{box-shadow:0 4px 20px rgba(0,201,255,0.3)} 50%{box-shadow:0 4px 28px rgba(0,201,255,0.5)} }
         `}</style>
         <div
           onClick={() => setMinimized(false)}
@@ -237,8 +237,8 @@ export default function WorkoutTracker({
           {/* Progress ring bubble */}
           <div style={{ position: "relative", width: bubbleSize, height: bubbleSize }}>
             <svg width={bubbleSize} height={bubbleSize} style={{ position: "absolute", top: 0, left: 0, transform: "rotate(-90deg)" }}>
-              <circle cx={bubbleSize/2} cy={bubbleSize/2} r={bubbleSize/2 - 3} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={3} />
-              <circle cx={bubbleSize/2} cy={bubbleSize/2} r={bubbleSize/2 - 3} fill="none" stroke="#06b6d4" strokeWidth={3}
+              <circle cx={bubbleSize/2} cy={bubbleSize/2} r={bubbleSize/2 - 3} fill="none" stroke="var(--surface-2)" strokeWidth={3} />
+              <circle cx={bubbleSize/2} cy={bubbleSize/2} r={bubbleSize/2 - 3} fill="none" stroke="var(--color-primary)" strokeWidth={3}
                 strokeDasharray={Math.PI * (bubbleSize - 6)}
                 strokeDashoffset={Math.PI * (bubbleSize - 6) * (1 - progressPct / 100)}
                 strokeLinecap="round"
@@ -247,16 +247,16 @@ export default function WorkoutTracker({
             </svg>
             <div style={{
               position: "absolute", inset: 3, borderRadius: "50%",
-              background: "linear-gradient(135deg, rgba(6,182,212,0.2), var(--surface-2))",
+              background: "linear-gradient(135deg, rgba(0,201,255,0.2), var(--surface-2))",
               backdropFilter: "blur(12px)",
-              border: "1px solid rgba(6,182,212,0.3)",
+              border: "1px solid rgba(0,201,255,0.3)",
               display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
               animation: "bubbleGlow 2s ease-in-out infinite",
             }}>
               <div style={{ fontWeight: 900, fontSize: "0.65rem", color: "#fff", lineHeight: 1 }}>
                 {formatTime(timer)}
               </div>
-              <div style={{ fontSize: "0.42rem", color: "#06b6d4", fontWeight: 800, marginTop: 1 }}>
+              <div style={{ fontSize: "0.42rem", color: "var(--color-primary)", fontWeight: 800, marginTop: 1 }}>
                 {doneSets}/{totalSets}
               </div>
             </div>
@@ -291,14 +291,14 @@ export default function WorkoutTracker({
           alignItems: "center", padding: "0.75rem 1rem",
           paddingTop: "max(0.75rem, env(safe-area-inset-top, 0.75rem))",
           background: "#050508",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          borderBottom: "1px solid var(--surface-2)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <button
             onClick={() => setMinimized(true)}
             style={{
-              background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+              background: "var(--surface-2)", border: "1px solid var(--border-default)",
               borderRadius: "10px", width: 36, height: 36, display: "flex",
               alignItems: "center", justifyContent: "center", cursor: "pointer",
             }}
@@ -337,11 +337,11 @@ export default function WorkoutTracker({
           onClick={() => setFinishModal(true)}
           disabled={doneSets === 0}
           style={{
-            background: doneSets > 0 ? "linear-gradient(135deg, #06b6d4, #0891b2)" : "rgba(255,255,255,0.06)",
+            background: doneSets > 0 ? "linear-gradient(135deg, var(--color-primary), #0891b2)" : "var(--surface-2)",
             color: doneSets > 0 ? "#000" : "var(--text-muted)",
             border: "none", borderRadius: "12px", padding: "0.6rem 1.2rem",
             fontWeight: 900, fontSize: "0.85rem", cursor: doneSets > 0 ? "pointer" : "not-allowed",
-            boxShadow: doneSets > 0 ? "0 0 15px rgba(6,182,212,0.3)" : "none",
+            boxShadow: doneSets > 0 ? "0 0 15px rgba(0,201,255,0.3)" : "none",
           }}
         >
           FIN
@@ -349,11 +349,11 @@ export default function WorkoutTracker({
       </header>
 
       {/* PROGRESS BAR */}
-      <div style={{ height: 3, background: "rgba(255,255,255,0.06)", flexShrink: 0 }}>
+      <div style={{ height: 3, background: "var(--surface-2)", flexShrink: 0 }}>
         <div
           style={{
             height: "100%", width: `${progressPct}%`,
-            background: "linear-gradient(90deg, #06b6d4, #22d3ee)",
+            background: "linear-gradient(90deg, var(--color-primary), #22d3ee)",
             transition: "width 0.3s",
           }}
         />
@@ -365,14 +365,14 @@ export default function WorkoutTracker({
           style={{
             flexShrink: 0, display: "flex", alignItems: "center",
             justifyContent: "space-between", padding: "0.65rem 1rem",
-            background: restTimer <= 5 ? "rgba(239,68,68,0.12)" : "rgba(6,182,212,0.08)",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            background: restTimer <= 5 ? "rgba(239,68,68,0.12)" : "rgba(0,201,255,0.08)",
+            borderBottom: "1px solid var(--surface-2)",
             transition: "background 0.3s",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Timer size={16} color={restTimer <= 5 ? "#f87171" : "#06b6d4"} />
-            <span style={{ fontWeight: 800, fontSize: "0.78rem", color: restTimer <= 5 ? "#f87171" : "#06b6d4" }}>
+            <Timer size={16} color={restTimer <= 5 ? "#f87171" : "var(--color-primary)"} />
+            <span style={{ fontWeight: 800, fontSize: "0.78rem", color: restTimer <= 5 ? "#f87171" : "var(--color-primary)" }}>
               DESCANSO
             </span>
           </div>
@@ -388,7 +388,7 @@ export default function WorkoutTracker({
             <button
               onClick={() => setRestTimer((t) => Math.max(0, t - 15))}
               style={{
-                background: "rgba(255,255,255,0.06)", border: "none", borderRadius: 8,
+                background: "var(--surface-2)", border: "none", borderRadius: 8,
                 width: 32, height: 32, display: "flex", alignItems: "center",
                 justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)",
                 fontWeight: 900, fontSize: "0.7rem",
@@ -399,7 +399,7 @@ export default function WorkoutTracker({
             <button
               onClick={() => setRestTimer((t) => t + 15)}
               style={{
-                background: "rgba(255,255,255,0.06)", border: "none", borderRadius: 8,
+                background: "var(--surface-2)", border: "none", borderRadius: 8,
                 width: 32, height: 32, display: "flex", alignItems: "center",
                 justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)",
                 fontWeight: 900, fontSize: "0.7rem",
@@ -437,8 +437,8 @@ export default function WorkoutTracker({
               <div
                 key={ejIdx}
                 style={{
-                  background: ejDone ? "rgba(6,182,212,0.06)" : "var(--surface-2)",
-                  border: `1px solid ${ejDone ? "rgba(6,182,212,0.2)" : "rgba(255,255,255,0.08)"}`,
+                  background: ejDone ? "rgba(0,201,255,0.06)" : "var(--surface-2)",
+                  border: `1px solid ${ejDone ? "rgba(0,201,255,0.2)" : "var(--surface-3)"}`,
                   borderRadius: "18px",
                   overflow: "hidden",
                   transition: "all 0.2s",
@@ -461,13 +461,13 @@ export default function WorkoutTracker({
                       width: 42, height: 42, borderRadius: 10, background: "#fff",
                       objectFit: "cover", flexShrink: 0,
                       opacity: ejDone ? 0.5 : 1,
-                      border: "2px solid rgba(6,182,212,0.2)",
+                      border: "2px solid rgba(0,201,255,0.2)",
                     }}
                   />
                   <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
                     <div
                       style={{
-                        fontWeight: 800, color: ejDone ? "#06b6d4" : "#fff",
+                        fontWeight: 800, color: ejDone ? "var(--color-primary)" : "#fff",
                         fontSize: "0.82rem",
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       }}
@@ -483,7 +483,7 @@ export default function WorkoutTracker({
                         <span
                           style={{
                             fontSize: "0.55rem", color: "var(--text-muted)", fontWeight: 700,
-                            background: "rgba(255,255,255,0.04)", padding: "0.1rem 0.35rem",
+                            background: "var(--surface-hover)", padding: "0.1rem 0.35rem",
                             borderRadius: 4,
                           }}
                         >
@@ -507,7 +507,7 @@ export default function WorkoutTracker({
                   <div
                     style={{
                       padding: "0 0.85rem 0.85rem",
-                      borderTop: "1px solid rgba(255,255,255,0.05)",
+                      borderTop: "1px solid var(--surface-2)",
                     }}
                   >
                     {/* Column headers */}
@@ -555,7 +555,7 @@ export default function WorkoutTracker({
                             }}
                             style={{
                               height: 38, borderRadius: 10, width: "100%",
-                              background: s.done ? "#06b6d4" : typeInfo.color,
+                              background: s.done ? "var(--color-primary)" : typeInfo.color,
                               border: "none", fontWeight: 900, fontSize: "0.8rem",
                               color: "#000", cursor: "pointer",
                             }}
@@ -573,7 +573,7 @@ export default function WorkoutTracker({
                               textAlign: "center", height: 38, padding: "0.25rem",
                               fontSize: "0.95rem", fontWeight: 700, width: "100%",
                               boxSizing: "border-box", minWidth: 0,
-                              background: s.done ? "rgba(6,182,212,0.08)" : undefined,
+                              background: s.done ? "rgba(0,201,255,0.08)" : undefined,
                             }}
                           />
                           <input
@@ -587,15 +587,15 @@ export default function WorkoutTracker({
                               textAlign: "center", height: 38, padding: "0.25rem",
                               fontSize: "0.95rem", fontWeight: 700, width: "100%",
                               boxSizing: "border-box", minWidth: 0,
-                              background: s.done ? "rgba(6,182,212,0.08)" : undefined,
+                              background: s.done ? "rgba(0,201,255,0.08)" : undefined,
                             }}
                           />
                           <button
                             onClick={() => toggleSetDone(ejIdx, si)}
                             style={{
                               height: 38, borderRadius: 10, width: "100%",
-                              background: s.done ? "#06b6d4" : "rgba(255,255,255,0.05)",
-                              border: s.done ? "none" : "1px solid rgba(255,255,255,0.1)",
+                              background: s.done ? "var(--color-primary)" : "var(--surface-2)",
+                              border: s.done ? "none" : "1px solid var(--border-default)",
                               color: s.done ? "#000" : "#fff",
                               cursor: "pointer", display: "flex",
                               alignItems: "center", justifyContent: "center",
@@ -613,9 +613,9 @@ export default function WorkoutTracker({
                         onClick={() => addSet(ejIdx)}
                         style={{
                           flex: 1, padding: "0.6rem", borderRadius: 12,
-                          background: "rgba(6,182,212,0.07)",
-                          border: "1px dashed rgba(6,182,212,0.3)",
-                          color: "#06b6d4", fontWeight: 800, fontSize: "0.78rem",
+                          background: "rgba(0,201,255,0.07)",
+                          border: "1px dashed rgba(0,201,255,0.3)",
+                          color: "var(--color-primary)", fontWeight: 800, fontSize: "0.78rem",
                           cursor: "pointer", display: "flex", alignItems: "center",
                           justifyContent: "center", gap: "0.3rem",
                         }}
@@ -679,7 +679,7 @@ export default function WorkoutTracker({
               <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
                 {gifDetail?.body_part && (
                   <span style={{
-                    background: "rgba(6,182,212,0.15)", color: "#06b6d4", fontSize: "0.6rem",
+                    background: "rgba(0,201,255,0.15)", color: "var(--color-primary)", fontSize: "0.6rem",
                     fontWeight: 800, padding: "0.2rem 0.6rem", borderRadius: 99, textTransform: "uppercase",
                   }}>{gifDetail.body_part}</span>
                 )}
@@ -698,14 +698,14 @@ export default function WorkoutTracker({
               </div>
             </div>
             {(gifDetail?.instructions || gifDetail?.descripcion) && (
-              <div style={{ fontSize: "0.82rem", color: "var(--text-secondary)", lineHeight: 1.6, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "1rem" }}>
+              <div style={{ fontSize: "0.82rem", color: "var(--text-secondary)", lineHeight: 1.6, borderTop: "1px solid var(--surface-2)", paddingTop: "1rem" }}>
                 {gifDetail.instructions || gifDetail.descripcion}
               </div>
             )}
             <button
               onClick={() => setGifDetail(null)}
               style={{
-                background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                background: "var(--surface-2)", border: "1px solid var(--border-default)",
                 borderRadius: 14, padding: "0.85rem", color: "var(--text-secondary)",
                 fontWeight: 800, fontSize: "0.85rem", cursor: "pointer", width: "100%",
               }}
@@ -759,8 +759,8 @@ export default function WorkoutTracker({
                   >
                     <Star
                       size={28}
-                      color={star <= sessionRating ? '#f59e0b' : 'var(--surface-3)'}
-                      fill={star <= sessionRating ? '#f59e0b' : 'none'}
+                      color={star <= sessionRating ? 'var(--color-kcal)' : 'var(--surface-3)'}
+                      fill={star <= sessionRating ? 'var(--color-kcal)' : 'none'}
                       style={{ transition: 'all 0.15s' }}
                     />
                   </motion.button>
@@ -773,12 +773,12 @@ export default function WorkoutTracker({
                 onClick={handleFinish}
                 disabled={saving}
                 style={{
-                  background: "linear-gradient(135deg, #06b6d4, #0891b2)",
+                  background: "linear-gradient(135deg, var(--color-primary), #0891b2)",
                   color: "#000", border: "none", borderRadius: "16px",
                   padding: "1rem", fontWeight: 900, fontSize: "1rem",
                   cursor: saving ? "not-allowed" : "pointer",
                   opacity: saving ? 0.7 : 1,
-                  boxShadow: "0 0 20px rgba(6,182,212,0.3)",
+                  boxShadow: "0 0 20px rgba(0,201,255,0.3)",
                 }}
               >
                 {saving ? t('saving') : t('save_workout')}
@@ -786,7 +786,7 @@ export default function WorkoutTracker({
               <button
                 onClick={() => setFinishModal(false)}
                 style={{
-                  background: "none", border: "1px solid rgba(255,255,255,0.1)",
+                  background: "none", border: "1px solid var(--border-default)",
                   borderRadius: "14px", padding: "0.85rem", color: "var(--text-secondary)",
                   fontWeight: 700, fontSize: "0.85rem", cursor: "pointer",
                 }}

@@ -112,13 +112,13 @@ export default function SummaryModal({ exercises, onClose }) {
             display: "flex",
             alignItems: "center",
             gap: "0.65rem",
-            background: "rgba(6,182,212,0.07)",
-            border: "1px solid rgba(6,182,212,0.2)",
+            background: "rgba(0,201,255,0.07)",
+            border: "1px solid rgba(0,201,255,0.2)",
             borderRadius: "14px",
             padding: "0.85rem 1.1rem",
           }}
         >
-          <Clock size={18} color="#06b6d4" />
+          <Clock size={18} color="var(--color-primary)" />
           <div>
             <div
               style={{
@@ -147,7 +147,7 @@ export default function SummaryModal({ exercises, onClose }) {
               style={{
                 fontSize: "0.6rem",
                 fontWeight: 900,
-                color: "#06b6d4",
+                color: "var(--color-primary)",
                 letterSpacing: "1.5px",
               }}
             >
@@ -181,7 +181,7 @@ export default function SummaryModal({ exercises, onClose }) {
                     style={{
                       fontSize: "0.75rem",
                       fontWeight: 900,
-                      color: "#06b6d4",
+                      color: "var(--color-primary)",
                     }}
                   >
                     {count} {count === 1 ? (t('set') || 'serie') : (t('sets') || 'series')}
@@ -190,7 +190,7 @@ export default function SummaryModal({ exercises, onClose }) {
                 <div
                   style={{
                     height: "5px",
-                    background: "rgba(255,255,255,0.08)",
+                    background: "var(--surface-3)",
                     borderRadius: "99px",
                     overflow: "hidden",
                   }}
@@ -201,7 +201,7 @@ export default function SummaryModal({ exercises, onClose }) {
                     transition={{ delay: 0.5 + mIdx * 0.08, duration: 0.6, ease: "easeOut" }}
                     style={{
                       height: "100%",
-                      background: "linear-gradient(90deg, #06b6d4, #0891b2)",
+                      background: "linear-gradient(90deg, var(--color-primary), #0891b2)",
                       borderRadius: "99px",
                     }}
                   />

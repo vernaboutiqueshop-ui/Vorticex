@@ -51,7 +51,7 @@ export default function MiniCalendar({ selectedDate, onSelect, onClose, lang = '
       transition={{ type: "spring", stiffness: 500, damping: 30 }}
       style={{
         position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 100,
-        background: '#0f172a', border: '1px solid rgba(6,182,212,0.2)',
+        background: '#0f172a', border: '1px solid rgba(0,201,255,0.2)',
         borderRadius: '14px', padding: '0.6rem', width: 220,
         boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
       }}
@@ -60,13 +60,13 @@ export default function MiniCalendar({ selectedDate, onSelect, onClose, lang = '
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
         <button onClick={prev} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex' }}>
-          <ChevronLeft size={14} color="#06b6d4" />
+          <ChevronLeft size={14} color="var(--color-primary)" />
         </button>
         <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#e2e8f0', letterSpacing: '0.3px' }}>
           {months[month]} {year}
         </span>
         <button onClick={next} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex' }}>
-          <ChevronRight size={14} color="#06b6d4" />
+          <ChevronRight size={14} color="var(--color-primary)" />
         </button>
       </div>
 
@@ -97,8 +97,8 @@ export default function MiniCalendar({ selectedDate, onSelect, onClose, lang = '
               style={{
                 width: '100%', aspectRatio: '1', borderRadius: '8px', border: 'none',
                 cursor: isFuture ? 'default' : 'pointer',
-                background: isSelected ? '#06b6d4' : isToday ? 'rgba(6,182,212,0.15)' : 'transparent',
-                color: isSelected ? '#000' : isFuture ? 'var(--surface-2)' : isToday ? '#06b6d4' : 'var(--text-secondary)',
+                background: isSelected ? 'var(--color-primary)' : isToday ? 'rgba(0,201,255,0.15)' : 'transparent',
+                color: isSelected ? '#000' : isFuture ? 'var(--surface-2)' : isToday ? 'var(--color-primary)' : 'var(--text-secondary)',
                 fontWeight: isSelected || isToday ? 900 : 700,
                 fontSize: '0.6rem', transition: 'background 0.15s',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -111,10 +111,10 @@ export default function MiniCalendar({ selectedDate, onSelect, onClose, lang = '
       </div>
 
       {/* Quick actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.35rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.35rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.35rem', borderTop: '1px solid var(--surface-2)', paddingTop: '0.35rem' }}>
         <button
           onClick={() => onSelect(todayStr)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.55rem', fontWeight: 800, color: '#06b6d4' }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.55rem', fontWeight: 800, color: 'var(--color-primary)' }}
         >
           {lang === 'es' ? 'Hoy' : 'Today'}
         </button>

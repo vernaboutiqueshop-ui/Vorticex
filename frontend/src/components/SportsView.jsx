@@ -47,7 +47,7 @@ const SPORT_ICON_MAP = {
 
 const SPORT_COLOR_MAP = {
   "fútbol": "#22c55e", "futbol": "#22c55e",
-  "natación": "#06b6d4", "natacion": "#06b6d4",
+  "natación": "var(--color-primary)", "natacion": "var(--color-primary)",
   "correr": "#f97316", "ciclismo": "#eab308",
   "tenis": "#a3e635", "básquet": "#f97316", "basquet": "#f97316",
   "boxeo": "#ef4444", "rugby": "#8b5cf6", "yoga": "#a78bfa",
@@ -61,13 +61,13 @@ const SPORT_COLOR_MAP = {
 function SportIcon({ name, size = 22, color }) {
   const lower = (name || "").toLowerCase();
   const Comp = SPORT_ICON_MAP[lower] || Activity;
-  const c = color || SPORT_COLOR_MAP[lower] || "#06b6d4";
+  const c = color || SPORT_COLOR_MAP[lower] || "var(--color-primary)";
   return <Comp size={size} color={c} />;
 }
 
 const QUICK_SPORTS = [
   { name: "Fútbol", color: "#22c55e" },
-  { name: "Natación", color: "#06b6d4" },
+  { name: "Natación", color: "var(--color-primary)" },
   { name: "Correr", color: "#f97316" },
   { name: "Ciclismo", color: "#eab308" },
   { name: "Tenis", color: "#a3e635" },
@@ -252,10 +252,10 @@ export default function SportsView({ perfil }) {
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowAddSport(p => !p)}
             style={{
-              background: "rgba(6,182,212,0.15)", border: "1px solid rgba(6,182,212,0.3)",
+              background: "rgba(0,201,255,0.15)", border: "1px solid rgba(0,201,255,0.3)",
               borderRadius: "10px", padding: "0.35rem 0.65rem", cursor: "pointer",
               display: "flex", alignItems: "center", gap: "0.3rem",
-              fontSize: "0.7rem", fontWeight: 800, color: "#06b6d4",
+              fontSize: "0.7rem", fontWeight: 800, color: "var(--color-primary)",
             }}
           >
             <Plus size={13} /> {lang === "es" ? "Agregar" : "Add"}
@@ -273,7 +273,7 @@ export default function SportsView({ perfil }) {
               style={{ overflow: "hidden", marginBottom: "0.5rem" }}
             >
               <div style={{
-                background: "rgba(6,182,212,0.06)", border: "1px solid rgba(6,182,212,0.15)",
+                background: "rgba(0,201,255,0.06)", border: "1px solid rgba(0,201,255,0.15)",
                 borderRadius: "12px", padding: "0.65rem 0.8rem",
                 fontSize: "0.7rem", color: "var(--text-secondary)", fontWeight: 600, lineHeight: 1.5, whiteSpace: "pre-line",
               }}>
@@ -290,8 +290,8 @@ export default function SportsView({ perfil }) {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             style={{
               textAlign: "center", padding: "2rem 1rem",
-              background: "rgba(255,255,255,0.02)", borderRadius: "16px",
-              border: "1px dashed rgba(255,255,255,0.1)",
+              background: "var(--surface-1)", borderRadius: "16px",
+              border: "1px dashed var(--border-default)",
             }}
           >
             <Activity size={32} color="var(--text-muted)" style={{ marginBottom: "0.5rem" }} />
@@ -303,7 +303,7 @@ export default function SportsView({ perfil }) {
           <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
             {sports.map((sport, i) => {
               const lastSession = history.find(h => h.sport_name?.toLowerCase() === sport.name?.toLowerCase());
-              const color = sport.color || "#06b6d4";
+              const color = sport.color || "var(--color-primary)";
               return (
                 <motion.div
                   key={sport.id}
@@ -313,7 +313,7 @@ export default function SportsView({ perfil }) {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => { setShowSession(sport); setSessionResult(null); setDuration(30); setIntensity(5); setResultRating(0); }}
                   style={{
-                    background: "rgba(255,255,255,0.03)",
+                    background: "var(--surface-1)",
                     border: "1px solid rgba(255,255,255,0.07)",
                     borderRadius: "16px", padding: "0.9rem 1rem",
                     display: "flex", alignItems: "center", gap: "0.75rem",
@@ -361,8 +361,8 @@ export default function SportsView({ perfil }) {
             style={{ overflow: "hidden" }}
           >
             <div style={{
-              background: "rgba(255,255,255,0.03)", borderRadius: "16px",
-              border: "1px solid rgba(255,255,255,0.08)", padding: "0.85rem",
+              background: "var(--surface-1)", borderRadius: "16px",
+              border: "1px solid var(--surface-3)", padding: "0.85rem",
             }}>
               <div style={{ fontSize: "0.65rem", fontWeight: 900, color: "var(--text-muted)", marginBottom: "0.5rem", letterSpacing: "0.5px" }}>
                 {t('popular_sports')}
@@ -376,7 +376,7 @@ export default function SportsView({ perfil }) {
                     style={{
                       display: "flex", alignItems: "center", gap: "0.3rem",
                       padding: "0.35rem 0.55rem", borderRadius: "10px",
-                      background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                      background: "var(--surface-hover)", border: "1px solid var(--surface-3)",
                       cursor: "pointer", fontSize: "0.68rem", fontWeight: 700, color: "var(--text-secondary)",
                     }}
                   >
@@ -390,7 +390,7 @@ export default function SportsView({ perfil }) {
                   onClick={() => setShowAllSports(p => !p)}
                   style={{
                     background: "none", border: "none", cursor: "pointer",
-                    fontSize: "0.6rem", fontWeight: 800, color: "#06b6d4",
+                    fontSize: "0.6rem", fontWeight: 800, color: "var(--color-primary)",
                     padding: "0.2rem 0", marginBottom: "0.5rem",
                   }}
                 >
@@ -405,11 +405,11 @@ export default function SportsView({ perfil }) {
                 <div
                   style={{
                     width: "38px", height: "38px", borderRadius: "10px", flexShrink: 0,
-                    background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.2)",
+                    background: "rgba(0,201,255,0.1)", border: "1px solid rgba(0,201,255,0.2)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                 >
-                  <Zap size={18} color="#06b6d4" />
+                  <Zap size={18} color="var(--color-primary)" />
                 </div>
                 <input
                   value={customName}
@@ -418,18 +418,18 @@ export default function SportsView({ perfil }) {
                   className="premium-input"
                   style={{
                     flex: 1, padding: "0.5rem 0.7rem", borderRadius: "10px",
-                    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                    background: "var(--surface-2)", border: "1px solid var(--border-default)",
                     color: "#e2e8f0", fontSize: "0.75rem", fontWeight: 600, outline: "none",
                   }}
-                  onKeyDown={e => { if (e.key === "Enter" && customName.trim()) { addSport(customName.trim(), customIcon, "#06b6d4"); setCustomIcon("⚡"); } }}
+                  onKeyDown={e => { if (e.key === "Enter" && customName.trim()) { addSport(customName.trim(), customIcon, "var(--color-primary)"); setCustomIcon("⚡"); } }}
                 />
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   disabled={!customName.trim()}
-                  onClick={() => { if (customName.trim()) { addSport(customName.trim(), customIcon, "#06b6d4"); setCustomIcon("⚡"); } }}
+                  onClick={() => { if (customName.trim()) { addSport(customName.trim(), customIcon, "var(--color-primary)"); setCustomIcon("⚡"); } }}
                   style={{
                     padding: "0.5rem 0.7rem", borderRadius: "10px",
-                    background: customName.trim() ? "#06b6d4" : "rgba(255,255,255,0.05)",
+                    background: customName.trim() ? "var(--color-primary)" : "var(--surface-2)",
                     border: "none", cursor: customName.trim() ? "pointer" : "not-allowed",
                     color: customName.trim() ? "#000" : "var(--text-muted)", fontWeight: 900, fontSize: "0.75rem",
                   }}
@@ -438,7 +438,7 @@ export default function SportsView({ perfil }) {
                 </motion.button>
               </div>
               {sports.length > 0 && (
-                <div style={{ marginTop: "0.75rem", borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "0.6rem" }}>
+                <div style={{ marginTop: "0.75rem", borderTop: "1px solid var(--surface-2)", paddingTop: "0.6rem" }}>
                   <div style={{ fontSize: "0.6rem", fontWeight: 900, color: "var(--text-muted)", marginBottom: "0.4rem" }}>
                     {t('my_sports_list')}
                   </div>
@@ -447,7 +447,7 @@ export default function SportsView({ perfil }) {
                       <div key={s.id} style={{
                         display: "flex", alignItems: "center", justifyContent: "space-between",
                         padding: "0.35rem 0.5rem", borderRadius: "8px",
-                        background: "rgba(255,255,255,0.02)",
+                        background: "var(--surface-1)",
                       }}>
                         <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.75rem", color: "#e2e8f0", fontWeight: 700 }}>
                           <SportIcon name={s.name} size={16} color={s.color} /> {s.name}
@@ -505,7 +505,7 @@ export default function SportsView({ perfil }) {
                   onClick={() => { setShowSession(null); setSessionResult(null); }}
                   style={{
                     position: "absolute", right: 0, top: "-0.25rem",
-                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
+                    background: "var(--surface-2)", border: "1px solid var(--border-default)",
                     borderRadius: "10px", width: 28, height: 28, cursor: "pointer",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     color: "var(--text-secondary)", fontSize: "1rem", lineHeight: 1, padding: 0,
@@ -542,7 +542,7 @@ export default function SportsView({ perfil }) {
                   <div style={{ display: "flex", justifyContent: "center", gap: "1rem", margin: "0.5rem 0 1rem" }}>
                     {[
                       { val: sessionResult.calorias, label: "KCAL", color: "#f97316", icon: <Flame size={15} />, delay: 0.25 },
-                      { val: `+${sessionResult.exp_ganada}`, label: "EXP", color: "#06b6d4", icon: <Zap size={15} />, delay: 0.35 },
+                      { val: `+${sessionResult.exp_ganada}`, label: "EXP", color: "var(--color-primary)", icon: <Zap size={15} />, delay: 0.35 },
                       { val: `${sessionResult.duracion_min}'`, label: "MIN", color: "#a78bfa", icon: <Timer size={15} />, delay: 0.45 },
                     ].map((stat, i) => (
                       <motion.div
@@ -604,7 +604,7 @@ export default function SportsView({ perfil }) {
                     transition={{ delay: 0.55 }}
                     onClick={() => { setShowSession(null); setSessionResult(null); }}
                     style={{
-                      background: "linear-gradient(135deg, #06b6d4, #0891b2)",
+                      background: "linear-gradient(135deg, var(--color-primary), #0891b2)",
                       color: "#000", border: "none", borderRadius: "14px",
                       padding: "0.85rem", fontWeight: 900, fontSize: "0.9rem",
                       cursor: "pointer", width: "100%",
@@ -627,7 +627,7 @@ export default function SportsView({ perfil }) {
                       transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
                       style={{ marginBottom: "0.2rem", display: "flex", justifyContent: "center" }}
                     >
-                      <SportIcon name={showSession.name} size={48} color={showSession.color || "#06b6d4"} />
+                      <SportIcon name={showSession.name} size={48} color={showSession.color || "var(--color-primary)"} />
                     </motion.div>
                     <h3 style={{ margin: 0, fontWeight: 900, color: "#fff", fontSize: "1.15rem" }}>
                       {showSession.name}
@@ -637,7 +637,7 @@ export default function SportsView({ perfil }) {
                   {/* Duración */}
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.5rem" }}>
-                      <Clock size={13} color="#06b6d4" />
+                      <Clock size={13} color="var(--color-primary)" />
                       <span style={{ fontSize: "0.65rem", fontWeight: 900, color: "var(--text-secondary)" }}>
                         {lang === "es" ? "DURACIÓN" : "DURATION"}
                       </span>
@@ -653,9 +653,9 @@ export default function SportsView({ perfil }) {
                             padding: "0.45rem 0.75rem", borderRadius: "10px",
                             fontSize: "0.72rem", fontWeight: 800, cursor: "pointer",
                             border: "1px solid",
-                            background: duration === min ? "rgba(6,182,212,0.18)" : "rgba(255,255,255,0.03)",
-                            borderColor: duration === min ? "#06b6d4" : "rgba(255,255,255,0.07)",
-                            color: duration === min ? "#06b6d4" : "var(--text-muted)",
+                            background: duration === min ? "rgba(0,201,255,0.18)" : "var(--surface-1)",
+                            borderColor: duration === min ? "var(--color-primary)" : "rgba(255,255,255,0.07)",
+                            color: duration === min ? "var(--color-primary)" : "var(--text-muted)",
                             transition: "all 0.15s",
                           }}
                         >
@@ -686,7 +686,7 @@ export default function SportsView({ perfil }) {
                     {/* Visual bar */}
                     <div style={{
                       position: "relative", height: "32px", borderRadius: "10px",
-                      background: "rgba(255,255,255,0.03)", overflow: "hidden",
+                      background: "var(--surface-1)", overflow: "hidden",
                       display: "flex", gap: "2px", padding: "3px",
                     }}>
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
@@ -699,7 +699,7 @@ export default function SportsView({ perfil }) {
                             border: "none", position: "relative",
                             background: n <= intensity
                               ? `${intensityColor(n)}${Math.round(25 + (n / 10) * 35).toString(16)}`
-                              : "rgba(255,255,255,0.02)",
+                              : "var(--surface-1)",
                             transition: "all 0.15s",
                           }}
                         >
@@ -731,7 +731,7 @@ export default function SportsView({ perfil }) {
                     disabled={loading}
                     onClick={logSession}
                     style={{
-                      background: "linear-gradient(135deg, #06b6d4, #0891b2)",
+                      background: "linear-gradient(135deg, var(--color-primary), #0891b2)",
                       color: "#000", border: "none", borderRadius: "16px",
                       padding: "1rem", fontWeight: 900, fontSize: "0.95rem",
                       cursor: loading ? "wait" : "pointer", width: "100%",
@@ -772,7 +772,7 @@ export default function SportsView({ perfil }) {
                   style={{
                     display: "flex", alignItems: "center", gap: "0.65rem",
                     padding: "0.6rem 0.7rem", borderRadius: "12px",
-                    background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)",
+                    background: "var(--surface-1)", border: "1px solid var(--surface-2)",
                   }}
                 >
                   <span style={{ flexShrink: 0, lineHeight: 1, display: "flex", alignItems: "center" }}><SportIcon name={s.sport_name} size={20} /></span>
@@ -793,14 +793,14 @@ export default function SportsView({ perfil }) {
                         onClick={(e) => { e.stopPropagation(); setEditingDateId(isEditingDate ? null : s.id); }}
                         style={{
                           cursor: "pointer", display: "flex", alignItems: "center", gap: "0.2rem",
-                          background: isEditingDate ? "rgba(6,182,212,0.1)" : "rgba(255,255,255,0.03)",
+                          background: isEditingDate ? "rgba(0,201,255,0.1)" : "var(--surface-1)",
                           padding: "0.1rem 0.35rem",
-                          borderRadius: "6px", border: isEditingDate ? "1px solid rgba(6,182,212,0.3)" : "1px solid rgba(255,255,255,0.06)",
+                          borderRadius: "6px", border: isEditingDate ? "1px solid rgba(0,201,255,0.3)" : "1px solid var(--surface-2)",
                           transition: "all 0.15s",
                         }}
                         title={lang === "es" ? "Tocar para cambiar fecha" : "Tap to change date"}
                       >
-                        <Calendar size={9} color="#06b6d4" /> {dateStr}
+                        <Calendar size={9} color="var(--color-primary)" /> {dateStr}
                       </motion.span>
                       <AnimatePresence>
                         {isEditingDate && (

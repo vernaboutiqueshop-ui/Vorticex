@@ -62,7 +62,7 @@ import { MdFitnessCenter, MdDirectionsRun } from "react-icons/md";
 /* ─────────────────────────── CONSTANTES ─────────────────────────── */
 
 const SET_TYPES = [
-  { id: "normal", label: "N", color: "#06b6d4", desc: "Normal" },
+  { id: "normal", label: "N", color: "var(--color-primary)", desc: "Normal" },
   { id: "warmup", label: "C", color: "#f59e0b", desc: "Calentamiento" },
   { id: "dropset", label: "D", color: "#ef4444", desc: "Drop Set" },
   { id: "failure", label: "F", color: "#8b5cf6", desc: "Al fallo" },
@@ -111,7 +111,7 @@ const ELITE_STYLES = {
     boxShadow: "0 20px 50px -15px rgba(0,0,0,0.8)",
   },
   primaryBtn: {
-    background: "linear-gradient(135deg, #06b6d4, #0891b2)",
+    background: "linear-gradient(135deg, var(--color-primary), #0891b2)",
     color: "#000000",
     border: "none",
     borderRadius: "16px",
@@ -129,7 +129,7 @@ const ELITE_STYLES = {
     border: "1px solid rgba(6, 182, 212, 0.3)",
     borderRadius: "14px",
     padding: "0.85rem",
-    color: "#06b6d4",
+    color: "var(--color-primary)",
     fontWeight: 800,
     fontSize: "0.85rem",
     cursor: "pointer",
@@ -199,7 +199,7 @@ const RoutineDetailView = ({
             className="btn-icon-elite"
             style={{ width: "38px", height: "38px" }}
           >
-            <Share2 size={18} color="#06b6d4" />
+            <Share2 size={18} color="var(--color-primary)" />
           </button>
         </div>
       </header>
@@ -219,11 +219,11 @@ const RoutineDetailView = ({
       {/* Stats row */}
       <div style={{
         display: "flex", gap: "1.5rem",
-        background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.1)",
+        background: "var(--surface-2)", border: "1px solid var(--border-default)",
         borderRadius: "18px", padding: "0.9rem 1.1rem",
       }}>
         {[
-          { label: t('exercises'), value: ejs.length, color: "#06b6d4" },
+          { label: t('exercises'), value: ejs.length, color: "var(--color-primary)" },
           { label: t('series'), value: ejs.reduce((acc, e) => acc + (e?.sets_data?.length || 0), 0), color: "#fff" },
           { label: t('duration'), value: `${Math.round(ejs.reduce((acc, e) => acc + (e?.sets_data?.length || 0), 0) * 2.5)}min`, color: "#22c55e" },
         ].map((s, i) => (
@@ -252,12 +252,12 @@ const RoutineDetailView = ({
 
         return allTargets.length > 0 ? (
           <div style={{
-            background: "var(--surface-2)", border: "1px solid rgba(255,255,255,0.1)",
+            background: "var(--surface-2)", border: "1px solid var(--border-default)",
             borderRadius: "18px", padding: "1rem 1.1rem",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.5rem" }}>
-              <Activity size={14} color="#06b6d4" />
-              <span style={{ fontSize: "0.65rem", fontWeight: 900, color: "#06b6d4", letterSpacing: "0.5px" }}>
+              <Activity size={14} color="var(--color-primary)" />
+              <span style={{ fontSize: "0.65rem", fontWeight: 900, color: "var(--color-primary)", letterSpacing: "0.5px" }}>
                 {lang === 'es' ? 'MAPA MUSCULAR' : 'MUSCLE MAP'}
               </span>
             </div>
@@ -272,7 +272,7 @@ const RoutineDetailView = ({
             <div style={{ display: "flex", justifyContent: "center", gap: "0.75rem", margin: "0.5rem 0 0.4rem" }}>
               {[
                 { color: "#0ea5e9", label: lang === 'es' ? 'Bajo' : 'Low' },
-                { color: "#06b6d4", label: lang === 'es' ? 'Medio' : 'Med' },
+                { color: "var(--color-primary)", label: lang === 'es' ? 'Medio' : 'Med' },
                 { color: "#f59e0b", label: lang === 'es' ? 'Alto' : 'High' },
               ].map((l, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
@@ -286,7 +286,7 @@ const RoutineDetailView = ({
               {sortedSlugs.map(([slug, count], idx) => {
                 const name = labels[slug] || slug.replace(/-/g, ' ');
                 const pct = count / maxC;
-                const dotColor = pct > 0.66 ? '#f59e0b' : pct > 0.33 ? '#06b6d4' : '#0ea5e9';
+                const dotColor = pct > 0.66 ? 'var(--color-kcal)' : pct > 0.33 ? 'var(--color-primary)' : '#0ea5e9';
                 return (
                   <motion.div
                     key={slug}
@@ -297,12 +297,12 @@ const RoutineDetailView = ({
                     style={{
                       display: "flex", alignItems: "center", gap: "0.3rem",
                       padding: "0.3rem 0.65rem", borderRadius: "20px",
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "var(--surface-hover)",
+                      border: "1px solid var(--surface-3)",
                     }}
                   >
                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: dotColor, flexShrink: 0 }} />
-                    <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#e2e8f0" }}>{name}</span>
+                    <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "var(--text-primary)" }}>{name}</span>
                     <ChevronDown size={10} color="var(--text-muted)" />
                   </motion.div>
                 );
@@ -402,12 +402,12 @@ const RoutineDetailView = ({
               }} />
               <div style={{
                 textAlign: 'center', marginTop: '0.75rem',
-                fontWeight: 900, fontSize: '0.85rem', color: '#e2e8f0',
+                fontWeight: 900, fontSize: '0.85rem', color: 'var(--text-primary)',
               }}>{gifViewer.name}</div>
             </motion.div>
             <button onClick={() => setGifViewer(null)} style={{
               position: 'absolute', top: '1rem', right: '1rem',
-              background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
+              background: 'var(--border-default)', border: 'none', borderRadius: '50%',
               width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
             }}><X size={18} color="#fff" /></button>
           </motion.div>
@@ -649,13 +649,13 @@ const ExerciseSelectorView = ({
         style={{
           padding: "0.75rem 1rem",
           borderRadius: "14px",
-          border: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid var(--surface-2)",
           display: "flex",
           alignItems: "center",
           gap: "0.85rem",
           background: isAdded
-            ? "rgba(6,182,212,0.08)"
-            : "rgba(255,255,255,0.02)",
+            ? "rgba(0,201,255,0.08)"
+            : "var(--surface-1)",
           transition: "background 0.2s",
         }}
       >
@@ -669,8 +669,8 @@ const ExerciseSelectorView = ({
             width: "34px",
             height: "34px",
             borderRadius: "50%",
-            background: isAdded ? "#06b6d4" : "rgba(6,182,212,0.18)",
-            border: isAdded ? "none" : "1.5px solid #06b6d4",
+            background: isAdded ? "var(--color-primary)" : "rgba(0,201,255,0.18)",
+            border: isAdded ? "none" : "1.5px solid var(--color-primary)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -682,7 +682,7 @@ const ExerciseSelectorView = ({
           {isAdded ? (
             <Check size={17} color="#000" strokeWidth={4} />
           ) : (
-            <Plus size={17} color="#06b6d4" strokeWidth={3} />
+            <Plus size={17} color="var(--color-primary)" strokeWidth={3} />
           )}
         </button>
 
@@ -786,8 +786,8 @@ const ExerciseSelectorView = ({
               style={{
                 fontSize: "0.62rem",
                 fontWeight: 900,
-                color: "#06b6d4",
-                background: "rgba(6,182,212,0.1)",
+                color: "var(--color-primary)",
+                background: "rgba(0,201,255,0.1)",
                 padding: "0.15rem 0.5rem",
                 borderRadius: "6px",
                 marginTop: "0.3rem",
@@ -825,7 +825,7 @@ const ExerciseSelectorView = ({
               left: "0.9rem",
               top: "50%",
               transform: "translateY(-50%)",
-              color: "#06b6d4",
+              color: "var(--color-primary)",
               pointerEvents: "none",
             }}
           />
@@ -865,11 +865,11 @@ const ExerciseSelectorView = ({
         {/* ══════════ FILTROS ══════════ */}
         <div
           style={{
-            background: "rgba(255,255,255,0.03)",
+            background: "var(--surface-1)",
             borderRadius: "16px",
             padding: "0.75rem",
             marginBottom: "0.75rem",
-            border: "1px solid rgba(255,255,255,0.06)",
+            border: "1px solid var(--surface-2)",
           }}
         >
           {/* Zona — una fila con 5 tabs que siempre caben */}
@@ -899,10 +899,10 @@ const ExerciseSelectorView = ({
                     border: "none",
                     transition: "all 0.15s",
                     textAlign: "center",
-                    background: isActive ? "#06b6d4" : "rgba(255,255,255,0.06)",
+                    background: isActive ? "var(--color-primary)" : "var(--surface-2)",
                     color: isActive ? "#000" : "var(--text-muted)",
                     boxShadow: isActive
-                      ? "0 0 10px rgba(6,182,212,0.35)"
+                      ? "0 0 10px rgba(0,201,255,0.35)"
                       : "none",
                   }}
                 >
@@ -930,9 +930,9 @@ const ExerciseSelectorView = ({
                 cursor: "pointer",
                 border: "1px solid",
                 transition: "all 0.15s",
-                background: filterMuscle !== ALL_MUSCLES ? "rgba(6,182,212,0.1)" : "rgba(255,255,255,0.03)",
-                borderColor: filterMuscle !== ALL_MUSCLES ? "rgba(6,182,212,0.3)" : "rgba(255,255,255,0.07)",
-                color: filterMuscle !== ALL_MUSCLES ? "#06b6d4" : "var(--text-secondary)",
+                background: filterMuscle !== ALL_MUSCLES ? "rgba(0,201,255,0.1)" : "var(--surface-1)",
+                borderColor: filterMuscle !== ALL_MUSCLES ? "rgba(0,201,255,0.3)" : "rgba(255,255,255,0.07)",
+                color: filterMuscle !== ALL_MUSCLES ? "var(--color-primary)" : "var(--text-secondary)",
               }}
             >
               <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
@@ -971,9 +971,9 @@ const ExerciseSelectorView = ({
                         padding: "0.35rem 0.55rem", borderRadius: "8px",
                         fontSize: "0.62rem", fontWeight: 800, cursor: "pointer",
                         border: "1px solid",
-                        background: filterMuscle === ALL_MUSCLES ? "rgba(6,182,212,0.18)" : "rgba(255,255,255,0.03)",
-                        borderColor: filterMuscle === ALL_MUSCLES ? "#06b6d4" : "rgba(255,255,255,0.07)",
-                        color: filterMuscle === ALL_MUSCLES ? "#06b6d4" : "var(--text-muted)",
+                        background: filterMuscle === ALL_MUSCLES ? "rgba(0,201,255,0.18)" : "var(--surface-1)",
+                        borderColor: filterMuscle === ALL_MUSCLES ? "var(--color-primary)" : "rgba(255,255,255,0.07)",
+                        color: filterMuscle === ALL_MUSCLES ? "var(--color-primary)" : "var(--text-muted)",
                       }}
                     >
                       <LayoutGrid size={11} /> Todos
@@ -984,7 +984,7 @@ const ExerciseSelectorView = ({
                       const count = muscleCounts[dbVal] || 0;
                       const isActive = filterMuscle === label;
                       const MIcon = MUSCLE_ICON[label] || Dumbbell;
-                      const chipColors = ["#06b6d4", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#ec4899", "#3b82f6", "#14b8a6", "#f97316", "#6366f1", "#10b981"];
+                      const chipColors = ["var(--color-primary)", "#22c55e", "#f59e0b", "#8b5cf6", "#ef4444", "#ec4899", "#3b82f6", "#14b8a6", "#f97316", "#6366f1", "#10b981"];
                       const activeColor = chipColors[musclesToShow.indexOf(label) % chipColors.length];
                       return (
                         <motion.button
@@ -998,7 +998,7 @@ const ExerciseSelectorView = ({
                             padding: "0.35rem 0.55rem", borderRadius: "8px",
                             fontSize: "0.62rem", fontWeight: 800, cursor: "pointer",
                             border: "1px solid",
-                            background: isActive ? `${activeColor}20` : "rgba(255,255,255,0.03)",
+                            background: isActive ? `${activeColor}20` : "var(--surface-1)",
                             borderColor: isActive ? `${activeColor}80` : "rgba(255,255,255,0.07)",
                             color: isActive ? activeColor : "var(--text-secondary)",
                             transition: "background 0.2s, border-color 0.2s, color 0.2s",
@@ -1055,7 +1055,7 @@ const ExerciseSelectorView = ({
                     whiteSpace: "nowrap",
                     background: isActive
                       ? "rgba(59,130,246,0.2)"
-                      : "rgba(255,255,255,0.03)",
+                      : "var(--surface-1)",
                     borderColor: isActive ? "#3b82f6" : "rgba(255,255,255,0.07)",
                     color: isActive ? "#93c5fd" : "var(--text-muted)",
                   }}
@@ -1109,11 +1109,11 @@ const ExerciseSelectorView = ({
         </div>
 
         {/* Barra de progreso lineal — justo encima de la lista, solo cuando filtra */}
-        <div style={{ height: 2, borderRadius: 99, overflow: "hidden", marginBottom: "0.5rem", background: "rgba(255,255,255,0.04)" }}>
+        <div style={{ height: 2, borderRadius: 99, overflow: "hidden", marginBottom: "0.5rem", background: "var(--surface-hover)" }}>
           {(filterPending || isFilterStale) && (
             <div style={{
               height: "100%", borderRadius: 99, width: "60%",
-              background: "linear-gradient(90deg, transparent, #06b6d4, transparent)",
+              background: "linear-gradient(90deg, transparent, var(--color-primary), transparent)",
               animation: "filterProgress 0.9s ease-in-out infinite",
             }} />
           )}
@@ -1124,7 +1124,7 @@ const ExerciseSelectorView = ({
             100% { transform: translateX(280%); }
           }
           @media (prefers-reduced-motion: reduce) {
-            [data-filter-progress] { animation: none; background: #06b6d4; width: 100%; }
+            [data-filter-progress] { animation: none; background: var(--color-primary); width: 100%; }
           }
         `}</style>
 
@@ -1166,7 +1166,7 @@ const ExerciseSelectorView = ({
                   style={{
                     fontSize: "0.6rem",
                     fontWeight: 900,
-                    color: "#06b6d4",
+                    color: "var(--color-primary)",
                     letterSpacing: "1.5px",
                     marginBottom: "0.3rem",
                   }}
@@ -1233,8 +1233,8 @@ const ExerciseSelectorView = ({
                   onClick={() => { setSearchTerm(""); setFilterMuscle("__all__"); setFilterCategory("Todos"); setFilterEquipment("Todos"); }}
                   style={{
                     marginTop: "0.75rem", padding: "0.5rem 1rem", borderRadius: "10px",
-                    background: "rgba(6,182,212,0.12)", border: "1px solid rgba(6,182,212,0.25)",
-                    color: "#06b6d4", fontWeight: 800, fontSize: "0.75rem", cursor: "pointer",
+                    background: "rgba(0,201,255,0.12)", border: "1px solid rgba(0,201,255,0.25)",
+                    color: "var(--color-primary)", fontWeight: 800, fontSize: "0.75rem", cursor: "pointer",
                   }}
                 >
                   Limpiar filtros
@@ -1263,8 +1263,8 @@ const ExerciseSelectorView = ({
               style={{
                 padding: "0.5rem 1rem",
                 borderRadius: "10px",
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: "var(--surface-2)",
+                border: "1px solid var(--border-default)",
                 color: currentPage === 1 ? "var(--surface-3)" : "var(--text-secondary)",
                 fontWeight: 700,
                 fontSize: "0.8rem",
@@ -1276,7 +1276,7 @@ const ExerciseSelectorView = ({
             <div
               style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 700 }}
             >
-              <span style={{ color: "#06b6d4", fontWeight: 900 }}>
+              <span style={{ color: "var(--color-primary)", fontWeight: 900 }}>
                 {currentPage}
               </span>
               {" / "}
@@ -1297,8 +1297,8 @@ const ExerciseSelectorView = ({
               style={{
                 padding: "0.5rem 1rem",
                 borderRadius: "10px",
-                background: "rgba(255,255,255,0.06)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: "var(--surface-2)",
+                border: "1px solid var(--border-default)",
                 color: currentPage === totalPages ? "var(--surface-3)" : "var(--text-secondary)",
                 fontWeight: 700,
                 fontSize: "0.8rem",
@@ -1360,7 +1360,7 @@ const ExerciseSelectorView = ({
                   {selectedExercise?.nombre_es}
                 </h3>
                 <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.45rem", flexWrap: "wrap" }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: "0.25rem", background: "rgba(6,182,212,0.15)", color: "#06b6d4", fontSize: "0.6rem", fontWeight: 800, padding: "0.2rem 0.5rem", borderRadius: "99px", textTransform: "uppercase" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "0.25rem", background: "rgba(0,201,255,0.15)", color: "var(--color-primary)", fontSize: "0.6rem", fontWeight: 800, padding: "0.2rem 0.5rem", borderRadius: "99px", textTransform: "uppercase" }}>
                     <MIcon size={10} /> {selectedExercise?.body_part}
                   </span>
                   {selectedExercise?.equipment && (
@@ -1369,12 +1369,12 @@ const ExerciseSelectorView = ({
                     </span>
                   )}
                   {selectedExercise?.zone && (
-                    <span style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-muted)", fontSize: "0.6rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "99px" }}>
+                    <span style={{ background: "var(--surface-2)", color: "var(--text-muted)", fontSize: "0.6rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "99px" }}>
                       {selectedExercise.zone}
                     </span>
                   )}
                   {selectedExercise?.mechanic && (
-                    <span style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-muted)", fontSize: "0.6rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "99px" }}>
+                    <span style={{ background: "var(--surface-2)", color: "var(--text-muted)", fontSize: "0.6rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "99px" }}>
                       {selectedExercise.mechanic}
                     </span>
                   )}
@@ -1383,7 +1383,7 @@ const ExerciseSelectorView = ({
 
               {/* Instrucciones — accordion desplegable */}
               {hasInstr && (
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ borderTop: "1px solid var(--surface-2)" }}>
                   <motion.button
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setShowInstructions(p => !p)}
@@ -1393,7 +1393,7 @@ const ExerciseSelectorView = ({
                     }}
                   >
                     <span style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.7rem", fontWeight: 900, color: "var(--text-secondary)", letterSpacing: "0.3px" }}>
-                      <Info size={13} color="#06b6d4" />
+                      <Info size={13} color="var(--color-primary)" />
                       {t('instructions')}
                     </span>
                     <ChevronDown size={14} color="var(--text-muted)" style={{ transition: "transform 0.25s", transform: showInstructions ? "rotate(180deg)" : "rotate(0)" }} />
@@ -1418,7 +1418,7 @@ const ExerciseSelectorView = ({
                             >
                               <span style={{
                                 flexShrink: 0, width: "20px", height: "20px", borderRadius: "50%",
-                                background: "rgba(6,182,212,0.1)", color: "#06b6d4",
+                                background: "rgba(0,201,255,0.1)", color: "var(--color-primary)",
                                 fontSize: "0.6rem", fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center",
                               }}>{i + 1}</span>
                               <span style={{ fontSize: "0.76rem", color: "var(--text-secondary)", lineHeight: 1.55, fontWeight: 500 }}>{step}</span>
@@ -1441,7 +1441,7 @@ const ExerciseSelectorView = ({
                   setShowInstructions(false);
                 }}
                 style={{
-                  background: isAdded ? "rgba(239,68,68,0.15)" : "linear-gradient(135deg, #06b6d4, #0891b2)",
+                  background: isAdded ? "rgba(239,68,68,0.15)" : "linear-gradient(135deg, var(--color-primary), #0891b2)",
                   color: isAdded ? "#ef4444" : "#000",
                   border: isAdded ? "1px solid rgba(239,68,68,0.3)" : "none",
                   borderRadius: "16px", padding: "1rem", fontWeight: 900, fontSize: "0.95rem",
@@ -1556,7 +1556,7 @@ const FolderModal = ({ onCancel, onCreate }) => {
               flex: 1,
               padding: "0.85rem",
               borderRadius: "14px",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid var(--border-default)",
               background: "transparent",
               color: "var(--text-secondary)",
               fontWeight: 800,
@@ -1691,13 +1691,13 @@ const SummaryModal = ({ exercises, onClose }) => {
             display: "flex",
             alignItems: "center",
             gap: "0.65rem",
-            background: "rgba(6,182,212,0.07)",
-            border: "1px solid rgba(6,182,212,0.2)",
+            background: "rgba(0,201,255,0.07)",
+            border: "1px solid rgba(0,201,255,0.2)",
             borderRadius: "14px",
             padding: "0.85rem 1.1rem",
           }}
         >
-          <Clock size={18} color="#06b6d4" />
+          <Clock size={18} color="var(--color-primary)" />
           <div>
             <div
               style={{
@@ -1726,7 +1726,7 @@ const SummaryModal = ({ exercises, onClose }) => {
               style={{
                 fontSize: "0.6rem",
                 fontWeight: 900,
-                color: "#06b6d4",
+                color: "var(--color-primary)",
                 letterSpacing: "1.5px",
               }}
             >
@@ -1750,7 +1750,7 @@ const SummaryModal = ({ exercises, onClose }) => {
                     style={{
                       fontSize: "0.82rem",
                       fontWeight: 700,
-                      color: "#e2e8f0",
+                      color: "var(--text-primary)",
                       textTransform: "capitalize",
                     }}
                   >
@@ -1760,7 +1760,7 @@ const SummaryModal = ({ exercises, onClose }) => {
                     style={{
                       fontSize: "0.75rem",
                       fontWeight: 900,
-                      color: "#06b6d4",
+                      color: "var(--color-primary)",
                     }}
                   >
                     {count} {count === 1 ? t('set') : t('sets')}
@@ -1769,7 +1769,7 @@ const SummaryModal = ({ exercises, onClose }) => {
                 <div
                   style={{
                     height: "5px",
-                    background: "rgba(255,255,255,0.08)",
+                    background: "var(--surface-3)",
                     borderRadius: "99px",
                     overflow: "hidden",
                   }}
@@ -1780,7 +1780,7 @@ const SummaryModal = ({ exercises, onClose }) => {
                     transition={{ delay: mIdx * 0.03, duration: 0.4, ease: "easeOut" }}
                     style={{
                       height: "100%",
-                      background: "linear-gradient(90deg, #06b6d4, #0891b2)",
+                      background: "linear-gradient(90deg, var(--color-primary), #0891b2)",
                       borderRadius: "99px",
                     }}
                   />
@@ -1875,7 +1875,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
     return () => window.removeEventListener("click", close);
   }, [menuMeta]);
 
-  const FOLDER_COLORS = ["#06b6d4", "#8b5cf6", "#f59e0b", "#ef4444", "#22c55e", "#ec4899", "#3b82f6", "#f97316"];
+  const FOLDER_COLORS = ["var(--color-primary)", "#8b5cf6", "#f59e0b", "#ef4444", "#22c55e", "#ec4899", "#3b82f6", "#f97316"];
 
   const updateFolderColor = async (fid, color) => {
     try {
@@ -2125,7 +2125,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 transition={{ type: "spring", stiffness: 300, damping: 15 }}
                 style={{
                   width: 64, height: 64, borderRadius: "50%",
-                  background: "linear-gradient(135deg, rgba(245,158,11,0.2), rgba(6,182,212,0.15))",
+                  background: "linear-gradient(135deg, rgba(245,158,11,0.2), rgba(0,201,255,0.15))",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   boxShadow: "0 0 30px rgba(245,158,11,0.2)",
                 }}
@@ -2139,7 +2139,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
             {sessionResult.status === "success" && (
               <div style={{ display: "flex", justifyContent: "center", gap: "1.5rem" }}>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "#06b6d4" }}>
+                  <div style={{ fontSize: "1.4rem", fontWeight: 900, color: "var(--color-primary)" }}>
                     {sessionResult.volumen ? `${sessionResult.volumen.toFixed(0)}` : "0"}
                   </div>
                   <div style={{ fontSize: "0.6rem", color: "var(--text-secondary)", fontWeight: 700 }}>KG VOLUMEN</div>
@@ -2163,10 +2163,10 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
             <button
               onClick={() => { if (onClearResult) onClearResult(); }}
               style={{
-                background: "linear-gradient(135deg, #06b6d4, #0891b2)",
+                background: "linear-gradient(135deg, var(--color-primary), #0891b2)",
                 color: "#000", border: "none", borderRadius: "16px",
                 padding: "1rem", fontWeight: 900, fontSize: "0.95rem", cursor: "pointer",
-                boxShadow: "0 0 20px rgba(6,182,212,0.3)",
+                boxShadow: "0 0 20px rgba(0,201,255,0.3)",
               }}
             >
               Cerrar
@@ -2197,7 +2197,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
               gap: "0.5rem",
               flexShrink: 0,
               background: "#050508",
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              borderBottom: "1px solid var(--surface-2)",
               paddingTop: "max(0.6rem, env(safe-area-inset-top, 0.6rem))",
               paddingRight: isMobile ? "0.75rem" : "1.5rem",
               paddingBottom: isMobile ? "0.6rem" : "0.7rem",
@@ -2222,17 +2222,17 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   width: "100%", fontSize: "1.05rem", fontWeight: 800, letterSpacing: "-0.3px",
                   padding: "0.4rem 0.1rem", background: "none", color: "#fff",
                   outline: "none",
-                  border: "none", borderBottom: routineName ? "2px solid rgba(6,182,212,0.3)" : "2px solid rgba(255,255,255,0.12)",
+                  border: "none", borderBottom: routineName ? "2px solid rgba(0,201,255,0.3)" : "2px solid rgba(255,255,255,0.12)",
                   transition: "border-color 0.2s",
                 }}
-                onFocus={(e) => { e.target.style.borderBottomColor = "#06b6d4"; }}
-                onBlur={(e) => { e.target.style.borderBottomColor = routineName ? "rgba(6,182,212,0.3)" : "rgba(255,255,255,0.12)"; }}
+                onFocus={(e) => { e.target.style.borderBottomColor = "var(--color-primary)"; }}
+                onBlur={(e) => { e.target.style.borderBottomColor = routineName ? "rgba(0,201,255,0.3)" : "rgba(255,255,255,0.12)"; }}
               />
               {!routineName && (
                 <span style={{
                   position: "absolute", right: "0.2rem", top: "50%", transform: "translateY(-50%)",
                   fontSize: "0.55rem", fontWeight: 700, color: "var(--text-muted)",
-                  background: "rgba(255,255,255,0.04)", padding: "0.15rem 0.4rem", borderRadius: "6px",
+                  background: "var(--surface-hover)", padding: "0.15rem 0.4rem", borderRadius: "6px",
                   pointerEvents: "none",
                 }}>
                   <Edit2 size={11} color="var(--text-muted)" />
@@ -2244,11 +2244,11 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowFolderDropdown?.(!showFolderDropdown)}
               style={{
-                background: selectedFolderId ? "rgba(6,182,212,0.12)" : "rgba(255,255,255,0.04)",
-                border: selectedFolderId ? "1px solid rgba(6,182,212,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                background: selectedFolderId ? "rgba(0,201,255,0.12)" : "var(--surface-hover)",
+                border: selectedFolderId ? "1px solid rgba(0,201,255,0.3)" : "1px solid var(--surface-3)",
                 borderRadius: "10px", padding: "0.35rem 0.5rem", cursor: "pointer",
                 display: "flex", alignItems: "center", gap: "0.3rem",
-                color: selectedFolderId ? "#06b6d4" : "var(--text-muted)",
+                color: selectedFolderId ? "var(--color-primary)" : "var(--text-muted)",
               }}
             >
               <motion.div
@@ -2276,7 +2276,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.2, ease: "easeInOut" }}
-                style={{ overflow: "hidden", flexShrink: 0, background: "var(--surface-2)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+                style={{ overflow: "hidden", flexShrink: 0, background: "var(--surface-2)", borderBottom: "1px solid var(--surface-2)" }}
               >
                 <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", padding: "0.6rem 1rem" }}>
                   <button
@@ -2284,15 +2284,15 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                     style={{
                       padding: "0.35rem 0.75rem", borderRadius: "10px", fontSize: "0.7rem", fontWeight: 800,
                       cursor: "pointer", border: "1px solid", transition: "all 0.15s",
-                      background: selectedFolderId === null ? "rgba(6,182,212,0.15)" : "rgba(255,255,255,0.04)",
-                      borderColor: selectedFolderId === null ? "#06b6d4" : "rgba(255,255,255,0.1)",
-                      color: selectedFolderId === null ? "#06b6d4" : "var(--text-muted)",
+                      background: selectedFolderId === null ? "rgba(0,201,255,0.15)" : "var(--surface-hover)",
+                      borderColor: selectedFolderId === null ? "var(--color-primary)" : "var(--border-default)",
+                      color: selectedFolderId === null ? "var(--color-primary)" : "var(--text-muted)",
                     }}
                   >
                     {t('no_folder')}
                   </button>
                   {folders.map((f) => {
-                    const fc = f.color || "#06b6d4";
+                    const fc = f.color || "var(--color-primary)";
                     const isActive = selectedFolderId === f.id;
                     return (
                       <button
@@ -2302,8 +2302,8 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                           padding: "0.35rem 0.75rem", borderRadius: "10px", fontSize: "0.7rem", fontWeight: 800,
                           cursor: "pointer", border: "1px solid", transition: "all 0.15s",
                           display: "flex", alignItems: "center", gap: "0.35rem",
-                          background: isActive ? `${fc}20` : "rgba(255,255,255,0.04)",
-                          borderColor: isActive ? `${fc}60` : "rgba(255,255,255,0.1)",
+                          background: isActive ? `${fc}20` : "var(--surface-hover)",
+                          borderColor: isActive ? `${fc}60` : "var(--border-default)",
                           color: isActive ? fc : "var(--text-secondary)",
                         }}
                       >
@@ -2336,8 +2336,8 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 width: "100%",
                 textAlign: "left",
                 cursor: "pointer",
-                background: "rgba(6,182,212,0.05)",
-                border: "1px solid rgba(6,182,212,0.15)",
+                background: "rgba(0,201,255,0.05)",
+                border: "1px solid rgba(0,201,255,0.15)",
                 borderRadius: "14px",
                 padding: isMobile ? "0.6rem 0.75rem" : "0.75rem 1rem",
                 display: "flex",
@@ -2350,14 +2350,14 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 {[
                   { label: t('exercises'), value: builderExercises.length, color: "#fff" },
                   { label: t('series'), value: builderExercises.reduce((a, e) => a + (e?.sets_data?.length || 0), 0), color: "#fff" },
-                  { label: t('duration'), value: `${Math.round(builderExercises.reduce((a, e) => a + (e?.sets_data?.length || 0), 0) * 2.5)}m`, color: "#06b6d4" },
+                  { label: t('duration'), value: `${Math.round(builderExercises.reduce((a, e) => a + (e?.sets_data?.length || 0), 0) * 2.5)}m`, color: "var(--color-primary)" },
                 ].map((s, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: isMobile ? "0.5rem" : "0.75rem" }}>
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontSize: "0.5rem", color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.3px", textTransform: "uppercase" }}>{s.label}</div>
                       <div style={{ fontWeight: 900, fontSize: isMobile ? "1.05rem" : "1.2rem", color: s.color, lineHeight: 1 }}>{s.value}</div>
                     </div>
-                    {i < 2 && <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)" }} />}
+                    {i < 2 && <div style={{ width: 1, height: 20, background: "var(--surface-3)" }} />}
                   </div>
                 ))}
               </div>
@@ -2370,7 +2370,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                     gender={localStorage.getItem('vortice_body_gender') || 'male'}
                   />
                 </div>
-                <ChevronRight size={12} color="#06b6d4" style={{ opacity: 0.5 }} />
+                <ChevronRight size={12} color="var(--color-primary)" style={{ opacity: 0.5 }} />
               </div>
             </button>
 
@@ -2420,7 +2420,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                       key={idx}
                       style={{
                         background: "var(--surface-2)",
-                        border: "1px solid rgba(255,255,255,0.1)",
+                        border: "1px solid var(--border-default)",
                         borderRadius: "18px",
                         overflow: "hidden",
                         transition: "all 0.2s",
@@ -2473,9 +2473,9 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                             <span
                               style={{
                                 fontSize: "0.58rem",
-                                color: "#06b6d4",
+                                color: "var(--color-primary)",
                                 fontWeight: 800,
-                                background: "rgba(6,182,212,0.12)",
+                                background: "rgba(0,201,255,0.12)",
                                 padding: "0.1rem 0.4rem",
                                 borderRadius: "6px",
                               }}
@@ -2502,7 +2502,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                     width: 8,
                                     height: 8,
                                     borderRadius: "50%",
-                                    background: t?.color || "#06b6d4",
+                                    background: t?.color || "var(--color-primary)",
                                     display: "inline-block",
                                   }}
                                 />
@@ -2599,10 +2599,10 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                 setBuilderExercises(nw);
                               }}
                               style={{
-                                background: "rgba(255,255,255,0.06)",
-                                border: "1px solid rgba(255,255,255,0.1)",
+                                background: "var(--surface-2)",
+                                border: "1px solid var(--border-default)",
                                 borderRadius: "8px",
-                                color: "#06b6d4",
+                                color: "var(--color-primary)",
                                 padding: "0.2rem 0.45rem",
                                 fontSize: "0.72rem",
                                 fontWeight: 800,
@@ -2695,12 +2695,12 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                 background:
                                   ej.unit === "seg"
                                     ? "rgba(139,92,246,0.18)"
-                                    : "rgba(6,182,212,0.1)",
+                                    : "rgba(0,201,255,0.1)",
                                 border: "1px solid",
                                 borderColor:
                                   ej.unit === "seg"
                                     ? "#8b5cf6"
-                                    : "rgba(6,182,212,0.3)",
+                                    : "rgba(0,201,255,0.3)",
                                 borderRadius: 99,
                                 padding: "0.2rem 0.55rem",
                                 cursor: "pointer",
@@ -2711,7 +2711,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               <span
                                 style={{
                                   color:
-                                    ej.unit !== "seg" ? "#06b6d4" : "var(--text-muted)",
+                                    ej.unit !== "seg" ? "var(--color-primary)" : "var(--text-muted)",
                                 }}
                               >
                                 REPS
@@ -2814,7 +2814,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                   borderRadius: 12,
                                   background:
                                     SET_TYPES.find((t) => t.id === s.type)
-                                      ?.color || "#06b6d4",
+                                      ?.color || "var(--color-primary)",
                                   border: "none",
                                   fontWeight: 900,
                                   fontSize: "0.85rem",
@@ -2884,8 +2884,8 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                   height: 32,
                                   width: 32,
                                   borderRadius: 8,
-                                  background: "rgba(255,255,255,0.04)",
-                                  border: "1px solid rgba(255,255,255,0.08)",
+                                  background: "var(--surface-hover)",
+                                  border: "1px solid var(--surface-3)",
                                   cursor: "pointer",
                                   display: "flex",
                                   alignItems: "center",
@@ -2913,9 +2913,9 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               marginTop: "0.4rem",
                               padding: "0.65rem",
                               borderRadius: 12,
-                              background: "rgba(6,182,212,0.07)",
-                              border: "1px dashed rgba(6,182,212,0.3)",
-                              color: "#06b6d4",
+                              background: "rgba(0,201,255,0.07)",
+                              border: "1px dashed rgba(0,201,255,0.3)",
+                              color: "var(--color-primary)",
                               fontWeight: 800,
                               fontSize: "0.78rem",
                               cursor: "pointer",
@@ -2941,7 +2941,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
               paddingBottom:
                 "max(0.6rem, env(safe-area-inset-bottom, 0.6rem))",
               background: "#050508",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
+              borderTop: "1px solid var(--surface-2)",
               display: "flex",
               gap: "0.5rem",
             }}
@@ -2961,9 +2961,9 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 gap: "0.4rem",
                 fontWeight: 800,
                 cursor: isSaving ? "not-allowed" : "pointer",
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "#e2e8f0",
+                background: "var(--surface-hover)",
+                border: "1px solid var(--border-default)",
+                color: "var(--text-primary)",
                 opacity: isSaving ? 0.5 : 1,
               }}
             >
@@ -3052,9 +3052,9 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                     padding: "0.4rem 0.65rem", borderRadius: "10px",
                     fontSize: "0.65rem", fontWeight: 800, cursor: "pointer",
                     border: "1px solid",
-                    background: activeTab === tab.key ? "rgba(6,182,212,0.15)" : "rgba(255,255,255,0.03)",
-                    borderColor: activeTab === tab.key ? "rgba(6,182,212,0.4)" : "rgba(255,255,255,0.06)",
-                    color: activeTab === tab.key ? "#06b6d4" : "var(--text-muted)",
+                    background: activeTab === tab.key ? "rgba(0,201,255,0.15)" : "var(--surface-1)",
+                    borderColor: activeTab === tab.key ? "rgba(0,201,255,0.4)" : "var(--surface-2)",
+                    color: activeTab === tab.key ? "var(--color-primary)" : "var(--text-muted)",
                     transition: "all 0.15s",
                   }}
                 >
@@ -3069,13 +3069,13 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", padding: "1rem 0" }}>
               {[1, 2, 3].map((i) => (
                 <div key={i} style={{
-                  background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
+                  background: "var(--surface-1)", border: "1px solid var(--surface-2)",
                   borderRadius: "16px", padding: "1.1rem", display: "flex", alignItems: "center", gap: "0.85rem",
                 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: 12, background: "rgba(255,255,255,0.06)" }} />
+                  <div style={{ width: 38, height: 38, borderRadius: 12, background: "var(--surface-2)" }} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ height: 12, width: "60%", background: "rgba(255,255,255,0.06)", borderRadius: 6, marginBottom: 6 }} />
-                    <div style={{ height: 8, width: "40%", background: "rgba(255,255,255,0.04)", borderRadius: 4 }} />
+                    <div style={{ height: 12, width: "60%", background: "var(--surface-2)", borderRadius: 6, marginBottom: 6 }} />
+                    <div style={{ height: 8, width: "40%", background: "var(--surface-hover)", borderRadius: 4 }} />
                   </div>
                   <Loader size={16} color="var(--text-muted)" style={{ animation: "spin 1s linear infinite" }} />
                 </div>
@@ -3101,8 +3101,8 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 onClick={() => { hasLoadedRef.current = false; loadData(); hasLoadedRef.current = true; }}
                 style={{
                   padding: "0.6rem 1.4rem", borderRadius: 10,
-                  background: "rgba(6,182,212,0.15)", border: "1px solid rgba(6,182,212,0.3)",
-                  color: "#06b6d4", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer",
+                  background: "rgba(0,201,255,0.15)", border: "1px solid rgba(0,201,255,0.3)",
+                  color: "var(--color-primary)", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer",
                 }}
               >
                 Reintentar
@@ -3121,7 +3121,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 {/* Nueva rutina */}
                 <motion.button
                   whileTap={{ scale: 0.98 }}
-                  whileHover={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                  whileHover={{ backgroundColor: "var(--surface-2)" }}
                   onClick={() => {
                     setIsCreating(true);
                     setBuilderExercises([]);
@@ -3132,7 +3132,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                     display: "flex",
                     alignItems: "center",
                     gap: "0.9rem",
-                    background: "rgba(255,255,255,0.04)",
+                    background: "var(--surface-hover)",
                     border: "1px solid rgba(255,255,255,0.09)",
                     borderRadius: "16px",
                     padding: "0.95rem 1.1rem",
@@ -3146,20 +3146,20 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                       width: "38px",
                       height: "38px",
                       borderRadius: "12px",
-                      background: "rgba(6,182,212,0.15)",
+                      background: "rgba(0,201,255,0.15)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
                     }}
                   >
-                    <Plus size={20} color="#06b6d4" />
+                    <Plus size={20} color="var(--color-primary)" />
                   </div>
                   <span
                     style={{
                       flex: 1,
                       fontWeight: 800,
-                      color: "#e2e8f0",
+                      color: "var(--text-primary)",
                       fontSize: "0.95rem",
                     }}
                   >
@@ -3171,13 +3171,13 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                 {/* Nueva carpeta */}
                 <motion.button
                   whileTap={{ scale: 0.98 }}
-                  whileHover={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                  whileHover={{ backgroundColor: "var(--surface-2)" }}
                   onClick={() => setShowFolderModal(true)}
                   style={{
                     display: "flex",
                     alignItems: "center",
                     gap: "0.9rem",
-                    background: "rgba(255,255,255,0.04)",
+                    background: "var(--surface-hover)",
                     border: "1px solid rgba(255,255,255,0.09)",
                     borderRadius: "16px",
                     padding: "0.95rem 1.1rem",
@@ -3204,7 +3204,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                     style={{
                       flex: 1,
                       fontWeight: 800,
-                      color: "#e2e8f0",
+                      color: "var(--text-primary)",
                       fontSize: "0.95rem",
                     }}
                   >
@@ -3227,12 +3227,12 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                     (r) => Number(r?.folder_id) === Number(f.id),
                   );
                   const isFolderOpen = openFolders?.[f.id] !== false;
-                  const fColor = f.color || "#06b6d4";
+                  const fColor = f.color || "var(--color-primary)";
                   const isPickingColor = colorPickerFolderId === f.id;
                   return (
                     <div key={f.id} style={{
                       borderRadius: "18px", overflow: "visible",
-                      background: "rgba(255,255,255,0.02)",
+                      background: "var(--surface-1)",
                       border: `1px solid ${fColor}20`,
                       borderLeft: `3px solid ${fColor}50`,
                       padding: "0.5rem 0.5rem 0.5rem 0.6rem",
@@ -3285,7 +3285,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               fontSize: "0.6rem",
                               fontWeight: 800,
                               color: "var(--text-muted)",
-                              background: "rgba(255,255,255,0.05)",
+                              background: "var(--surface-2)",
                               padding: "0.1rem 0.4rem",
                               borderRadius: "6px",
                             }}
@@ -3382,7 +3382,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                             <div
                               key={r.id}
                               style={{
-                                background: "rgba(255,255,255,0.03)",
+                                background: "var(--surface-1)",
                                 border: "1px solid rgba(255,255,255,0.07)",
                                 borderRadius: "16px",
                                 padding: "0.9rem 1rem",
@@ -3417,7 +3417,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                   </span>
                                   <span style={{
                                     fontSize: "0.52rem", fontWeight: 900, color: "var(--color-text-muted)",
-                                    background: "rgba(255,255,255,0.05)", padding: "0.12rem 0.35rem", borderRadius: "6px",
+                                    background: "var(--surface-2)", padding: "0.12rem 0.35rem", borderRadius: "6px",
                                   }}>
                                     {Array.isArray(r.ejercicios) ? r.ejercicios.length : 0} ej
                                   </span>
@@ -3425,7 +3425,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                 {/* Muscle pills */}
                                 {Array.isArray(r.ejercicios) && r.ejercicios.length > 0 && (() => {
                                   const muscles = [...new Set(r.ejercicios.map(e => e?.target || e?.body_part).filter(Boolean))].slice(0, 3);
-                                  const muscleColors = { chest: '#00C9FF', back: '#7B2FBE', legs: '#22C55E', shoulders: '#F59E0B', arms: '#EF4444', core: '#06b6d4' };
+                                  const muscleColors = { chest: '#00C9FF', back: 'var(--color-gras)', legs: 'var(--color-prot)', shoulders: 'var(--color-carb)', arms: '#EF4444', core: 'var(--color-primary)' };
                                   return muscles.length > 0 ? (
                                     <div style={{ display: "flex", gap: "0.25rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
                                       {muscles.map(m => {
@@ -3505,7 +3505,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                           alignItems: "center",
                           padding: "0.6rem 0.5rem",
                           borderRadius: "14px",
-                          background: isOrphanOpen ? "rgba(255,255,255,0.02)" : "transparent",
+                          background: isOrphanOpen ? "var(--surface-1)" : "transparent",
                           transition: "background 0.2s",
                         }}
                       >
@@ -3539,7 +3539,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               fontSize: "0.65rem",
                               fontWeight: 800,
                               color: "var(--text-muted)",
-                              background: "rgba(255,255,255,0.05)",
+                              background: "var(--surface-2)",
                               padding: "0.1rem 0.45rem",
                               borderRadius: "6px",
                             }}
@@ -3580,7 +3580,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                             <div
                               key={r.id}
                               style={{
-                                background: "rgba(255,255,255,0.03)",
+                                background: "var(--surface-1)",
                                 border: "1px solid rgba(255,255,255,0.07)",
                                 borderRadius: "16px",
                                 padding: "0.9rem 1rem",
@@ -3593,11 +3593,11 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                               <div
                                 style={{
                                   width: "38px", height: "38px", borderRadius: "12px",
-                                  background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.15)",
+                                  background: "rgba(0,201,255,0.1)", border: "1px solid rgba(0,201,255,0.15)",
                                   display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                                 }}
                               >
-                                <Dumbbell size={18} color="#06b6d4" />
+                                <Dumbbell size={18} color="var(--color-primary)" />
                               </div>
                               <div
                                 onClick={() => setSelectedRoutineForView(r)}
@@ -3613,14 +3613,14 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                                   </span>
                                   <span style={{
                                     fontSize: "0.52rem", fontWeight: 900, color: "var(--color-text-muted)",
-                                    background: "rgba(255,255,255,0.05)", padding: "0.12rem 0.35rem", borderRadius: "6px",
+                                    background: "var(--surface-2)", padding: "0.12rem 0.35rem", borderRadius: "6px",
                                   }}>
                                     {Array.isArray(r.ejercicios) ? r.ejercicios.length : 0} ej
                                   </span>
                                 </div>
                                 {Array.isArray(r.ejercicios) && (() => {
                                   const muscles = [...new Set(r.ejercicios.map(e => e?.target || e?.body_part).filter(Boolean))].slice(0, 3);
-                                  const muscleColors = { chest: '#00C9FF', back: '#7B2FBE', legs: '#22C55E', shoulders: '#F59E0B', arms: '#EF4444', core: '#06b6d4' };
+                                  const muscleColors = { chest: '#00C9FF', back: 'var(--color-gras)', legs: 'var(--color-prot)', shoulders: 'var(--color-carb)', arms: '#EF4444', core: 'var(--color-primary)' };
                                   return muscles.length > 0 ? (
                                     <div style={{ display: "flex", gap: "0.25rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
                                       {muscles.map(m => {
@@ -3715,7 +3715,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                       transition={{ duration: 0.12 }}
                       style={{
                         background: "var(--surface-1)",
-                        border: `1px solid ${isSport ? "rgba(249,115,22,0.12)" : "rgba(255,255,255,0.06)"}`,
+                        border: `1px solid ${isSport ? "rgba(249,115,22,0.12)" : "var(--surface-2)"}`,
                         borderRadius: "16px",
                         padding: "0.85rem 1rem",
                         display: "flex",
@@ -3727,10 +3727,10 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                       <div style={{
                         width: "38px", height: "38px", borderRadius: "12px", flexShrink: 0,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        background: isGym ? "rgba(6,182,212,0.1)" : "rgba(249,115,22,0.1)",
-                        border: `1px solid ${isGym ? "rgba(6,182,212,0.15)" : "rgba(249,115,22,0.2)"}`,
+                        background: isGym ? "rgba(0,201,255,0.1)" : "rgba(249,115,22,0.1)",
+                        border: `1px solid ${isGym ? "rgba(0,201,255,0.15)" : "rgba(249,115,22,0.2)"}`,
                       }}>
-                        {isSport ? <SportIcon name={session.sport_name} size={18} /> : <Dumbbell size={18} color="#06b6d4" />}
+                        {isSport ? <SportIcon name={session.sport_name} size={18} /> : <Dumbbell size={18} color="var(--color-primary)" />}
                       </div>
 
                       {/* Center info */}
@@ -3738,7 +3738,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                           <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "var(--text-secondary)", textTransform: "capitalize" }}>{dateStr}</span>
                           {isGym && session.routine_name && (
-                            <span style={{ fontSize: "0.6rem", fontWeight: 700, color: "#06b6d4", background: "rgba(6,182,212,0.1)", padding: "0.1rem 0.4rem", borderRadius: "6px" }}>
+                            <span style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--color-primary)", background: "rgba(0,201,255,0.1)", padding: "0.1rem 0.4rem", borderRadius: "6px" }}>
                               {session.routine_name}
                             </span>
                           )}
@@ -3763,7 +3763,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                           )}
                           {volumen && (
                             <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#fff", display: "flex", alignItems: "center", gap: "0.2rem" }}>
-                              <Dumbbell size={11} color="#06b6d4" /> {volumen}kg
+                              <Dumbbell size={11} color="var(--color-primary)" /> {volumen}kg
                             </span>
                           )}
                           {isSport && session.calorias > 0 && (
@@ -3913,7 +3913,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
             const btnStyle = {
               display: "flex", alignItems: "center", gap: "0.7rem",
               width: "100%", padding: "0.65rem 0.85rem",
-              background: "none", border: "none", color: "#e2e8f0",
+              background: "none", border: "none", color: "var(--text-primary)",
               fontSize: "0.85rem", fontWeight: 700, cursor: "pointer",
               borderRadius: "10px", textAlign: "left",
             };
@@ -3925,7 +3925,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   setSelectedFolderId(r.folder_id || null);
                   setIsCreating(true); setMenuMeta(null);
                 }}>
-                  <Edit2 size={15} color="#06b6d4" /> Editar rutina
+                  <Edit2 size={15} color="var(--color-primary)" /> Editar rutina
                 </button>
                 <button style={btnStyle} onClick={() => { handleDuplicateRoutine(r); setMenuMeta(null); }}>
                   <Copy size={15} color="var(--text-secondary)" /> Duplicar rutina
@@ -3945,7 +3945,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
             const btnStyle = {
               display: "flex", alignItems: "center", gap: "0.7rem",
               width: "100%", padding: "0.65rem 0.85rem",
-              background: "none", border: "none", color: "#e2e8f0",
+              background: "none", border: "none", color: "var(--text-primary)",
               fontSize: "0.85rem", fontWeight: 700, cursor: "pointer",
               borderRadius: "10px", textAlign: "left",
             };
@@ -3962,7 +3962,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   }
                   setMenuMeta(null);
                 }}>
-                  <Edit2 size={15} color="#06b6d4" /> Renombrar carpeta
+                  <Edit2 size={15} color="var(--color-primary)" /> Renombrar carpeta
                 </button>
                 <div style={{ height: "1px", background: "rgba(255,255,255,0.07)", margin: "0.3rem 0" }} />
                 <button style={{ ...btnStyle, color: "#f87171" }} onClick={() => {

@@ -11,24 +11,30 @@
 :root {
   color-scheme: dark;
 
-  /* ── SURFACE SYSTEM (4 levels) ─────────────────────────── */
+  /* ── SURFACE SYSTEM (4 levels, all neutral cool-dark) ──── */
   --surface-0: #0a0a0a;    /* app background */
-  --surface-1: #111114;    /* card */
-  --surface-2: #18181c;    /* elevated card, modal, section bg */
-  --surface-3: #1e1e24;    /* input, interactive surface */
+  --surface-1: #111113;    /* card */
+  --surface-2: #17171a;    /* elevated card, modal, section bg */
+  --surface-3: #1e1e22;    /* input, interactive surface */
+  --surface-hover: rgba(255, 255, 255, 0.04);  /* hover overlay on any surface */
 
   /* ── TEXT HIERARCHY (3 tokens only) ───────────────────── */
   --text-primary:   #f0f0f2;   /* headings, values, names */
-  --text-secondary: #a0a0b0;   /* section labels, supporting text */
-  --text-muted:     #5a5a6e;   /* hints, metadata, inactive */
+  --text-secondary: #9898a8;   /* section labels, supporting text */
+  --text-muted:     #525260;   /* hints, metadata, inactive */
 
   /* ── ACCENT PALETTE ────────────────────────────────────── */
   --color-primary:  #00c9ff;   /* cyan — CTA, active states */
   --color-accent:   #7b2fbe;   /* purple — secondary accent */
-  --color-success:  #22c55e;   /* green — protein, positive */
-  --color-warning:  #f59e0b;   /* amber — carbs, caution */
+  --color-success:  #22c55e;   /* green — positive states */
+  --color-warning:  #f59e0b;   /* amber — warning states */
   --color-danger:   #ef4444;   /* red — delete, alert */
-  --color-kcal:     #f59e0b;   /* semantic alias for calorie display */
+
+  /* ── MACRO NUTRITION (semantic, intentional) ───────────── */
+  --color-kcal: #F59E0B;   /* amber  — energy / calories */
+  --color-prot: #22C55E;   /* green  — protein */
+  --color-carb: #00C9FF;   /* cyan   — carbohydrates */
+  --color-gras: #A78BFA;   /* violet — fats */
 
   /* ── BORDERS ──────────────────────────────────────────── */
   --border-subtle:  rgba(255, 255, 255, 0.07);   /* card outlines */
@@ -49,21 +55,19 @@
 
   /* ── LEGACY ALIASES (keep for backwards compat) ────────── */
   --bg-app:           var(--surface-0);
-  --bg-card:          rgba(17, 17, 20, 0.95);
-  --bg-glass:         rgba(17, 17, 20, 0.85);
+  --bg-card:          rgba(17, 17, 19, 0.95);
+  --bg-glass:         rgba(17, 17, 19, 0.85);
   --border-color:     var(--border-subtle);
   --glass-border:     var(--border-subtle);
   --glass-shadow:     0 8px 32px 0 rgba(0, 0, 0, 0.8);
   --color-bg:         var(--surface-0);
   --color-card:       var(--surface-1);
-  --color-card-alt:   var(--surface-2);
+  --color-card-alt:   #131316;   /* neutral cool-dark, not blue-tinted #141824 */
   --color-text:       var(--text-primary);
   --color-text-muted: var(--text-muted);
   --color-border:     var(--border-subtle);
   --accent-gym:       var(--color-primary);
   --accent-agent:     #8b5cf6;
-  --text-primary:     #f0f0f2;  /* override legacy value */
-  --text-muted:       #5a5a6e;  /* override legacy value */
 }
 
 /* ── MOBILE BREAKPOINT ─────────────────────────────────── */
