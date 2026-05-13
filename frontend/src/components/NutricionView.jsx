@@ -180,17 +180,34 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
     };
   };
 
-  const fetchMacros = () => {
-    authFetch(`${API}/api/nutricion/macros-hoy?perfil=${perfil}`)
+  const fetchDashboard = () => {
+    authFetch(`${API}/api/nutricion/dashboard-hoy?perfil=${perfil}`)
       .then(r => r.json())
-      .then(d => { if (d.macros) {
-        setMacrosHoy({
-          calorias: d.macros.cal || 0,
-          proteinas: d.macros.prot || 0,
-          carbos: d.macros.carb || 0,
-          grasas: d.macros.gras || 0
-        });
-      } })
+      .then(d => {
+        if (d.status === 'success') {
+          if (d.macros) {
+            setMacrosHoy({
+              calorias: d.macros.calorias || d.macros.cal || 0,
+              proteinas: d.macros.proteinas || d.macros.prot || 0,
+              carbos: d.macros.carbos || d.macros.carb || 0,
+              grasas: d.macros.grasas || d.macros.gras || 0
+            });
+          }
+          if (d.comidas) setComidasHoy(d.comidas);
+          if (d.agua && typeof d.agua.glasses === 'number') setWaterGlasses(d.agua.glasses);
+          if (d.metas) setMetas(d.metas);
+          if (d.historial) setHistorial(d.historial);
+          if (d.ayuno) {
+            setAyuno(d.ayuno);
+            setMetaHorasLocal(d.ayuno.meta_horas || 16);
+            if (d.ayuno.en_ayuno && d.ayuno.inicio) {
+              localStorage.setItem(`vortice_ayuno_${perfil}`, JSON.stringify(d.ayuno));
+            } else {
+              localStorage.removeItem(`vortice_ayuno_${perfil}`);
+            }
+          }
+        }
+      })
       .catch(console.error);
   };
 
@@ -198,30 +215,6 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
     authFetch(`${API}/api/alacena?perfil=${perfil}`)
       .then(r => r.json())
       .then(d => { if (d.items) setAlacena(d.items); })
-      .catch(console.error);
-  };
-
-  const fetchComidas = () => {
-    authFetch(`${API}/api/nutricion/comidas-hoy?perfil=${perfil}`)
-      .then(r => r.json())
-      .then(d => { if (d.comidas) setComidasHoy(d.comidas); })
-      .catch(console.error);
-  };
-
-  const fetchAyuno = () => {
-    authFetch(`${API}/api/nutricion/ayuno?perfil=${perfil}`)
-      .then(r => r.json())
-      .then(d => {
-        if (d.ayuno) {
-          setAyuno(d.ayuno);
-          setMetaHorasLocal(d.ayuno.meta_horas || 16);
-          if (d.ayuno.en_ayuno && d.ayuno.inicio) {
-            localStorage.setItem(`vortice_ayuno_${perfil}`, JSON.stringify(d.ayuno));
-          } else {
-            localStorage.removeItem(`vortice_ayuno_${perfil}`);
-          }
-        }
-      })
       .catch(console.error);
   };
 
@@ -252,27 +245,6 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
           return { fecha: d2.toISOString().split('T')[0], completado: false };
         }));
       });
-  };
-
-  const fetchMetas = () => {
-    authFetch(`${API}/api/nutricion/metas?perfil=${perfil}`)
-      .then(r => r.json())
-      .then(d => { if (d.metas) setMetas(d.metas); })
-      .catch(console.error);
-  };
-
-  const fetchWater = () => {
-    authFetch(`${API}/api/nutricion/agua?perfil=${perfil}`)
-      .then(r => r.json())
-      .then(d => { if (typeof d.glasses === 'number') setWaterGlasses(d.glasses); })
-      .catch(console.error);
-  };
-
-  const fetchHistorial = () => {
-    authFetch(`${API}/api/nutricion/historial?perfil=${perfil}&dias=7`)
-      .then(r => r.json())
-      .then(d => { if (d.historial) setHistorial(d.historial); })
-      .catch(console.error);
   };
 
   const handleSearchInput = (val) => {
@@ -328,14 +300,9 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
   };
 
   useEffect(() => {
-    fetchMacros();
-    fetchAlacena();
-    fetchAyuno();
+    fetchDashboard();
+fetchAlacena();
     fetchRachaAyuno();
-    fetchComidas();
-    fetchMetas();
-    fetchWater();
-    fetchHistorial();
   }, [perfil]);
 
   useEffect(() => {
@@ -529,10 +496,8 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
     if (total > 0) onShowToast?.(`${multiPending.filter(i=>i.food).length} alimentos registrados · ${total} kcal`, 'success');
     setMultiPending([]);
     setSearchText('');
-    fetchMacros();
-    fetchComidas();
-    fetchHistorial();
-    setLoggingMulti(false);
+    fetchDashboard();
+setLoggingMulti(false);
   };
 
   const logAllNatural = async () => {
@@ -558,10 +523,8 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
     if (totalKcal > 0) onShowToast?.(`${naturalItems.length} ítems registrados · ${Math.round(totalKcal)} kcal`, 'success');
     setNaturalItems([]);
     setSearchText('');
-    fetchMacros();
-    fetchComidas();
-    fetchHistorial();
-    setLoggingMulti(false);
+    fetchDashboard();
+setLoggingMulti(false);
   };
 
   const logFromCache = async (food) => {
@@ -594,19 +557,16 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
         setShowSuggestions(false);
         setSearchText('');
         setGramosInput(100);
-        fetchMacros();
-        fetchComidas();
-        fetchHistorial();
-      }
+        fetchDashboard();
+}
     } catch (e) { console.error(e); }
     setLoggingFood(false);
   };
 
   const eliminarComida = async (id) => {
     await authFetch(`${API}/api/nutricion/evento/${id}?perfil=${perfil}`, { method: 'DELETE' });
-    fetchComidas();
-    fetchMacros();
-  };
+    fetchDashboard();
+};
 
   const analizarFoto = async (e) => {
     const file = e.target.files[0];
@@ -621,7 +581,8 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
         body: formData
       });
       const data = await res.json();
-      if (data.resultado) { setPhotoResult(data.resultado); fetchMacros(); }
+      if (data.resultado) { setPhotoResult(data.resultado); fetchDashboard();
+}
     } catch (e) { console.error(e); }
     setAnalyzingPhoto(false);
   };

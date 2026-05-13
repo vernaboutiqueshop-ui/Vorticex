@@ -214,6 +214,28 @@ def get_comidas_hoy(perfil: str, user: str = Depends(get_current_user)):
         return {"status": "error", "comidas": [], "error": str(e)}
 
 
+@router.get("/dashboard-hoy")
+def get_dashboard_hoy(perfil: str, user: str = Depends(get_current_user)):
+    try:
+        macros = obtener_macros_hoy(perfil)
+        comidas = obtener_comidas_hoy(perfil)
+        agua = obtener_agua_hoy(perfil)
+        metas = obtener_metas_nutricion(perfil)
+        ayuno = obtener_ayuno(perfil)
+        historial = obtener_historial_nutricion(perfil, 7)
+        return {
+            "status": "success",
+            "macros": macros,
+            "comidas": comidas,
+            "agua": agua,
+            "metas": metas,
+            "ayuno": ayuno,
+            "historial": historial
+        }
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
 @router.delete("/evento/{evento_id}")
 def delete_evento_nutricion(evento_id: str, perfil: str, user: str = Depends(get_current_user)):
     eliminar_evento_perfil(perfil, evento_id)

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense, memo, useMemo, useCallback, createContext, useContext } from 'react';
-import { Flame, Dumbbell, Users, TrendingUp, CircleUser, Zap, Send, X, Bell, Heart, MessageCircle, Lock, Smartphone, ChevronDown } from 'lucide-react';
+import { Flame, Dumbbell, Users, TrendingUp, CircleUser, Zap, Send, X, Bell, Heart, MessageCircle, MessageSquare, Lock, Smartphone, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { API, authFetch, track } from './config';
 
