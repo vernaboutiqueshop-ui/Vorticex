@@ -9,3 +9,4 @@ python-jose[cryptography]
 watchfiles
 bcrypt
 httpx
+Pillow

@@ -354,45 +354,77 @@ def analizar_foto_gemini(image_bytes):
         return None
 
 
+def _compress_image(image_bytes: bytes, max_px: int = 1024, quality: int = 72) -> tuple[bytes, str]:
+    """Redimensiona y convierte a JPEG. Retorna (bytes, mime_type)."""
+    try:
+        from PIL import Image
+        import io
+        img = Image.open(io.BytesIO(image_bytes))
+        if img.mode in ("RGBA", "P", "CMYK"):
+            img = img.convert("RGB")
+        img.thumbnail((max_px, max_px), Image.LANCZOS)
+        out = io.BytesIO()
+        img.save(out, format="JPEG", quality=quality, optimize=True)
+        print(f"[GROQ VISION] imagen comprimida: {len(image_bytes)//1024}KB → {out.tell()//1024}KB")
+        return out.getvalue(), "image/jpeg"
+    except Exception as e:
+        print(f"[GROQ VISION] compresión falló ({e}), usando bytes originales")
+        # Detectar MIME del original
+        mime = "image/jpeg"
+        if image_bytes[:4] == b"\x89PNG":
+            mime = "image/png"
+        elif image_bytes[:4] == b"RIFF":
+            mime = "image/webp"
+        return image_bytes, mime
+
+
 async def analizar_foto_groq(image_bytes: bytes) -> dict | None:
-    """Analiza foto de comida via Groq Vision (llama-3.2-11b-vision) — sin restricción geográfica."""
+    """Analiza foto de comida via Groq Vision — sin restricción geográfica."""
     import base64, httpx, os, re
     groq_key = os.getenv("GROQ_API_KEY", "")
     if not groq_key:
+        print("[GROQ VISION] Sin GROQ_API_KEY")
         return None
-    b64 = base64.b64encode(image_bytes).decode("utf-8")
+
+    compressed, mime = _compress_image(image_bytes)
+    b64 = base64.b64encode(compressed).decode("utf-8")
+    data_url = f"data:{mime};base64,{b64}"
+
     prompt = (
         "Sos un nutricionista argentino experto. Analizá esta foto de comida. "
-        "Estimá los macros TOTALES para la porción visible en el plato (no por 100g). "
-        "Respondé SOLO JSON sin texto extra: "
-        '{"alimento": "nombre del plato", "calorias": 0, "proteinas": 0, "carbos": 0, "grasas": 0}'
+        "Estimá los macros TOTALES de la porción visible (no por 100g). "
+        "Para una comida casera típica, sé realista: un plato de arroz con pollo "
+        "ronda 400-600 kcal, no más de 800 salvo que sea una porción enorme. "
+        "Respondé SOLO JSON: "
+        '{"alimento": "nombre", "calorias": 0, "proteinas": 0, "carbos": 0, "grasas": 0}'
     )
-    try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            resp = await client.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
-                json={
-                    "model": "llama-3.2-11b-vision-preview",
-                    "messages": [{
-                        "role": "user",
-                        "content": [
+
+    for model in ["llama-3.2-11b-vision-preview", "llama-3.2-90b-vision-preview"]:
+        try:
+            async with httpx.AsyncClient(timeout=25.0) as client:
+                resp = await client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                    json={
+                        "model": model,
+                        "messages": [{"role": "user", "content": [
                             {"type": "text", "text": prompt},
-                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
-                        ]
-                    }],
-                    "max_tokens": 250,
-                    "temperature": 0.2,
-                }
-            )
-        if resp.status_code != 200:
-            print(f"[GROQ VISION] HTTP {resp.status_code}: {resp.text[:200]}")
-            return None
-        text = resp.json()["choices"][0]["message"]["content"]
-        match = re.search(r'\{.*\}', text, re.DOTALL)
-        if match:
-            return json.loads(match.group(0))
-        return None
-    except Exception as e:
-        print(f"[GROQ VISION] Error: {e}")
-        return None
+                            {"type": "image_url", "image_url": {"url": data_url}}
+                        ]}],
+                        "max_tokens": 250,
+                        "temperature": 0.2,
+                    }
+                )
+            if resp.status_code == 200:
+                text = resp.json()["choices"][0]["message"]["content"]
+                match = re.search(r'\{.*\}', text, re.DOTALL)
+                if match:
+                    result = json.loads(match.group(0))
+                    print(f"[GROQ VISION] {model} OK: {result}")
+                    return result
+            else:
+                print(f"[GROQ VISION] {model} HTTP {resp.status_code}: {resp.text[:300]}")
+        except Exception as e:
+            print(f"[GROQ VISION] {model} excepción: {e}")
+
+    return None

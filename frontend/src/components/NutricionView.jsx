@@ -489,6 +489,10 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
       } else if (data.items && data.items.length > 0) {
         setHybridResults(data.items);
         setHybridSource(data.source || '');
+        // Backend corrigió datos viejos incorrectos
+        if (data.corrected && data.previous_cal) {
+          onShowToast?.(`Dato corregido: antes ${data.previous_cal} kcal/100g, ahora ${Math.round(data.items[0]?.cal_100)} kcal/100g 🎯`, 'info');
+        }
       } else {
         setHybridResults([]);
         setHybridSource('none');
@@ -1431,8 +1435,11 @@ setLoggingMulti(false);
               style={{ marginTop: '0.5rem', maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
               {hybridResults.slice(0, 8).map((food, idx) => {
                 const cal = Math.round(food.cal_100);
-                const calColor = cal > 500 ? 'var(--color-danger)' : cal > 300 ? 'var(--color-warning)' : 'var(--color-success)';
-                const calBg = cal > 500 ? 'rgba(239,68,68,0.12)' : cal > 300 ? 'rgba(245,158,11,0.12)' : 'rgba(34,197,94,0.12)';
+                // Dato sospechoso: >280 kcal/100g para comida con nombre de plato casero
+                const isMultiWord = food.nombre?.split(' ').length >= 2;
+                const suspicious = cal > 280 && isMultiWord && !food.marca;
+                const calColor = suspicious ? 'var(--color-danger)' : cal > 250 ? 'var(--color-warning)' : 'var(--color-success)';
+                const calBg = suspicious ? 'rgba(239,68,68,0.12)' : cal > 250 ? 'rgba(245,158,11,0.12)' : 'rgba(34,197,94,0.12)';
                 return (
                   <motion.button
                     key={food.id || idx}
@@ -1442,12 +1449,12 @@ setLoggingMulti(false);
                     whileTap={{ scale: 0.97 }}
                     onClick={() => { setSelectedFood(food); setGramosInput(100); }}
                     style={{
-                      background: 'var(--surface-1)', border: '1px solid var(--color-border)',
+                      background: 'var(--surface-1)', border: `1px solid ${suspicious ? 'rgba(239,68,68,0.2)' : 'var(--color-border)'}`,
                       borderRadius: 'var(--radius-input)', padding: '0.6rem 0.75rem', cursor: 'pointer', textAlign: 'left',
                       display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,201,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(0,201,255,0.2)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-1)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,201,255,0.05)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'var(--surface-1)'; }}
                   >
                     {/* Calorie pill */}
                     <div style={{ flexShrink: 0, background: calBg, border: `1px solid ${calColor}30`, borderRadius: '8px', padding: '0.25rem 0.45rem', textAlign: 'center', minWidth: '40px' }}>
@@ -1456,13 +1463,17 @@ setLoggingMulti(false);
                     </div>
                     {/* Name + macros */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {food.nombre}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {food.nombre}
+                        </div>
+                        {suspicious && <span style={{ fontSize: '0.42rem', fontWeight: 900, color: 'var(--color-danger)', background: 'rgba(239,68,68,0.1)', padding: '0.08rem 0.3rem', borderRadius: '4px', flexShrink: 0 }}>⚠️ VERIFICAR</span>}
                       </div>
                       <div style={{ display: 'flex', gap: '0.55rem', marginTop: '0.2rem', alignItems: 'center' }}>
-                        <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--color-prot)' }}>🥩 P:{Math.round(food.prot_100)}g</span>
-                        <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--color-carb)' }}>🌾 C:{Math.round(food.carb_100)}g</span>
-                        <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--color-danger)' }}>🫙 G:{Math.round(food.fat_100)}g</span>
+                        <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--color-prot)' }}>P:{Math.round(food.prot_100)}g</span>
+                        <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--color-carb)' }}>C:{Math.round(food.carb_100)}g</span>
+                        <span style={{ fontSize: '0.58rem', fontWeight: 700, color: 'var(--color-gras)' }}>G:{Math.round(food.fat_100)}g</span>
+                        <span style={{ fontSize: '0.48rem', color: 'var(--text-muted)' }}>/100g</span>
                       </div>
                     </div>
                     {/* Add button */}

@@ -121,7 +121,13 @@ async def buscar_alimento_hibrido(req: FoodSearchRequest, user: str = Depends(ge
     try:
         result = await busqueda_hibrida(req.perfil, req.query)
         all_items = result["cache"] + result["external"]
-        return {"status": "success", "items": all_items, "source": result["source"]}
+        # Pass natural_items through unchanged
+        if result.get("source") == "natural" and result.get("natural_items"):
+            return {"status": "success", "items": [], "natural_items": result["natural_items"], "source": "natural"}
+        extra = {}
+        if result.get("corrected"):
+            extra = {"corrected": True, "previous_cal": result.get("previous_cal")}
+        return {"status": "success", "items": all_items, "source": result["source"], **extra}
     except Exception as e:
         return {"status": "error", "error": str(e), "items": []}
 

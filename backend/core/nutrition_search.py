@@ -442,6 +442,27 @@ async def busqueda_hibrida(perfil: str, query: str) -> dict:
 
     # ── Paso 1: SQLite cache exacto ──
     cache_results = buscar_alimentos_cache(perfil, query_norm)
+
+    # Sanity check: si el primer resultado de groq parece imposiblemente alto para
+    # un plato casero (ej: arroz con pollo a 356 kcal/100g), re-estimamos con el
+    # prompt mejorado y actualizamos el cache para que el usuario no vea datos malos.
+    if cache_results:
+        top = cache_results[0]
+        es_plato = len(query_norm.split()) >= 2
+        if (top.get("source", "").startswith("groq") and
+                top.get("cal_100", 0) > 280 and es_plato):
+            print(f"[NUTRITION] Cache sospechoso ({top['cal_100']} kcal/100g) para '{query_norm}' — re-estimando")
+            nuevo = await _estimar_con_groq(query_norm)
+            if nuevo and nuevo["cal_100"] < top["cal_100"] * 0.85:
+                guardar_alimento_cache(
+                    perfil=perfil, nombre=nuevo["nombre"], marca="",
+                    cal_100=nuevo["cal_100"], prot_100=nuevo["prot_100"],
+                    carb_100=nuevo["carb_100"], fat_100=nuevo["fat_100"],
+                    source="groq", global_entry=True,
+                )
+                return {"cache": [], "external": [nuevo], "source": "groq",
+                        "corrected": True, "previous_cal": top["cal_100"]}
+
     if len(cache_results) >= 3:
         return {"cache": cache_results, "external": [], "source": "cache"}
 
