@@ -12,6 +12,7 @@ from core.database import (
     obtener_agua_hoy, agregar_agua, resetear_agua,
     obtener_historial_nutricion,
     get_preferencias_usuario, guardar_preferencias_usuario,
+    obtener_comidas_fecha,
 )
 from core.ai import estimar_nutricion_ollama, generar_receta_alacena, analizar_foto_gemini, analizar_foto_groq
 from core.database import guardar_alimento_cache, obtener_alimento_por_id
@@ -236,6 +237,15 @@ def macros_hoy(perfil: str, user: str = Depends(get_current_user)):
 def get_comidas_hoy(perfil: str, user: str = Depends(get_current_user)):
     try:
         comidas = obtener_comidas_hoy(perfil)
+        return {"status": "success", "comidas": comidas}
+    except Exception as e:
+        return {"status": "error", "comidas": [], "error": str(e)}
+
+
+@router.get("/comidas-fecha")
+def get_comidas_fecha(perfil: str, fecha: str, user: str = Depends(get_current_user)):
+    try:
+        comidas = obtener_comidas_fecha(perfil, fecha)
         return {"status": "success", "comidas": comidas}
     except Exception as e:
         return {"status": "error", "comidas": [], "error": str(e)}
