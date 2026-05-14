@@ -206,19 +206,42 @@ def _es_dato_valido(food: dict) -> bool:
     prot = food.get("prot_100", 0)
     carb = food.get("carb_100", 0)
     fat = food.get("fat_100", 0)
+    nombre = (food.get("nombre", "") or "").lower()
+    marca = (food.get("marca", "") or "").lower()
+
     if cal <= 0:
         return False
-    # Los macros no pueden sumar más calorías de las declaradas (margen 30%)
+
+    # Macros no pueden sumar más kcal de las declaradas (margen 2.5×)
     cals_from_macros = prot * 4 + carb * 4 + fat * 9
     if cals_from_macros > 0 and cal > cals_from_macros * 2.5:
         return False
-    # Proteína alta (>5g) + calorías muy altas (>400) = error típico de OFF
-    # (aceites/frutos secos legítimos tienen prot baja)
+
+    # Proteína alta + calorías muy altas = error típico de OFF
     if cal > 400 and prot > 10:
         return False
-    # Total macros no puede exceder 100g/100g por mucho
+
+    # Total macros no puede exceder 100g/100g
     if prot + carb + fat > 130:
         return False
+
+    # Calorías ridículamente bajas para lo que no es agua/bebida sin calorías.
+    # Causa típica: OFF usa datos "por porción preparada" donde 1g de sobre = 100g de líquido.
+    _SIEMPRE_BAJO_CAL = ("agua", "water", "soda", "gaseosa", "refresco", "té ", "te ", "infusion", "café negro", "yerba")
+    if cal < 15 and (prot + carb + fat) < 2:
+        if not any(w in nombre for w in _SIEMPRE_BAJO_CAL):
+            return False
+
+    # Marcas de condimentos/sobres con kcal imposiblemente bajas
+    # (el sobre de Knorr reporta macros del CALDO preparado, no del polvo)
+    _MARCAS_SOBRE = ("knorr", "maggi", "fondor", "royco", "mcormick", "mc cormick", "mccormick", "magi")
+    if cal < 40 and any(b in marca for b in _MARCAS_SOBRE):
+        return False
+
+    # Dato con proteína y grasa en cero pero calorías altas = probablemente incompleto
+    if cal > 80 and prot == 0 and fat == 0 and carb == 0:
+        return False
+
     return True
 
 

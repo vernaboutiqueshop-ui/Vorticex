@@ -1991,6 +1991,65 @@ def guardar_metas_nutricion(perfil: str, cal: float, prot: float, carb: float, f
         conn.commit()
 
 
+# ── USER PREFERENCES ──
+_PREFS_DEFAULTS = {
+    "secciones": {
+        "hidratacion": True,
+        "ayuno": True,
+        "brujula": True,
+        "alacena": True,
+        "historial": True,
+    },
+    "agua_goal": 8,
+}
+
+def _ensure_prefs_table(conn):
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS user_preferences (
+            user_id INTEGER PRIMARY KEY,
+            preferencias TEXT NOT NULL DEFAULT '{}',
+            updated_at TEXT
+        )
+    """)
+
+def get_preferencias_usuario(perfil: str) -> dict:
+    with get_conn() as conn:
+        _ensure_prefs_table(conn)
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
+        user = cur.fetchone()
+        if not user:
+            return _PREFS_DEFAULTS
+        cur.execute("SELECT preferencias FROM user_preferences WHERE user_id = ?", (user["id"],))
+        row = cur.fetchone()
+        if not row:
+            return _PREFS_DEFAULTS
+        try:
+            saved = json.loads(row["preferencias"])
+            merged = {**_PREFS_DEFAULTS, **saved}
+            merged["secciones"] = {**_PREFS_DEFAULTS["secciones"], **saved.get("secciones", {})}
+            return merged
+        except Exception:
+            return _PREFS_DEFAULTS
+
+def guardar_preferencias_usuario(perfil: str, prefs: dict):
+    with get_conn() as conn:
+        _ensure_prefs_table(conn)
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
+        user = cur.fetchone()
+        if not user:
+            return
+        cur.execute("""
+            INSERT INTO user_preferences (user_id, preferencias, updated_at)
+            VALUES (?, ?, datetime('now'))
+            ON CONFLICT(user_id) DO UPDATE SET
+                preferencias = excluded.preferencias,
+                updated_at = excluded.updated_at
+        """, (user["id"], json.dumps(prefs)))
+        conn.commit()
+
+
 # ── WATER TRACKING ──
 def _ensure_water_table():
     with get_conn() as conn:

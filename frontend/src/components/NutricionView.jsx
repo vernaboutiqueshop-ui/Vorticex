@@ -128,6 +128,12 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
   const searchTimers = useRef([]);
   const brujulaRef = useRef(null);
   const searchInputRef = useRef(null);
+  const [showPrefsPanel, setShowPrefsPanel] = useState(false);
+  const [prefs, setPrefs] = useState({
+    secciones: { hidratacion: true, ayuno: true, brujula: true, alacena: true, historial: true },
+    agua_goal: 8,
+  });
+  const [savingPrefs, setSavingPrefs] = useState(false);
   const [registrarTab, setRegistrarTab] = useState('texto'); // 'texto' | 'foto' | 'alacena'
   const [alacena, setAlacena] = useState([]);
   const [newIngrediente, setNewIngrediente] = useState('');
@@ -159,7 +165,7 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
   const [metas, setMetas] = useState({ cal_goal: 2200, prot_goal: 150, carb_goal: 250, fat_goal: 70 });
   const [showMetasEditor, setShowMetasEditor] = useState(false);
   const [waterGlasses, setWaterGlasses] = useState(0);
-  const WATER_GOAL = 8;
+  const WATER_GOAL = prefs.agua_goal || 8;
   const [historial, setHistorial] = useState([]);
 
   const calcularTiempoAyuno = (inicioISO, metaHs) => {
@@ -275,6 +281,28 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
     setHybridSource('');
   };
 
+  const fetchPrefs = () => {
+    authFetch(`${API}/api/nutricion/preferencias?perfil=${perfil}`)
+      .then(r => r.json())
+      .then(d => { if (d.preferencias) setPrefs(d.preferencias); })
+      .catch(() => {});
+  };
+
+  const savePrefs = async (newPrefs) => {
+    setSavingPrefs(true);
+    try {
+      await authFetch(`${API}/api/nutricion/preferencias`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ perfil, preferencias: newPrefs })
+      });
+      setPrefs(newPrefs);
+      onShowToast?.('¡Configuración guardada! La app se adapta a vos 🎯', 'success');
+      setShowPrefsPanel(false);
+    } catch (e) { console.error(e); }
+    setSavingPrefs(false);
+  };
+
   const addWater = async () => {
     try {
       const res = await authFetch(`${API}/api/nutricion/agua`, {
@@ -301,8 +329,9 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
 
   useEffect(() => {
     fetchDashboard();
-fetchAlacena();
+    fetchAlacena();
     fetchRachaAyuno();
+    fetchPrefs();
   }, [perfil]);
 
   useEffect(() => {
@@ -654,6 +683,83 @@ setLoggingMulti(false);
   return (
     <div className="view-container">
 
+      {/* ── PREFERENCES PANEL OVERLAY ── */}
+      <AnimatePresence>
+        {showPrefsPanel && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(5,5,8,0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-end' }}
+            onClick={e => e.target === e.currentTarget && setShowPrefsPanel(false)}
+          >
+            <motion.div
+              initial={{ y: 60, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 60, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+              style={{ width: '100%', maxWidth: 480, margin: '0 auto', background: 'var(--surface-2)', borderRadius: '20px 20px 0 0', padding: '1.25rem 1.1rem', borderTop: '1px solid var(--border-subtle)' }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div>
+                  <div style={{ fontSize: '0.8rem', fontWeight: 900, color: 'var(--text-primary)' }}>Personalizar nutrición</div>
+                  <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', marginTop: '0.1rem' }}>Elegí qué secciones querés ver</div>
+                </div>
+                <button onClick={() => setShowPrefsPanel(false)} style={{ background: 'var(--surface-3)', border: 'none', borderRadius: '50%', width: 28, height: 28, cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={14} />
+                </button>
+              </div>
+
+              {/* Section toggles */}
+              {[
+                { key: 'brujula',     label: 'Brújula Metabólica', desc: 'Anillos de progreso diario' },
+                { key: 'ayuno',       label: 'Ayuno Intermitente',  desc: 'Tracker y etapas' },
+                { key: 'hidratacion', label: 'Hidratación',          desc: 'Contador de vasos de agua' },
+                { key: 'alacena',     label: 'Alacena',              desc: 'Ingredientes y recetas IA' },
+                { key: 'historial',   label: 'Historial semanal',    desc: 'Gráfico de calorías 7 días' },
+              ].map(sec => {
+                const active = prefs.secciones[sec.key] !== false;
+                return (
+                  <div key={sec.key} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>{sec.label}</div>
+                      <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>{sec.desc}</div>
+                    </div>
+                    <motion.button whileTap={{ scale: 0.9 }}
+                      onClick={() => setPrefs(p => ({ ...p, secciones: { ...p.secciones, [sec.key]: !active } }))}
+                      style={{ width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', position: 'relative', padding: 0, background: active ? 'var(--color-primary)' : 'var(--surface-3)', transition: 'background 0.2s', flexShrink: 0 }}
+                    >
+                      <motion.div animate={{ x: active ? 22 : 3 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                        style={{ width: 18, height: 18, borderRadius: '50%', background: active ? '#000' : 'var(--text-muted)', position: 'absolute', top: 3 }} />
+                    </motion.button>
+                  </div>
+                );
+              })}
+
+              {/* Water goal */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.6rem 0', marginTop: '0.1rem' }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-primary)' }}>Meta de agua</div>
+                  <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)' }}>Vasos diarios a alcanzar</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <motion.button whileTap={{ scale: 0.9 }} onClick={() => setPrefs(p => ({ ...p, agua_goal: Math.max(1, (p.agua_goal || 8) - 1) }))}
+                    style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--surface-3)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900, fontSize: '1rem' }}>−</motion.button>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 900, color: 'var(--color-primary)', minWidth: 20, textAlign: 'center' }}>{prefs.agua_goal || 8}</span>
+                  <motion.button whileTap={{ scale: 0.9 }} onClick={() => setPrefs(p => ({ ...p, agua_goal: Math.min(20, (p.agua_goal || 8) + 1) }))}
+                    style={{ width: 26, height: 26, borderRadius: '50%', background: 'var(--surface-3)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900, fontSize: '1rem' }}>+</motion.button>
+                </div>
+              </div>
+
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => savePrefs(prefs)} disabled={savingPrefs}
+                style={{ width: '100%', height: '2.8rem', marginTop: '1rem', borderRadius: '12px', border: 'none', cursor: 'pointer', background: 'var(--color-primary)', color: '#000', fontWeight: 900, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+                {savingPrefs ? <Loader2 size={16} className="spin" /> : '✓ GUARDAR CONFIGURACIÓN'}
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 0. MACRO BAR — clickable, scrolls to Brújula */}
       <motion.div
         initial={{ opacity: 0, y: -8 }}
@@ -686,11 +792,18 @@ setLoggingMulti(false);
             </div>
           );
         })}
-        <ChevronRight size={12} color="var(--text-muted)" style={{ flexShrink: 0 }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', flexShrink: 0 }}>
+          <ChevronRight size={10} color="var(--text-muted)" />
+          <motion.button whileTap={{ scale: 0.88 }}
+            onClick={e => { e.stopPropagation(); setShowPrefsPanel(true); }}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '0.1rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          </motion.button>
+        </div>
       </motion.div>
 
       {/* 1. Brújula Metabólica — Apple Watch Rings */}
-      <motion.div
+      {prefs.secciones.brujula !== false && <motion.div
         ref={brujulaRef}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -796,10 +909,10 @@ setLoggingMulti(false);
             })}
           </div>
         </div>
-      </motion.div>
+      </motion.div>}
 
       {/* 2. Ayuno Intermitente */}
-      <motion.div
+      {prefs.secciones.ayuno !== false && <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
@@ -816,39 +929,36 @@ setLoggingMulti(false);
               </div>
             </div>
 
-            {/* Duration chips with stage label */}
-            <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.85rem', overflowX: 'auto', paddingBottom: '0.1rem' }}>
-              {[{ h: 12, label: 'Glucógeno' }, { h: 14, label: 'Glucógeno' }, { h: 16, label: 'Quema Grasa' }, { h: 18, label: 'Quema Grasa' }, { h: 20, label: 'Cetosis' }, { h: 24, label: 'Cetosis' }].map(({ h, label }) => {
+            {/* Duration chips — minimal, single row */}
+            <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.8rem', overflowX: 'auto' }}>
+              {[12, 14, 16, 18, 20, 24].map(h => {
                 const active = metaHorasLocal === h;
                 const etapaChip = getEtapaActual(h - 0.1);
                 return (
-                  <motion.button key={h} whileTap={{ scale: 0.9 }}
+                  <motion.button key={h} whileTap={{ scale: 0.88 }}
                     onClick={() => { setMetaHorasLocal(h); guardarMetaAyuno(h); }}
                     style={{
-                      flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                      padding: '0.45rem 0.7rem', borderRadius: '12px', cursor: 'pointer',
-                      background: active ? `${etapaChip.color}18` : 'var(--surface-3)',
-                      border: active ? `1.5px solid ${etapaChip.color}50` : '1px solid var(--border-subtle)',
-                      transition: 'all 0.15s',
+                      flexShrink: 0, padding: '0.32rem 0.6rem', borderRadius: '8px', cursor: 'pointer', border: 'none',
+                      background: active ? `${etapaChip.color}1a` : 'var(--surface-3)',
+                      outline: active ? `1.5px solid ${etapaChip.color}60` : '1px solid var(--border-subtle)',
+                      color: active ? etapaChip.color : 'var(--text-secondary)',
+                      fontSize: '0.72rem', fontWeight: 900, transition: 'all 0.12s',
                     }}
                   >
-                    <span style={{ fontSize: '0.85rem', fontWeight: 900, color: active ? etapaChip.color : 'var(--text-primary)', lineHeight: 1 }}>{h}H</span>
-                    <span style={{ fontSize: '0.38rem', fontWeight: 700, color: active ? etapaChip.color : 'var(--text-muted)', marginTop: '0.15rem', letterSpacing: '0.2px' }}>{label.toUpperCase()}</span>
+                    {h}h
                   </motion.button>
                 );
               })}
             </div>
 
-            {/* Start button */}
+            {/* Start button — compact */}
             <motion.button whileTap={{ scale: 0.97 }} onClick={toggleAyuno}
-              style={{ width: '100%', height: '2.8rem', borderRadius: '12px', border: 'none', cursor: 'pointer',
-                background: 'linear-gradient(135deg, var(--color-primary), #0099cc)',
-                color: '#000', fontWeight: 900, fontSize: '0.85rem',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                boxShadow: '0 4px 16px rgba(0,201,255,0.2)',
+              style={{ width: '100%', height: '2.5rem', borderRadius: '10px', border: 'none', cursor: 'pointer',
+                background: 'var(--color-primary)', color: '#000', fontWeight: 900, fontSize: '0.8rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
               }}
             >
-              <MdOutlineTimer size={16} /> INICIAR AYUNO DE {metaHorasLocal}H
+              <MdOutlineTimer size={14} /> Iniciar {metaHorasLocal}h
             </motion.button>
           </div>
         )}
@@ -972,7 +1082,7 @@ setLoggingMulti(false);
             ))}
           </div>
         )}
-      </motion.div>
+      </motion.div>}
 
       {/* 3. LOG DE COMIDAS */}
       {comidasHoy.length > 0 && (
@@ -1449,7 +1559,7 @@ setLoggingMulti(false);
       </motion.div>
 
       {/* 5. ALACENA */}
-      <div style={{ order: 6, background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', borderRadius: '18px', padding: '1rem 1.1rem', borderLeft: '3px solid var(--color-kcal)' }}>
+      {prefs.secciones.alacena !== false && <div style={{ order: 6, background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', borderRadius: '18px', padding: '1rem 1.1rem', borderLeft: '3px solid var(--color-kcal)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
           <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--color-kcal)', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <GiCookingPot size={14} color="var(--color-kcal)" /> ALACENA
@@ -1514,10 +1624,10 @@ setLoggingMulti(false);
             {receta}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* 6. WATER TRACKER */}
-      <motion.div
+      {prefs.secciones.hidratacion !== false && <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
@@ -1607,10 +1717,10 @@ setLoggingMulti(false);
             style={{ height: '100%', borderRadius: 99, background: waterGlasses >= WATER_GOAL ? 'var(--color-success)' : 'linear-gradient(90deg, var(--color-primary), var(--color-accent))' }}
           />
         </div>
-      </motion.div>
+      </motion.div>}
 
       {/* 7. HISTORIAL SEMANAL */}
-      {historial.length > 0 && (
+      {prefs.secciones.historial !== false && historial.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}

@@ -10,9 +10,10 @@ from core.database import (
     eliminar_evento_perfil,
     obtener_metas_nutricion, guardar_metas_nutricion,
     obtener_agua_hoy, agregar_agua, resetear_agua,
-    obtener_historial_nutricion
+    obtener_historial_nutricion,
+    get_preferencias_usuario, guardar_preferencias_usuario,
 )
-from core.ai import estimar_nutricion_ollama, generar_receta_alacena, analizar_foto_gemini
+from core.ai import estimar_nutricion_ollama, generar_receta_alacena, analizar_foto_gemini, analizar_foto_groq
 from core.database import guardar_alimento_cache, obtener_alimento_por_id
 from core.nutrition_search import busqueda_hibrida, normalizar_a_100g
 
@@ -186,17 +187,37 @@ def analizar_texto(req: NutricionTextoRequest, user: str = Depends(get_current_u
 async def analizar_foto(perfil: str, file: UploadFile = File(...), user: str = Depends(get_current_user)):
     try:
         image_bytes = await file.read()
-        resultado = analizar_foto_gemini(image_bytes)
+        # Groq Vision (sin restricción geográfica) → Gemini como fallback
+        resultado = await analizar_foto_groq(image_bytes)
+        if not resultado:
+            resultado = analizar_foto_gemini(image_bytes)
         if resultado:
             guardar_evento(
-                perfil, "Nutricion", resultado.get("descripcion", resultado.get("alimento", "Foto")),
-                "Foto", resultado.get("calorias", 0), resultado.get("proteinas", 0),
+                perfil, "Nutricion",
+                resultado.get("alimento", "Foto"),
+                "Foto",
+                resultado.get("calorias", 0), resultado.get("proteinas", 0),
                 resultado.get("carbos", 0), resultado.get("grasas", 0)
             )
             return {"status": "success", "resultado": resultado}
         return {"status": "error", "error": "No se pudo analizar la foto"}
     except Exception as e:
         return {"status": "error", "error": str(e)}
+
+
+class PreferenciasRequest(BaseModel):
+    perfil: str
+    preferencias: dict
+
+@router.get("/preferencias")
+def get_prefs(perfil: str, user: str = Depends(get_current_user)):
+    prefs = get_preferencias_usuario(perfil)
+    return {"status": "success", "preferencias": prefs}
+
+@router.post("/preferencias")
+def save_prefs(req: PreferenciasRequest, user: str = Depends(get_current_user)):
+    guardar_preferencias_usuario(req.perfil, req.preferencias)
+    return {"status": "success"}
 
 
 @router.get("/macros-hoy")

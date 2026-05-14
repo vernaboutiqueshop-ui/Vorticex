@@ -352,3 +352,47 @@ def analizar_foto_gemini(image_bytes):
     except Exception as e:
         print(f"[IA ERROR foto]: {e}")
         return None
+
+
+async def analizar_foto_groq(image_bytes: bytes) -> dict | None:
+    """Analiza foto de comida via Groq Vision (llama-3.2-11b-vision) — sin restricción geográfica."""
+    import base64, httpx, os, re
+    groq_key = os.getenv("GROQ_API_KEY", "")
+    if not groq_key:
+        return None
+    b64 = base64.b64encode(image_bytes).decode("utf-8")
+    prompt = (
+        "Sos un nutricionista argentino experto. Analizá esta foto de comida. "
+        "Estimá los macros TOTALES para la porción visible en el plato (no por 100g). "
+        "Respondé SOLO JSON sin texto extra: "
+        '{"alimento": "nombre del plato", "calorias": 0, "proteinas": 0, "carbos": 0, "grasas": 0}'
+    )
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                json={
+                    "model": "llama-3.2-11b-vision-preview",
+                    "messages": [{
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}
+                        ]
+                    }],
+                    "max_tokens": 250,
+                    "temperature": 0.2,
+                }
+            )
+        if resp.status_code != 200:
+            print(f"[GROQ VISION] HTTP {resp.status_code}: {resp.text[:200]}")
+            return None
+        text = resp.json()["choices"][0]["message"]["content"]
+        match = re.search(r'\{.*\}', text, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+        return None
+    except Exception as e:
+        print(f"[GROQ VISION] Error: {e}")
+        return None
