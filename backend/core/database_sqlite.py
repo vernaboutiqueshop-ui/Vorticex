@@ -15,6 +15,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(BASE_DIR, "data", "vortice_elite.db")
 
 
+def _migrate_source_column(conn):
+    """Additive migration: add source column to activity_logs if not exists."""
+    try:
+        conn.execute("ALTER TABLE activity_logs ADD COLUMN source TEXT DEFAULT 'manual'")
+        conn.commit()
+    except Exception:
+        pass  # Column already exists
+
+
 def get_conn():
     if not os.path.exists(DB_PATH):
         print(f"[ERROR] Base de datos no encontrada en: {DB_PATH}")
@@ -24,6 +33,7 @@ def get_conn():
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA synchronous=NORMAL;")
     conn.execute("PRAGMA busy_timeout=8000;")
+    _migrate_source_column(conn)
     return conn
 
 
@@ -383,10 +393,10 @@ def guardar_evento(
 
         cur.execute(
             """
-            INSERT INTO activity_logs (user_id, type, description, val1, val2, val3, val4, val5)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO activity_logs (user_id, type, description, val1, val2, val3, val4, val5, source)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-            (u_id, tipo, desc, cal, prot, carb, gras, duration),
+            (u_id, tipo, desc, cal, prot, carb, gras, duration, humor),
         )
         conn.commit()
 
@@ -656,14 +666,36 @@ def obtener_comidas_hoy(perfil: str):
         cur = conn.cursor()
         cur.execute(
             """
-            SELECT id, description as descripcion, val1 as calorias, val2 as proteinas, val3 as carbos, val4 as grasas, timestamp
+            SELECT id, description as descripcion, val1 as calorias, val2 as proteinas,
+                   val3 as carbos, val4 as grasas, timestamp,
+                   COALESCE(source, 'manual') as fuente
             FROM activity_logs
             WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?))
             AND type = 'Nutricion'
             AND date(timestamp) = date('now')
             ORDER BY timestamp DESC
-        """,
+            """,
             (perfil,),
+        )
+        return [dict(r) for r in cur.fetchall()]
+
+
+def obtener_comidas_fecha(perfil: str, fecha: str):
+    """Retorna comidas de una fecha específica (formato YYYY-MM-DD)."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, description as descripcion, val1 as calorias, val2 as proteinas,
+                   val3 as carbos, val4 as grasas, timestamp,
+                   COALESCE(source, 'manual') as fuente
+            FROM activity_logs
+            WHERE user_id = (SELECT id FROM users WHERE LOWER(name) = LOWER(?))
+            AND type = 'Nutricion'
+            AND date(timestamp) = date(?)
+            ORDER BY timestamp DESC
+            """,
+            (perfil, fecha),
         )
         return [dict(r) for r in cur.fetchall()]
 
