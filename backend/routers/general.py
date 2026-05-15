@@ -148,6 +148,7 @@ class RecetaRequest(BaseModel):
     perfil: str
     diet_mode: Optional[str] = None
     ingredientes_seleccionados: Optional[list] = None  # subset to use; None = use all alacena
+    exclude_names: Optional[list] = None  # recipe names already shown — avoid duplicates
 
 
 @router.get("/alacena")
@@ -231,8 +232,10 @@ async def generar_recetas(req: RecetaRequest, user: str = Depends(get_current_us
     if recetas:
         guardar_recetas_cache(recetas, diet_mode=req.diet_mode)
     # Merge: AI results first, then any matching cache
+    exclude = set(req.exclude_names or [])
     seen = {r.get("nombre") for r in recetas}
-    combined = recetas + [r for r in cached if r.get("nombre") not in seen]
+    combined = [r for r in recetas if r.get("nombre") not in exclude]
+    combined += [r for r in cached if r.get("nombre") not in seen and r.get("nombre") not in exclude]
     return {"status": "success", "recetas": combined[:10], "source": "ai"}
 
 
@@ -241,6 +244,78 @@ def validar_receta_endpoint(receta_id: int, user: str = Depends(get_current_user
     """Community upvote: mark a recipe as validated."""
     validar_receta(receta_id)
     return {"status": "success"}
+
+
+class CustomRecipeRequest(BaseModel):
+    perfil: str
+    nombre: str
+    ingredientes_usados: list
+    kcal: float
+    proteinas: float
+    carbos: float
+    grasas: float
+    tiempo_min: int = 20
+    dificultad: str = "Facil"
+    pasos: list
+    emoji: str = "🍳"
+
+
+@router.post("/alacena/receta/validar-custom")
+async def validar_receta_custom(req: CustomRecipeRequest, user: str = Depends(get_current_user)):
+    """AI validates user-submitted recipe: checks macro coherence and step logic.
+    Returns corrected values + approval."""
+    from core.ai import consultar_gemini, clean_json
+    import json as _json
+
+    prompt = f"""Sos un nutricionista argentino experto. Un usuario envio esta receta:
+Nombre: {req.nombre}
+Ingredientes: {', '.join(req.ingredientes_usados)}
+Macros declarados: {req.kcal} kcal, {req.proteinas}g prot, {req.carbos}g carb, {req.grasas}g grasas
+Tiempo: {req.tiempo_min} minutos
+Pasos: {chr(10).join(f'{i+1}. {p}' for i,p in enumerate(req.pasos))}
+
+Analiza si:
+1. Los macros son coherentes con los ingredientes y la porcion (tolerancia 25%)
+2. Los pasos tienen sentido y son suficientes para preparar el plato
+3. El tiempo es razonable
+
+Responde SOLO con este JSON:
+{{
+  "valida": true o false,
+  "confianza": 0-100,
+  "mensaje": "explicacion breve en espanol argentino (max 80 chars)",
+  "ajustes": {{
+    "kcal": numero corregido o null si esta bien,
+    "proteinas": numero o null,
+    "carbos": numero o null,
+    "grasas": numero o null
+  }}
+}}"""
+
+    try:
+        raw = consultar_gemini([{"role": "user", "content": prompt}], formato_json=True)
+        result = _json.loads(clean_json(raw))
+        # If valid, save to recipes table
+        if result.get("valida") and result.get("confianza", 0) >= 60:
+            ajustes = result.get("ajustes", {})
+            receta_final = {
+                "nombre": req.nombre,
+                "emoji": req.emoji,
+                "tiempo_min": req.tiempo_min,
+                "porciones": 1,
+                "ingredientes_usados": req.ingredientes_usados,
+                "kcal": ajustes.get("kcal") or req.kcal,
+                "proteinas": ajustes.get("proteinas") or req.proteinas,
+                "carbos": ajustes.get("carbos") or req.carbos,
+                "grasas": ajustes.get("grasas") or req.grasas,
+                "dificultad": req.dificultad,
+                "pasos": req.pasos,
+            }
+            guardar_recetas_cache([receta_final], diet_mode=None)
+            return {"status": "success", "guardada": True, **result, "receta": receta_final}
+        return {"status": "success", "guardada": False, **result}
+    except Exception as e:
+        return {"status": "error", "error": str(e), "valida": False}
 
 
 # --- Gráficos ---
