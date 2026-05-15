@@ -4,9 +4,15 @@ import { GiTargetArrows } from 'react-icons/gi';
 import { motion } from 'motion/react';
 
 const DIET_PRESETS = {
+  balanceada: { label: 'Balanceada', emoji: '⚖️', cal_goal: 2200, prot_goal: 150, carb_goal: 200, fat_goal: 70 },
   keto:    { label: 'Keto',     emoji: '🥑', cal_goal: 1800, prot_goal: 130, carb_goal: 30,  fat_goal: 140 },
+  low_carb:{ label: 'Low Carb', emoji: '🥩', cal_goal: 2000, prot_goal: 160, carb_goal: 80,  fat_goal: 100 },
+  volumen: { label: 'Volumen',  emoji: '💪', cal_goal: 2800, prot_goal: 200, carb_goal: 350, fat_goal: 80 },
+  paleo:   { label: 'Paleo',    emoji: '🍖', cal_goal: 2100, prot_goal: 170, carb_goal: 100, fat_goal: 110 },
+  mediterranea:{ label: 'Mediterránea', emoji: '🥗', cal_goal: 2100, prot_goal: 140, carb_goal: 200, fat_goal: 80 },
   if:      { label: 'Ayuno IF', emoji: '⏱',  cal_goal: null, prot_goal: null, carb_goal: null, fat_goal: null },
-  sinTACC: { label: 'Sin TACC', emoji: '🌾', cal_goal: null, prot_goal: null, carb_goal: null, fat_goal: null },
+  sinTACC: { label: 'Sin TACC', emoji: '🌾',  cal_goal: null, prot_goal: null, carb_goal: null, fat_goal: null },
+  vegana:  { label: 'Vegana',   emoji: '🌿',  cal_goal: null, prot_goal: null, carb_goal: null, fat_goal: null },
 };
 
 export default function BrujulaSection({ macrosHoy, metas, onSaveMetas, onNavigateTo, dietMode, onDietModeChange }) {
@@ -70,8 +76,14 @@ export default function BrujulaSection({ macrosHoy, metas, onSaveMetas, onNaviga
             </motion.button>
           );
         })}
-        {dietMode === 'if' && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', alignSelf: 'center' }}>Ventana activa</span>}
-        {dietMode === 'sinTACC' && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', alignSelf: 'center' }}>Sin gluten</span>}
+        {dietMode === 'balanceada' && <span style={{ fontSize: '0.52rem', color: 'var(--color-prot)', alignSelf: 'center' }}>Estilo de vida sostenible ⚖️</span>}
+        {dietMode === 'keto' && <span style={{ fontSize: '0.52rem', color: '#F59E0B', alignSelf: 'center' }}>Quemando grasas (Cetosis) 🥑</span>}
+        {dietMode === 'low_carb' && <span style={{ fontSize: '0.52rem', color: 'var(--color-primary)', alignSelf: 'center' }}>Control de insulina activo 🥩</span>}
+        {dietMode === 'volumen' && <span style={{ fontSize: '0.52rem', color: '#ef4444', alignSelf: 'center' }}>Modo construcción: ¡Entrená pesado! 💪</span>}
+        {dietMode === 'paleo' && <span style={{ fontSize: '0.52rem', color: 'var(--color-prot)', alignSelf: 'center' }}>Alimentación ancestral 🍖</span>}
+        {dietMode === 'if' && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', alignSelf: 'center' }}>Ventana de ayuno activa ⏱</span>}
+        {dietMode === 'sinTACC' && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', alignSelf: 'center' }}>100% Libre de gluten 🌾</span>}
+        {dietMode === 'vegana' && <span style={{ fontSize: '0.52rem', color: 'var(--color-prot)', alignSelf: 'center' }}>Plant-based power 🌿</span>}
       </div>
 
       {/* Metas editor */}

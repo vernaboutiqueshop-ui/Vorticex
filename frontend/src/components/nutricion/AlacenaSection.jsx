@@ -4,7 +4,7 @@ import { GiCookingPot, GiMeal } from 'react-icons/gi';
 import { motion } from 'motion/react';
 import API, { authFetch } from '../../config';
 
-export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIngrediente, onShowToast }) {
+export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIngrediente, onShowToast, dietMode }) {
   const [newIngrediente, setNewIngrediente] = useState('');
   const [receta, setReceta] = useState('');
   const [loadingReceta, setLoadingReceta] = useState(false);
@@ -32,7 +32,7 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
       const res = await authFetch(`${API}/api/alacena/receta`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perfil }),
+        body: JSON.stringify({ perfil, diet_mode: dietMode }),
       });
       const data = await res.json();
       if (data.receta) setReceta(data.receta);

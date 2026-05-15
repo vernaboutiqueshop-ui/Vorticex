@@ -2184,6 +2184,15 @@ def _ensure_alimentos_cache_table():
                 FOREIGN KEY (user_id) REFERENCES users(id)
             )
         """)
+        try:
+            conn.execute("ALTER TABLE alimentos_cache ADD COLUMN nombre_en TEXT DEFAULT ''")
+            conn.commit()
+        except Exception: pass
+        try:
+            conn.execute("ALTER TABLE alimentos_cache ADD COLUMN embedding BLOB")
+            conn.commit()
+        except Exception: pass
+
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_alimentos_nombre
             ON alimentos_cache(nombre COLLATE NOCASE)

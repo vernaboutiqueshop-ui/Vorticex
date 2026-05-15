@@ -24,15 +24,30 @@ const FOOD_PLACEHOLDERS = [
   'Ej: lomito completo...',
 ];
 
-const creatinaKey = (perfil) => `vortice_creatina_${perfil}`;
-const getCreatinaHoy = (perfil) => {
+const suplementosKey = (perfil) => `vortice_suplementos_v2_${perfil}`;
+const getSuplementosHoy = (perfil) => {
   try {
-    const data = JSON.parse(localStorage.getItem(creatinaKey(perfil)) || '{}');
+    const data = JSON.parse(localStorage.getItem(suplementosKey(perfil)) || '{}');
     const hoy = new Date().toISOString().split('T')[0];
-    return data.fecha === hoy ? data : { fecha: hoy, tomada: false, dosis: 5 };
-  } catch { return { fecha: new Date().toISOString().split('T')[0], tomada: false, dosis: 5 }; }
+    if (data.fecha === hoy && Array.isArray(data.items)) return data;
+    return { 
+      fecha: hoy, 
+      items: [
+        { id: 'creatina', nombre: 'Creatina', dosis: 5, unidad: 'g', tomada: false },
+        { id: 'proteina', nombre: 'Proteína', dosis: 1, unidad: 'scoop', tomada: false },
+        { id: 'preentreno', nombre: 'Pre-Entreno', dosis: 1, unidad: 'scoop', tomada: false }
+      ]
+    };
+  } catch { return { 
+    fecha: new Date().toISOString().split('T')[0], 
+    items: [
+      { id: 'creatina', nombre: 'Creatina', dosis: 5, unidad: 'g', tomada: false },
+      { id: 'proteina', nombre: 'Proteína', dosis: 1, unidad: 'scoop', tomada: false },
+      { id: 'preentreno', nombre: 'Pre-Entreno', dosis: 1, unidad: 'scoop', tomada: false }
+    ]
+  }; }
 };
-const saveCreatinaHoy = (perfil, data) => localStorage.setItem(creatinaKey(perfil), JSON.stringify(data));
+const saveSuplementosHoy = (perfil, data) => localStorage.setItem(suplementosKey(perfil), JSON.stringify(data));
 
 const parseMultiFood = (text) => {
   const extractFood = (str) => {
@@ -69,7 +84,7 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
   const [analyzingPhoto, setAnalyzingPhoto] = useState(false);
   const [photoDraft, setPhotoDraft] = useState(null);
   const [loggingDraft, setLoggingDraft] = useState(false);
-  const [creatina, setCreatina] = useState(() => getCreatinaHoy(perfil));
+  const [suplementosData, setSuplementosData] = useState(() => getSuplementosHoy(perfil));
 
   const suggestionTimer = useRef(null);
   const searchTimers = useRef([]);
@@ -252,11 +267,25 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
     setLoggingDraft(false);
   };
 
-  const toggleCreatina = () => {
-    const updated = { ...creatina, tomada: !creatina.tomada };
-    setCreatina(updated);
-    saveCreatinaHoy(perfil, updated);
-    if (!creatina.tomada) onShowToast?.(`💊 Creatina ${creatina.dosis}g registrada`, 'success');
+  const toggleSuplemento = (id) => {
+    const newItems = suplementosData.items.map(s => s.id === id ? { ...s, tomada: !s.tomada } : s);
+    const updated = { ...suplementosData, items: newItems };
+    setSuplementosData(updated);
+    saveSuplementosHoy(perfil, updated);
+    const sup = newItems.find(s => s.id === id);
+    if (sup.tomada) onShowToast?.(`💊 ${sup.nombre} registrada`, 'success');
+  };
+
+  const updateSuplementoDosis = (id, delta) => {
+    const newItems = suplementosData.items.map(s => {
+      if (s.id === id) {
+        return { ...s, dosis: Math.max(0.5, s.dosis + delta) };
+      }
+      return s;
+    });
+    const updated = { ...suplementosData, items: newItems };
+    setSuplementosData(updated);
+    saveSuplementosHoy(perfil, updated);
   };
 
   const eliminarComida = async (id) => {
@@ -626,25 +655,30 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
             </motion.div>
           )}
 
-          {/* CREATINA */}
-          {activeChip === 'creatina' && (
-            <motion.div key="creatina" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.15 }}>
-              <div style={{ background: creatina.tomada ? 'rgba(34,197,94,0.08)' : 'var(--surface-3)', border: `1px solid ${creatina.tomada ? 'rgba(34,197,94,0.3)' : 'var(--border-subtle)'}`, borderRadius: '14px', padding: '1rem', textAlign: 'center' }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.4rem' }}>💊</div>
-                <div style={{ fontSize: '0.8rem', fontWeight: 900, color: creatina.tomada ? 'var(--color-prot)' : 'var(--text-primary)', marginBottom: '0.25rem' }}>
-                  {creatina.tomada ? '¡Creatina tomada hoy!' : 'Creatina diaria'}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                  <button onClick={() => setCreatina(p => { const u = { ...p, dosis: Math.max(1, p.dosis - 1) }; saveCreatinaHoy(perfil, u); return u; })}
-                    style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900, fontSize: '1rem' }}>−</button>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--color-primary)', minWidth: 40, textAlign: 'center' }}>{creatina.dosis}g</span>
-                  <button onClick={() => setCreatina(p => { const u = { ...p, dosis: Math.min(20, p.dosis + 1) }; saveCreatinaHoy(perfil, u); return u; })}
-                    style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900, fontSize: '1rem' }}>+</button>
-                </div>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={toggleCreatina}
-                  style={{ width: '100%', height: '2.6rem', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', background: creatina.tomada ? 'rgba(34,197,94,0.15)' : 'var(--color-primary)', color: creatina.tomada ? 'var(--color-prot)' : '#000' }}>
-                  {creatina.tomada ? '✓ Ya la tomé hoy' : '💊 Marcar como tomada'}
-                </motion.button>
+          {/* SUPLEMENTOS */}
+          {activeChip === 'suplementos' && (
+            <motion.div key="suplementos" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.15 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                {suplementosData.items.map(sup => (
+                  <div key={sup.id} style={{ background: sup.tomada ? 'rgba(34,197,94,0.08)' : 'var(--surface-3)', border: `1px solid ${sup.tomada ? 'rgba(34,197,94,0.3)' : 'var(--border-subtle)'}`, borderRadius: '14px', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 900, color: sup.tomada ? 'var(--color-prot)' : 'var(--text-primary)', marginBottom: '0.2rem' }}>
+                        {sup.nombre}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <button onClick={() => updateSuplementoDosis(sup.id, -0.5)}
+                          style={{ width: 24, height: 24, borderRadius: '6px', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900 }}>−</button>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--color-primary)', minWidth: '35px', textAlign: 'center' }}>{sup.dosis}{sup.unidad}</span>
+                        <button onClick={() => updateSuplementoDosis(sup.id, 0.5)}
+                          style={{ width: 24, height: 24, borderRadius: '6px', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900 }}>+</button>
+                      </div>
+                    </div>
+                    <motion.button whileTap={{ scale: 0.95 }} onClick={() => toggleSuplemento(sup.id)}
+                      style={{ width: 'auto', padding: '0.5rem 0.8rem', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem', background: sup.tomada ? 'rgba(34,197,94,0.15)' : 'var(--color-primary)', color: sup.tomada ? 'var(--color-prot)' : '#000' }}>
+                      {sup.tomada ? '✓ LISTO' : 'TOMAR'}
+                    </motion.button>
+                  </div>
+                ))}
               </div>
             </motion.div>
           )}
