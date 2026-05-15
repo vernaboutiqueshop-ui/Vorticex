@@ -609,7 +609,15 @@ def obtener_ayuno(perfil: str):
             (perfil,),
         )
         row = cur.fetchone()
-        return dict(row) if row else {}
+        if not row:
+            return {}
+        d = dict(row)
+        # Normalize field names to what the frontend expects
+        return {
+            "en_ayuno": bool(d.get("is_active", 0)),
+            "inicio": d.get("start_time"),
+            "meta_horas": d.get("hours_goal", 16),
+        }
 
 
 def actualizar_ayuno(perfil: str, en_ayuno: bool, inicio_iso: str, meta_horas: float):
@@ -618,17 +626,19 @@ def actualizar_ayuno(perfil: str, en_ayuno: bool, inicio_iso: str, meta_horas: f
         cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
         res = cur.fetchone()
         u_id = res["id"] if res else 1
-        cur.execute(
-            """
-            INSERT INTO fasting (user_id, start_time, hours_goal, is_active)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(user_id) DO UPDATE SET
-                start_time=excluded.start_time,
-                hours_goal=excluded.hours_goal,
-                is_active=excluded.is_active
-        """,
-            (u_id, inicio_iso, meta_horas, 1 if en_ayuno else 0),
-        )
+        # Check if record exists first (fasting.user_id may not have UNIQUE constraint)
+        cur.execute("SELECT id FROM fasting WHERE user_id = ?", (u_id,))
+        existing = cur.fetchone()
+        if existing:
+            cur.execute(
+                "UPDATE fasting SET start_time=?, hours_goal=?, is_active=? WHERE user_id=?",
+                (inicio_iso, meta_horas, 1 if en_ayuno else 0, u_id),
+            )
+        else:
+            cur.execute(
+                "INSERT INTO fasting (user_id, start_time, hours_goal, is_active) VALUES (?, ?, ?, ?)",
+                (u_id, inicio_iso, meta_horas, 1 if en_ayuno else 0),
+            )
         conn.commit()
 
 
