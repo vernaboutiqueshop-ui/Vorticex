@@ -32,7 +32,7 @@ class NutricionTextoRequest(BaseModel):
 
 class AyunoRequest(BaseModel):
     perfil: str
-    en_ayuno: bool
+    en_ayuno: Optional[bool] = None  # None = solo actualiza meta_horas sin cambiar estado
     inicio_iso: Optional[str] = None
     meta_horas: float = 16
     model_config = {"json_schema_extra": {"example": {
@@ -284,7 +284,14 @@ def get_ayuno(perfil: str, user: str = Depends(get_current_user)):
 
 @router.post("/ayuno")
 def set_ayuno(req: AyunoRequest, user: str = Depends(get_current_user)):
-    actualizar_ayuno(req.perfil, req.en_ayuno, req.inicio_iso, req.meta_horas)
+    en_ayuno = req.en_ayuno
+    inicio_iso = req.inicio_iso
+    if en_ayuno is None:
+        # Solo actualizar meta_horas — preservar estado actual
+        actual = obtener_ayuno(req.perfil)
+        en_ayuno = actual.get("en_ayuno", False) if actual else False
+        inicio_iso = actual.get("inicio") if actual else None
+    actualizar_ayuno(req.perfil, en_ayuno, inicio_iso, req.meta_horas)
     return {"status": "success"}
 
 

@@ -64,6 +64,102 @@ const parseMultiFood = (text) => {
   return [extractFood(text)];
 };
 
+function SuplementosPanel({ suplementosData, setSuplementosData, perfil, onShowToast }) {
+  const [newNombre, setNewNombre] = useState('');
+  const [newDosis, setNewDosis] = useState('');
+
+  const save = (updated) => {
+    setSuplementosData(updated);
+    saveSuplementosHoy(perfil, updated);
+  };
+
+  const toggleSuplemento = (id) => {
+    const newItems = suplementosData.items.map(s => s.id === id ? { ...s, tomada: !s.tomada } : s);
+    const updated = { ...suplementosData, items: newItems };
+    save(updated);
+    const sup = newItems.find(s => s.id === id);
+    if (sup.tomada) onShowToast?.(`💊 ${sup.nombre} registrada`, 'success');
+  };
+
+  const updateDosis = (id, delta) => {
+    const newItems = suplementosData.items.map(s =>
+      s.id === id ? { ...s, dosis: Math.max(0.5, s.dosis + delta) } : s
+    );
+    save({ ...suplementosData, items: newItems });
+  };
+
+  const eliminarSuplemento = (id) => {
+    const newItems = suplementosData.items.filter(s => s.id !== id);
+    save({ ...suplementosData, items: newItems });
+  };
+
+  const agregarSuplemento = () => {
+    if (!newNombre.trim()) return;
+    const isGrams = /g$/.test(newDosis.trim());
+    const dosisNum = parseFloat(newDosis) || 1;
+    const unidad = isGrams ? 'g' : (newDosis.trim() || '1 u');
+    const newItem = {
+      id: Date.now().toString(),
+      nombre: newNombre.trim(),
+      dosis: isGrams ? dosisNum : 1,
+      unidad: isGrams ? 'g' : newDosis.trim() || 'u',
+      tomada: false,
+    };
+    const updated = { ...suplementosData, items: [...suplementosData.items, newItem] };
+    save(updated);
+    setNewNombre('');
+    setNewDosis('');
+  };
+
+  return (
+    <motion.div key="suplementos" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.15 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {suplementosData.items.map(sup => (
+          <motion.div key={sup.id} layout
+            style={{ background: sup.tomada ? 'rgba(34,197,94,0.08)' : 'var(--surface-3)', border: `1px solid ${sup.tomada ? 'rgba(34,197,94,0.3)' : 'var(--border-subtle)'}`, borderRadius: '14px', padding: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 900, color: sup.tomada ? 'var(--color-prot)' : 'var(--text-primary)', marginBottom: '0.2rem' }}>
+                💊 {sup.nombre}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <button onClick={() => updateDosis(sup.id, -0.5)}
+                  style={{ width: 22, height: 22, borderRadius: '6px', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900, fontSize: '0.8rem' }}>−</button>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-primary)', minWidth: '40px', textAlign: 'center' }}>{sup.dosis}{sup.unidad}</span>
+                <button onClick={() => updateDosis(sup.id, 0.5)}
+                  style={{ width: 22, height: 22, borderRadius: '6px', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900, fontSize: '0.8rem' }}>+</button>
+              </div>
+            </div>
+            <motion.button whileTap={{ scale: 0.95 }} onClick={() => toggleSuplemento(sup.id)}
+              style={{ padding: '0.5rem 0.9rem', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '0.7rem', background: sup.tomada ? 'rgba(34,197,94,0.15)' : 'var(--color-primary)', color: sup.tomada ? 'var(--color-prot)' : '#000', flexShrink: 0 }}>
+              {sup.tomada ? '✓ LISTO' : 'TOMAR'}
+            </motion.button>
+            <button onClick={() => eliminarSuplemento(sup.id)}
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '0.2rem', flexShrink: 0 }}>
+              <X size={12} />
+            </button>
+          </motion.div>
+        ))}
+
+        {/* Agregar nuevo suplemento */}
+        <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem' }}>
+          <input value={newNombre} onChange={e => setNewNombre(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
+            className="premium-input" placeholder="Nombre (ej: Omega 3)"
+            style={{ flex: 2, height: '2.4rem', fontSize: '0.78rem' }} />
+          <input value={newDosis} onChange={e => setNewDosis(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
+            className="premium-input" placeholder="Dosis"
+            style={{ flex: 1, height: '2.4rem', fontSize: '0.78rem' }} />
+          <motion.button whileTap={{ scale: 0.9 }} onClick={agregarSuplemento}
+            className="btn-elite" style={{ width: '2.4rem', height: '2.4rem', padding: 0, flexShrink: 0 }}>
+            <Plus size={14} />
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast }) {
   const [activeChip, setActiveChip] = useState('buscar');
   const [searchText, setSearchText] = useState('');
@@ -265,27 +361,6 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
       onRefresh();
     } catch {}
     setLoggingDraft(false);
-  };
-
-  const toggleSuplemento = (id) => {
-    const newItems = suplementosData.items.map(s => s.id === id ? { ...s, tomada: !s.tomada } : s);
-    const updated = { ...suplementosData, items: newItems };
-    setSuplementosData(updated);
-    saveSuplementosHoy(perfil, updated);
-    const sup = newItems.find(s => s.id === id);
-    if (sup.tomada) onShowToast?.(`💊 ${sup.nombre} registrada`, 'success');
-  };
-
-  const updateSuplementoDosis = (id, delta) => {
-    const newItems = suplementosData.items.map(s => {
-      if (s.id === id) {
-        return { ...s, dosis: Math.max(0.5, s.dosis + delta) };
-      }
-      return s;
-    });
-    const updated = { ...suplementosData, items: newItems };
-    setSuplementosData(updated);
-    saveSuplementosHoy(perfil, updated);
   };
 
   const eliminarComida = async (id) => {
@@ -646,41 +721,14 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
             </motion.div>
           )}
 
-          {/* ALACENA hint */}
-          {activeChip === 'alacena' && (
-            <motion.div key="alacena" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.15 }}>
-              <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0.75rem 0' }}>
-                Tocá un ingrediente en tu Alacena para buscarlo aquí 👇
-              </div>
-            </motion.div>
-          )}
-
           {/* SUPLEMENTOS */}
           {activeChip === 'suplementos' && (
-            <motion.div key="suplementos" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.15 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                {suplementosData.items.map(sup => (
-                  <div key={sup.id} style={{ background: sup.tomada ? 'rgba(34,197,94,0.08)' : 'var(--surface-3)', border: `1px solid ${sup.tomada ? 'rgba(34,197,94,0.3)' : 'var(--border-subtle)'}`, borderRadius: '14px', padding: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 900, color: sup.tomada ? 'var(--color-prot)' : 'var(--text-primary)', marginBottom: '0.2rem' }}>
-                        {sup.nombre}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <button onClick={() => updateSuplementoDosis(sup.id, -0.5)}
-                          style={{ width: 24, height: 24, borderRadius: '6px', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900 }}>−</button>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--color-primary)', minWidth: '35px', textAlign: 'center' }}>{sup.dosis}{sup.unidad}</span>
-                        <button onClick={() => updateSuplementoDosis(sup.id, 0.5)}
-                          style={{ width: 24, height: 24, borderRadius: '6px', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900 }}>+</button>
-                      </div>
-                    </div>
-                    <motion.button whileTap={{ scale: 0.95 }} onClick={() => toggleSuplemento(sup.id)}
-                      style={{ width: 'auto', padding: '0.5rem 0.8rem', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem', background: sup.tomada ? 'rgba(34,197,94,0.15)' : 'var(--color-primary)', color: sup.tomada ? 'var(--color-prot)' : '#000' }}>
-                      {sup.tomada ? '✓ LISTO' : 'TOMAR'}
-                    </motion.button>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+            <SuplementosPanel
+              suplementosData={suplementosData}
+              setSuplementosData={setSuplementosData}
+              perfil={perfil}
+              onShowToast={onShowToast}
+            />
           )}
         </AnimatePresence>
 
