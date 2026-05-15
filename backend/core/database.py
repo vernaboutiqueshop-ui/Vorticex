@@ -18,4 +18,6 @@ from core.database_sqlite import (
     buscar_alimentos_cache, guardar_alimento_cache, obtener_alimento_por_id,
     get_preferencias_usuario, guardar_preferencias_usuario,
     obtener_comidas_fecha,
+    guardar_sesion_ayuno, obtener_historial_ayuno,
+    buscar_recetas_por_ingredientes, guardar_recetas_cache, validar_receta,
 )

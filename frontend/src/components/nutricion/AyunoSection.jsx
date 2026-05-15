@@ -25,9 +25,10 @@ export default function AyunoSection({
 }) {
   const etapa = getEtapaActual(horasDecimal);
   const proxima = getProximaEtapa(horasDecimal);
-  const metaH = ayuno.meta_horas || 16;
-  const etapasTimeline = ETAPAS_AYUNO.filter(e => e.min < metaH);
-  const progPct = Math.min((horasDecimal / metaH) * 100, 100);
+  const metaH = ayuno.meta_horas || 0;
+  const isLibre = metaH === 0;
+  const etapasTimeline = ETAPAS_AYUNO.filter(e => e.min < (isLibre ? 24 : metaH));
+  const progPct = isLibre ? Math.min((horasDecimal / 24) * 100, 100) : Math.min((horasDecimal / metaH) * 100, 100);
 
   return (
     <motion.div
@@ -70,14 +71,26 @@ export default function AyunoSection({
             })}
           </div>
 
-          <motion.button whileTap={{ scale: 0.97 }} onClick={onToggle}
-            style={{
-              width: '100%', height: '2.5rem', borderRadius: '10px', border: 'none', cursor: 'pointer',
-              background: 'var(--color-primary)', color: '#000', fontWeight: 900, fontSize: '0.8rem',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-            }}>
-            <MdOutlineTimer size={14} /> Iniciar {metaHorasLocal}h
-          </motion.button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <motion.button whileTap={{ scale: 0.97 }} onClick={onToggle}
+              style={{
+                flex: 1, height: '2.5rem', borderRadius: '10px', border: 'none', cursor: 'pointer',
+                background: 'var(--color-primary)', color: '#000', fontWeight: 900, fontSize: '0.8rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+              }}>
+              <MdOutlineTimer size={14} /> Iniciar {metaHorasLocal > 0 ? `${metaHorasLocal}h` : 'ayuno'}
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.97 }}
+              onClick={() => onToggle(0)}
+              style={{
+                flexShrink: 0, height: '2.5rem', padding: '0 0.75rem', borderRadius: '10px', cursor: 'pointer',
+                background: 'var(--surface-3)', border: '1px solid var(--border-subtle)',
+                color: 'var(--text-secondary)', fontWeight: 800, fontSize: '0.65rem',
+                display: 'flex', alignItems: 'center', gap: '0.3rem',
+              }}>
+              ∞ Libre
+            </motion.button>
+          </div>
         </div>
       )}
 
@@ -91,7 +104,7 @@ export default function AyunoSection({
                 {horasAyunoStr.slice(0, 8)}
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.2rem' }}>
-                <span style={{ fontSize: '0.5rem', color: 'var(--text-muted)', fontWeight: 800 }}>DE {metaH}H</span>
+                <span style={{ fontSize: '0.5rem', color: 'var(--text-muted)', fontWeight: 800 }}>{isLibre ? 'LIBRE ∞' : `DE ${metaH}H`}</span>
                 <div style={{ height: 3, width: 40, background: 'var(--surface-3)', borderRadius: 99, overflow: 'hidden' }}>
                   <motion.div animate={{ width: `${progPct}%` }} transition={{ duration: 1, ease: 'linear' }}
                     style={{ height: '100%', background: etapa.color, borderRadius: 99 }} />
@@ -137,7 +150,7 @@ export default function AyunoSection({
                   <span style={{ fontSize: '0.32rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', maxWidth: 30, overflow: 'hidden', textOverflow: 'ellipsis' }}>{stage.nombre.split(' ')[0]}</span>
                 </div>
               ))}
-              <span style={{ fontSize: '0.38rem', color: horasDecimal >= metaH ? 'var(--color-prot)' : 'var(--text-muted)', fontWeight: 900 }}>{metaH}h ✓</span>
+              {!isLibre && <span style={{ fontSize: '0.38rem', color: horasDecimal >= metaH ? 'var(--color-prot)' : 'var(--text-muted)', fontWeight: 900 }}>{metaH}h ✓</span>}
             </div>
           </div>
 

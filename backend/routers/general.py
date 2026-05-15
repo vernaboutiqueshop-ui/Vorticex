@@ -8,14 +8,15 @@ from core.database import (
     obtener_perfil, guardar_evento,
     obtener_alacena, guardar_en_alacena, eliminar_de_alacena_perfil,
     obtener_entrenamientos_resumen, obtener_eventos_timeline,
-    guardar_rutina, obtener_rutinas, eliminar_rutina_perfil
+    guardar_rutina, obtener_rutinas, eliminar_rutina_perfil,
+    buscar_recetas_por_ingredientes, guardar_recetas_cache, validar_receta,
 )
 from core.database_sqlite import (
     obtener_catalogo_completo, buscar_ejercicios_por_ids,
     buscar_ejercicios_textual, obtener_ultimo_peso
 )
 from core.intelligence import semantic_search_exercises
-from core.ai import generar_rutina_inteligente, generar_receta_alacena
+from core.ai import generar_rutina_inteligente, generar_receta_alacena, generar_recetas_cards
 
 router = APIRouter(prefix="/api", tags=["general"])
 
@@ -178,6 +179,35 @@ async def generar_receta(req: RecetaRequest, user: str = Depends(get_current_use
     ingredientes_txt = ", ".join([i["ingrediente"] for i in items])
     receta = await generar_receta_alacena(req.perfil, ingredientes_txt, diet_mode=req.diet_mode)
     return {"status": "success", "receta": receta}
+
+
+@router.post("/alacena/recetas")
+async def generar_recetas(req: RecetaRequest, user: str = Depends(get_current_user)):
+    """Returns up to 10 structured recipe cards with macros. DB cache → AI fallback."""
+    items = obtener_alacena(req.perfil)
+    if not items:
+        return {"status": "error", "error": "La alacena está vacía"}
+    ingredient_list = [i["ingrediente"] for i in items]
+    ingredientes_txt = ", ".join(ingredient_list)
+
+    # 1. Search DB cache first
+    cached = buscar_recetas_por_ingredientes(ingredient_list, diet_mode=req.diet_mode, limit=10)
+    if len(cached) >= 5:
+        return {"status": "success", "recetas": cached, "source": "cache"}
+
+    # 2. Generate with AI
+    recetas = await generar_recetas_cards(ingredientes_txt, diet_mode=req.diet_mode)
+    if recetas:
+        guardar_recetas_cache(recetas, diet_mode=req.diet_mode)
+    combined = recetas + [r for r in cached if r not in recetas]
+    return {"status": "success", "recetas": combined[:10], "source": "ai"}
+
+
+@router.post("/alacena/receta/validar")
+def validar_receta_endpoint(receta_id: int, user: str = Depends(get_current_user)):
+    """Community upvote: mark a recipe as validated."""
+    validar_receta(receta_id)
+    return {"status": "success"}
 
 
 # --- Gráficos ---
