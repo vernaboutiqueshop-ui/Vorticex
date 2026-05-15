@@ -5,6 +5,7 @@ import { FiEdit3 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'motion/react';
 import API, { authFetch } from '../../config';
 import ActionHub from './ActionHub';
+import FeedbackWidget from './FeedbackWidget';
 
 const SOURCE_BADGE = {
   Cache:  { label: '⚡ Cache',  color: 'var(--color-prot)', bg: 'rgba(34,197,94,0.1)' },
@@ -170,6 +171,7 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
   const [gramosInput, setGramosInput] = useState(100);
   const [loggingFood, setLoggingFood] = useState(false);
   const [logSuccess, setLogSuccess] = useState(null);
+  const [pendingFeedback, setPendingFeedback] = useState(null); // { name, itemType }
   const [searchMsg, setSearchMsg] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -291,6 +293,8 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
         setLogSuccess(food.nombre);
         setTimeout(() => setLogSuccess(null), 1600);
         setSelectedFood(null); setHybridResults([]); setSuggestions([]); setShowSuggestions(false); setSearchText(''); setGramosInput(100);
+        setPendingFeedback({ name: food.nombre, itemType: 'food_search' });
+        setTimeout(() => setPendingFeedback(null), 9000);
         onRefresh();
       }
     } catch {}
@@ -357,7 +361,10 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
         body: JSON.stringify({ perfil, nombre: photoDraft.alimento || 'Comida (foto)', cal_100: photoDraft.calorias, prot_100: photoDraft.proteinas, carb_100: photoDraft.carbos, fat_100: photoDraft.grasas, gramos: 100 }),
       });
       onShowToast?.(`📷 ${photoDraft.alimento || 'Foto'} · ${Math.round(photoDraft.calorias)} kcal`, 'success');
+      const fotoNombre = photoDraft.alimento || 'Foto';
       setPhotoDraft(null);
+      setPendingFeedback({ name: fotoNombre, itemType: 'photo' });
+      setTimeout(() => setPendingFeedback(null), 9000);
       onRefresh();
     } catch {}
     setLoggingDraft(false);
@@ -370,6 +377,44 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+
+      {/* Feedback banner — aparece 9s después de registrar */}
+      <AnimatePresence>
+        {pendingFeedback && (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scaleY: 0.9 }}
+            animate={{ opacity: 1, y: 0, scaleY: 1 }}
+            exit={{ opacity: 0, y: -6, scaleY: 0.9 }}
+            style={{
+              background: 'var(--surface-2)', border: '1px solid var(--border-subtle)',
+              borderRadius: '12px', padding: '0.5rem 0.75rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--text-primary)' }}>
+                ¿{pendingFeedback.name} fue útil?
+              </div>
+              <div style={{ fontSize: '0.5rem', color: 'var(--text-muted)' }}>
+                Tu voto mejora los resultados para todos
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <FeedbackWidget
+                perfil={perfil}
+                itemType={pendingFeedback.itemType}
+                itemKey={pendingFeedback.name}
+                size="sm"
+                onFeedback={() => setTimeout(() => setPendingFeedback(null), 1500)}
+              />
+              <button onClick={() => setPendingFeedback(null)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.1rem' }}>
+                <X size={11} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* LOG HOY */}
       {comidasHoy.length > 0 && (

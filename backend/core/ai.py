@@ -369,7 +369,7 @@ async def generar_receta_alacena(perfil, ings, diet_mode=None):
     return "No se pudo generar la receta. Revisá tu conexión."
 
 
-def _build_recetas_cards_prompt(ings: str, diet_mode: str | None = None) -> str:
+def _build_recetas_cards_prompt(ings: str, diet_mode: str | None = None, feedback_ctx: str = "") -> str:
     diet_context = ""
     if diet_mode:
         contexts = {
@@ -384,13 +384,13 @@ def _build_recetas_cards_prompt(ings: str, diet_mode: str | None = None) -> str:
         diet_context = f" Restriccion de dieta: {contexts.get(diet_mode, diet_mode.upper())}."
     return f"""Sos un nutricionista argentino experto en recetas saludables.
 Ingredientes disponibles: {ings}.{diet_context}
-
-Genera EXACTAMENTE 10 recetas que puedan hacerse con esos ingredientes (podés asumir que tienen condimentos y aceite básicos).
-Respondé ÚNICAMENTE con este JSON array, sin explicaciones ni markdown:
+{feedback_ctx}
+Genera EXACTAMENTE 10 recetas que puedan hacerse con esos ingredientes (podes asumir que tienen condimentos y aceite basicos).
+Responde UNICAMENTE con este JSON array, sin explicaciones ni markdown:
 [
   {{
     "nombre": "Nombre del plato",
-    "emoji": "🍳",
+    "emoji": "una sola emoji del plato",
     "tiempo_min": 15,
     "porciones": 1,
     "ingredientes_usados": ["ingrediente1", "ingrediente2"],
@@ -398,16 +398,31 @@ Respondé ÚNICAMENTE con este JSON array, sin explicaciones ni markdown:
     "proteinas": 30,
     "carbos": 40,
     "grasas": 12,
-    "dificultad": "Fácil",
-    "pasos": ["Paso 1...", "Paso 2...", "Paso 3..."]
+    "dificultad": "Facil",
+    "pasos": ["Paso 1...", "Paso 2...", "Paso 3...", "Paso 4..."]
   }}
 ]
-Estimá macros reales para Argentina (porciones caseras normales). Variá los tipos de plato (desayuno, almuerzo, cena, snack)."""
+Estima macros reales para Argentina (porciones caseras normales). Varia los tipos de plato (desayuno, almuerzo, cena, snack). Minimo 3 pasos por receta."""
 
 
 async def generar_recetas_cards(ings: str, diet_mode: str | None = None) -> list:
-    """Genera 10 recetas estructuradas como cards con macros. Gemini → Groq fallback."""
-    prompt = _build_recetas_cards_prompt(ings, diet_mode)
+    """Genera 10 recetas estructuradas como cards con macros. Gemini → Groq fallback.
+    Inyecta contexto de feedback comunitario para mejorar resultados con el tiempo."""
+    # Inject community feedback context into prompt
+    feedback_ctx = ""
+    try:
+        from core.database_sqlite import obtener_patrones_feedback
+        patrones = obtener_patrones_feedback("recipe", limit=5)
+        top = [p["item_key"] for p in patrones.get("top", [])]
+        worst = [p["item_key"] for p in patrones.get("worst", [])]
+        if top:
+            feedback_ctx += f"\nRecetas que a la comunidad le gustaron mucho: {', '.join(top)}."
+        if worst:
+            feedback_ctx += f"\nEvita estas combinaciones que no funcionaron: {', '.join(worst)}."
+    except Exception as e:
+        print(f"[RECETAS] No se pudo cargar contexto de feedback: {e}")
+
+    prompt = _build_recetas_cards_prompt(ings, diet_mode, feedback_ctx)
 
     raw = consultar_gemini([{"role": "user", "content": prompt}], formato_json=True)
     if raw and not raw.startswith("Error") and raw not in ("ERROR_CUOTA", "ERROR_CONFIG"):
@@ -417,7 +432,7 @@ async def generar_recetas_cards(ings: str, diet_mode: str | None = None) -> list
             print(f"[RECETAS] Gemini parse error: {e}")
 
     print("[RECETAS] Gemini falló, usando Groq...")
-    raw_groq = await _groq_texto(prompt, max_tokens=2000)
+    raw_groq = await _groq_texto(prompt, max_tokens=2500)
     if raw_groq:
         try:
             return json.loads(clean_json(raw_groq))

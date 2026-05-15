@@ -468,6 +468,40 @@ def get_ai_stats(periodo: str = "hoy", current_user: str = Depends(get_current_u
         return {"status": "error", "error": str(e)}
 
 
+# ── AI Feedback System ──
+
+class FeedbackRequest(BaseModel):
+    perfil: str
+    item_type: str   # 'recipe' | 'food_search' | 'photo' | 'chat'
+    item_key: str    # recipe name, food name, or content hash
+    score: int       # +1 or -1
+    context: Optional[dict] = None
+
+
+@router.post("/feedback")
+def submit_feedback(req: FeedbackRequest, user: str = Depends(get_current_user)):
+    """Submit +1 or -1 feedback for any AI result. One vote per user per item (last wins)."""
+    if req.score not in (1, -1):
+        return {"status": "error", "error": "score debe ser 1 o -1"}
+    from core.database_sqlite import guardar_ai_feedback
+    guardar_ai_feedback(req.perfil, req.item_type, req.item_key, req.score, req.context)
+    return {"status": "success"}
+
+
+@router.get("/feedback/score")
+def get_item_score(item_type: str, item_key: str, user: str = Depends(get_current_user)):
+    from core.database_sqlite import obtener_score_item
+    return {"status": "success", **obtener_score_item(item_type, item_key)}
+
+
+@router.get("/admin/ai-feedback-stats")
+def get_ai_feedback_stats(current_user: str = Depends(get_current_user)):
+    if current_user.lower() not in ADMIN_USERS:
+        return {"status": "error", "detail": "No autorizado"}
+    from core.database_sqlite import obtener_stats_ai_feedback
+    return {"status": "success", **obtener_stats_ai_feedback()}
+
+
 # ── Analytics ──
 class AnalyticsEvent(BaseModel):
     event: str
