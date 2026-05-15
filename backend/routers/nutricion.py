@@ -254,23 +254,19 @@ def get_comidas_fecha(perfil: str, fecha: str, user: str = Depends(get_current_u
 @router.get("/dashboard-hoy")
 def get_dashboard_hoy(perfil: str, user: str = Depends(get_current_user)):
     try:
-        macros = obtener_macros_hoy(perfil)
-        comidas = obtener_comidas_hoy(perfil)
-        agua = obtener_agua_hoy(perfil)
-        metas = obtener_metas_nutricion(perfil)
-        ayuno = obtener_ayuno(perfil)
-        historial = obtener_historial_nutricion(perfil, 7)
+        # Consultas rápidas e independientes
         return {
             "status": "success",
-            "macros": macros,
-            "comidas": comidas,
-            "agua": agua,
-            "metas": metas,
-            "ayuno": ayuno,
-            "historial": historial
+            "macros": obtener_macros_hoy(perfil),
+            "comidas": obtener_comidas_hoy(perfil),
+            "agua": obtener_agua_hoy(perfil),
+            "metas": obtener_metas_nutricion(perfil),
+            "ayuno": obtener_ayuno(perfil),
+            "historial": obtener_historial_nutricion(perfil, 7)
         }
     except Exception as e:
-        return {"status": "error", "error": str(e)}
+        print(f"[DASHBOARD ERROR] {e}")
+        return {"status": "error", "error": "Error parcial al cargar el dashboard"}
 
 
 @router.delete("/evento/{evento_id}")
