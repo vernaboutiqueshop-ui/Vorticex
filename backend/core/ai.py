@@ -459,3 +459,32 @@ async def analizar_foto_groq(image_bytes: bytes) -> dict | None:
             print(f"[GROQ VISION] {model} excepción: {e}")
 
     return None
+async def analizar_foto_vortice(image_bytes):
+    """
+    Orquestador inteligente de visión:
+    1. Intenta Groq (Llama 3.2 Vision) - Más rápido y sin bloqueos regionales.
+    2. Fallback a Gemini 1.5 Flash.
+    """
+    print("[VISION] Iniciando análisis inteligente...")
+    
+    # 1. Intentar con GROQ
+    try:
+        resultado_groq = await analizar_foto_groq(image_bytes)
+        if resultado_groq:
+            print("[VISION] Éxito con GROQ")
+            return resultado_groq
+    except Exception as e:
+        print(f"[VISION] Error en GROQ: {e}")
+
+    # 2. Fallback a Gemini
+    print("[VISION] Usando fallback a Gemini...")
+    try:
+        # Nota: analizar_foto_gemini es síncrona en este código
+        resultado_gemini = analizar_foto_gemini(image_bytes)
+        if resultado_gemini:
+            print("[VISION] Éxito con Gemini")
+            return resultado_gemini
+    except Exception as e:
+        print(f"[VISION] Error en Gemini: {e}")
+
+    return None

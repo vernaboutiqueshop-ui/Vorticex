@@ -191,13 +191,11 @@ def analizar_texto(req: NutricionTextoRequest, user: str = Depends(get_current_u
 
 
 @router.post("/analizar-foto")
-async def analizar_foto(perfil: str, file: UploadFile = File(...), user: str = Depends(get_current_user)):
+async def analizar_foto(file: UploadFile = File(...), perfil: str = Form(...), user: str = Depends(get_current_user)):
     try:
+        from core.ai import analizar_foto_vortice
         image_bytes = await file.read()
-        # Groq Vision (sin restricción geográfica) → Gemini como fallback
-        resultado = await analizar_foto_groq(image_bytes)
-        if not resultado:
-            resultado = analizar_foto_gemini(image_bytes)
+        resultado = await analizar_foto_vortice(image_bytes)
         if resultado:
             guardar_evento(
                 perfil, "Nutricion",
@@ -207,8 +205,10 @@ async def analizar_foto(perfil: str, file: UploadFile = File(...), user: str = D
                 resultado.get("carbos", 0), resultado.get("grasas", 0)
             )
             return {"status": "success", "resultado": resultado}
-        return {"status": "error", "error": "No se pudo analizar la foto"}
+        return {"status": "error", "error": "No se pudo analizar la foto con los motores disponibles"}
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return {"status": "error", "error": str(e)}
 
 
