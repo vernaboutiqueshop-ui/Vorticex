@@ -145,6 +145,7 @@ class AlacenaRequest(BaseModel):
 
 class RecetaRequest(BaseModel):
     perfil: str
+    diet_mode: Optional[str] = None
 
 
 @router.get("/alacena")
@@ -175,7 +176,7 @@ def generar_receta(req: RecetaRequest, user: str = Depends(get_current_user)):
     if not items:
         return {"status": "error", "error": "La alacena está vacía"}
     ingredientes_txt = ", ".join([i["ingrediente"] for i in items])
-    receta = generar_receta_alacena(req.perfil, ingredientes_txt)
+    receta = generar_receta_alacena(req.perfil, ingredientes_txt, diet_mode=req.diet_mode)
     return {"status": "success", "receta": receta}
 
 

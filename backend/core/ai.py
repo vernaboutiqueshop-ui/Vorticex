@@ -74,15 +74,19 @@ def _registrar_llamada_ai(modelo: str, prompt: str, respuesta: str, exito: bool 
     status_color = C_GREEN if exito else C_RED
     status_icon = "✓" if exito else "✗"
     ts = datetime.now().strftime("%H:%M:%S")
-    print(
-        f"{C_DIM}{ts}{R}  "
-        f"{C_CYAN}🤖 GEMINI{R}  "
-        f"{C_BOLD}{modelo}{R}  "
-        f"{C_DIM}usuario={R}{C_YELLOW}{_ai_usuario_actual}{R}  "
-        f"{C_DIM}tokens≈{R}{C_BOLD}{tokens_estimados}{R}  "
-        f"{C_DIM}[hoy: {_ai_calls_hoy} calls / {_ai_tokens_hoy} tokens]{R}  "
-        f"{status_color}{status_icon}{R}"
-    )
+    try:
+        print(
+            f"{C_DIM}{ts}{R}  "
+            f"{C_CYAN}AI{R}  "
+            f"{C_BOLD}{modelo}{R}  "
+            f"{C_DIM}user={R}{C_YELLOW}{_ai_usuario_actual}{R}  "
+            f"{C_DIM}tk≈{R}{C_BOLD}{tokens_estimados}{R}  "
+            f"{C_DIM}[hoy: {_ai_calls_hoy} calls / {_ai_tokens_hoy} tokens]{R}  "
+            f"{status_color}{status_icon}{R}"
+        )
+    except UnicodeEncodeError:
+        # Fallback for terminals that don't support emojis/unicode
+        print(f"[{ts}] AI {modelo} user={_ai_usuario_actual} tokens={tokens_estimados} OK={exito}")
     try:
         with sqlite3.connect(_DB_PATH) as conn:
             conn.execute(
@@ -307,8 +311,35 @@ def estimar_nutricion_ollama(alimento):
     try: return json.loads(clean_json(res))
     except: return None
 
-def generar_receta_alacena(perfil, ings):
-    prompt = f"Con estos ingredientes: {ings}, sugiere una receta rápida argentina con toda la onda."
+def generar_receta_alacena(perfil, ings, diet_mode=None):
+    # Contexto de dieta para el prompt
+    diet_context = ""
+    if diet_mode:
+        diet_context = f"\nIMPORTANTE: El usuario sigue una dieta de tipo: {diet_mode.upper()}."
+        if diet_mode == "keto":
+            diet_context += " Prioriza grasas saludables y proteínas. Evita carbohidratos, harinas y azúcares."
+        elif diet_mode == "sinTACC":
+            diet_context += " Asegúrate de que la receta sea 100% libre de gluten (sin trigo, avena, cebada ni centeno)."
+        elif diet_mode == "paleo":
+            diet_context += " Usa solo alimentos naturales (carnes, vegetales, frutas, semillas). Sin procesados ni legumbres."
+        elif diet_mode == "volumen":
+            diet_context += " Sugiere una receta alta en calorías y carbohidratos complejos para ganar masa muscular."
+        elif diet_mode == "vegana":
+            diet_context += " La receta debe ser 100% libre de productos de origen animal."
+
+    prompt = f"""
+    Actúa como un Chef Nutricionista de Élite con mucha onda.
+    Ingredientes disponibles en la alacena: {ings}{diet_context}
+    
+    Genera una receta creativa, rápida y nutritiva usando preferentemente estos ingredientes.
+    Indica:
+    1. Nombre del plato (con emojis).
+    2. Tiempo estimado.
+    3. Breve paso a paso con estilo argentino.
+    4. Por qué es ideal para el perfil del usuario y su dieta.
+    
+    Mantenlo conciso, motivador y con toda la onda.
+    """
     return consultar_gemini([{"role": "user", "content": prompt}])
 
 
@@ -337,7 +368,7 @@ def analizar_foto_gemini(image_bytes):
         )
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash-lite",
+            model="gemini-2.5-flash",
             contents=[
                 types.Content(parts=[
                     types.Part.from_text(text=prompt),
@@ -426,5 +457,34 @@ async def analizar_foto_groq(image_bytes: bytes) -> dict | None:
                 print(f"[GROQ VISION] {model} HTTP {resp.status_code}: {resp.text[:300]}")
         except Exception as e:
             print(f"[GROQ VISION] {model} excepción: {e}")
+
+    return None
+async def analizar_foto_vortice(image_bytes):
+    """
+    Orquestador inteligente de visión:
+    1. Intenta Groq (Llama 3.2 Vision) - Más rápido y sin bloqueos regionales.
+    2. Fallback a Gemini 1.5 Flash.
+    """
+    print("[VISION] Iniciando análisis inteligente...")
+    
+    # 1. Intentar con GROQ
+    try:
+        resultado_groq = await analizar_foto_groq(image_bytes)
+        if resultado_groq:
+            print("[VISION] Éxito con GROQ")
+            return resultado_groq
+    except Exception as e:
+        print(f"[VISION] Error en GROQ: {e}")
+
+    # 2. Fallback a Gemini
+    print("[VISION] Usando fallback a Gemini...")
+    try:
+        # Nota: analizar_foto_gemini es síncrona en este código
+        resultado_gemini = analizar_foto_gemini(image_bytes)
+        if resultado_gemini:
+            print("[VISION] Éxito con Gemini")
+            return resultado_gemini
+    except Exception as e:
+        print(f"[VISION] Error en Gemini: {e}")
 
     return None

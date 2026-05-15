@@ -143,6 +143,8 @@ def _buscar_semantico(query: str, perfil: str, limit: int = 8) -> list:
         # Cosine similarity vectorizado con numpy (muy rápido)
         similitudes = []
         for row in rows:
+            if not row["embedding"]:
+                continue
             db_emb = np.frombuffer(row["embedding"], dtype=np.float32)
             db_norm = np.linalg.norm(db_emb)
             if db_norm == 0:

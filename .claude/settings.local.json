@@ -28,7 +28,8 @@
       "Bash(ping -n 3 179.43.120.62)",
       "Bash(curl -sv --max-time 8 \"http://179.43.120.62/api/health\")",
       "Bash(curl -s --max-time 5 \"http://179.43.120.62:8000/api/health\")",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(mkdir -p C:/Users/Gonzalo/entrenador-ia/docs/superpowers/plans)"
     ]
   }
 }

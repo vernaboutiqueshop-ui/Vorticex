@@ -376,6 +376,7 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
           alacena={alacena}
           onRefresh={fetchAlacena}
           onShowToast={onShowToast}
+          dietMode={prefs.diet_mode}
           onSearchIngrediente={(ingrediente) => {
             window.dispatchEvent(new CustomEvent('vortice:search', { detail: { query: ingrediente } }));
           }}
