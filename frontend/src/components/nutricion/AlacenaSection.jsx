@@ -164,6 +164,14 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
     onRefresh();
   };
 
+  // Sentido común: Si cambian los ingredientes, las recetas viejas ya no valen.
+  useEffect(() => {
+    if (recetas.length > 0) {
+      setRecetas([]);
+      setRecetasSource(null);
+    }
+  }, [alacena.length]);
+
   const pedirRecetas = async () => {
     setLoadingRecetas(true);
     setRecetas([]);
