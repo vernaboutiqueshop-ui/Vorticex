@@ -16,7 +16,7 @@ from core.database import (
 )
 from core.ai import estimar_nutricion_ollama, generar_receta_alacena, analizar_foto_gemini, analizar_foto_groq
 from core.database import guardar_alimento_cache, obtener_alimento_por_id
-from core.nutrition_search import busqueda_hibrida, normalizar_a_100g
+from core.nutrition_search import busqueda_hibrida
 
 router = APIRouter(prefix="/api/nutricion", tags=["nutricion"])
 
@@ -191,7 +191,7 @@ def analizar_texto(req: NutricionTextoRequest, user: str = Depends(get_current_u
 
 
 @router.post("/analizar-foto")
-async def analizar_foto(file: UploadFile = File(...), perfil: str = Form(...), user: str = Depends(get_current_user)):
+async def analizar_foto(perfil: str, file: UploadFile = File(...), user: str = Depends(get_current_user)):
     try:
         from core.ai import analizar_foto_vortice
         image_bytes = await file.read()
