@@ -15,6 +15,7 @@ from core.database import (
     obtener_comidas_fecha,
     guardar_sesion_ayuno, obtener_historial_ayuno,
     buscar_recetas_por_ingredientes, guardar_recetas_cache, validar_receta,
+    guardar_en_cache_global, obtener_trending_alimentos,
 )
 from core.ai import estimar_nutricion_ollama, generar_receta_alacena, analizar_foto_gemini, analizar_foto_groq, generar_recetas_cards
 from core.database import guardar_alimento_cache, obtener_alimento_por_id
@@ -107,6 +108,7 @@ class LogFromCacheRequest(BaseModel):
     carb_100: float = 0
     fat_100: float = 0
     gramos: float = 100
+    source: str = "manual"  # 'foto' | 'ia' | 'groq' | 'natural' | 'openfoodfacts' | 'manual'
     model_config = {"json_schema_extra": {"example": {
         "perfil": "Gonza",
         "nombre": "Arroz integral cocido",
@@ -114,7 +116,8 @@ class LogFromCacheRequest(BaseModel):
         "prot_100": 2.7,
         "carb_100": 25.6,
         "fat_100": 1.0,
-        "gramos": 200
+        "gramos": 200,
+        "source": "ia"
     }}}
 
 
@@ -137,7 +140,7 @@ async def buscar_alimento_hibrido(req: FoodSearchRequest, user: str = Depends(ge
 
 @router.post("/log-from-cache")
 def log_from_cache(req: LogFromCacheRequest, user: str = Depends(get_current_user)):
-    """Log a meal from cache or manual entry. Scales macros by gramos."""
+    """Log a meal. Scales macros by gramos. Saves to global cache when source is AI/foto/external."""
     try:
         cal = req.cal_100
         prot = req.prot_100
@@ -158,12 +161,21 @@ def log_from_cache(req: LogFromCacheRequest, user: str = Depends(get_current_use
         guardar_evento(
             req.perfil, "Nutricion",
             f"{nombre} ({int(req.gramos)}g)",
-            "Cache",
+            req.source.capitalize() if req.source != "manual" else "Cache",
             round(cal * factor, 1),
             round(prot * factor, 1),
             round(carb * factor, 1),
             round(fat * factor, 1),
         )
+
+        # Save to community global cache when food came from AI/external and has no cache entry
+        SOURCES_TO_CACHE = {"foto", "ia", "groq", "natural", "openfoodfacts"}
+        if not req.alimento_id and req.source in SOURCES_TO_CACHE and cal > 0 and nombre.strip():
+            try:
+                guardar_en_cache_global(nombre, cal, prot, carb, fat, source=req.source)
+            except Exception as e:
+                print(f"[CACHE GLOBAL] Error guardando '{nombre}': {e}")
+
         return {"status": "success", "logged": {
             "nombre": nombre, "gramos": req.gramos,
             "calorias": round(cal * factor, 1),
@@ -362,6 +374,14 @@ def reset_agua(req: WaterRequest, user: str = Depends(get_current_user)):
 def get_historial(perfil: str, dias: int = 7, user: str = Depends(get_current_user)):
     data = obtener_historial_nutricion(perfil, dias)
     return {"status": "success", "historial": data}
+
+
+# --- Trending comunitario ---
+@router.get("/trending")
+def get_trending(dias: int = 7, limit: int = 10, user: str = Depends(get_current_user)):
+    """Top foods logged by the community in the last N days. No AI, pure SQL."""
+    data = obtener_trending_alimentos(dias=dias, limit=limit)
+    return {"status": "success", "trending": data, "dias": dias}
 
 
 # --- Alacena ---
