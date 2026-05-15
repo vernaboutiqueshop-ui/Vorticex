@@ -185,8 +185,10 @@ async def generar_receta(req: RecetaRequest, user: str = Depends(get_current_use
 @router.post("/alacena/recetas")
 async def generar_recetas(req: RecetaRequest, user: str = Depends(get_current_user)):
     """Returns up to 10 structured recipe cards with macros. DB cache → AI fallback."""
+    import json as _json
+
     if req.ingredientes_seleccionados:
-        ingredient_list = [str(i) for i in req.ingredientes_seleccionados if i]
+        ingredient_list = [str(i).strip() for i in req.ingredientes_seleccionados if i]
     else:
         items = obtener_alacena(req.perfil)
         if not items:
@@ -194,18 +196,43 @@ async def generar_recetas(req: RecetaRequest, user: str = Depends(get_current_us
         ingredient_list = [i["ingrediente"] for i in items]
     if not ingredient_list:
         return {"status": "error", "error": "Sin ingredientes seleccionados"}
-    ingredientes_txt = ", ".join(ingredient_list)
 
-    # 1. Search DB cache first
-    cached = buscar_recetas_por_ingredientes(ingredient_list, diet_mode=req.diet_mode, limit=10)
-    if len(cached) >= 5:
+    ingredient_lower = {i.lower() for i in ingredient_list}
+    ingredientes_txt = ", ".join(ingredient_list)
+    is_filtered = bool(req.ingredientes_seleccionados)
+
+    def recipe_matches_strict(recipe: dict) -> bool:
+        """True when every ingredient used by the recipe is within the requested list."""
+        try:
+            used = recipe.get("ingredientes_usados") or []
+            if isinstance(used, str):
+                used = _json.loads(used)
+        except Exception:
+            return True  # can't parse → don't discard
+        for ing in used:
+            ing_lower = ing.lower()
+            if not any(ing_lower in req_ing.lower() or req_ing.lower() in ing_lower
+                       for req_ing in ingredient_lower):
+                return False
+        return True
+
+    # 1. Cache: only use when not strictly filtered, OR when cached recipes actually match
+    cached_raw = buscar_recetas_por_ingredientes(ingredient_list, diet_mode=req.diet_mode, limit=20)
+    cached = [r for r in cached_raw if recipe_matches_strict(r)] if is_filtered else cached_raw
+    cached = cached[:10]
+
+    if not is_filtered and len(cached) >= 5:
+        return {"status": "success", "recetas": cached, "source": "cache"}
+    if is_filtered and len(cached) >= 8:
         return {"status": "success", "recetas": cached, "source": "cache"}
 
-    # 2. Generate with AI
-    recetas = await generar_recetas_cards(ingredientes_txt, diet_mode=req.diet_mode)
+    # 2. Generate with AI (strict ingredients)
+    recetas = await generar_recetas_cards(ingredientes_txt, diet_mode=req.diet_mode, strict=is_filtered)
     if recetas:
         guardar_recetas_cache(recetas, diet_mode=req.diet_mode)
-    combined = recetas + [r for r in cached if r not in recetas]
+    # Merge: AI results first, then any matching cache
+    seen = {r.get("nombre") for r in recetas}
+    combined = recetas + [r for r in cached if r.get("nombre") not in seen]
     return {"status": "success", "recetas": combined[:10], "source": "ai"}
 
 
