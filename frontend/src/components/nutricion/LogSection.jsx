@@ -380,7 +380,7 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
       try {
         await authFetch(`${API}/api/nutricion/log-from-cache`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ perfil, nombre: `${item.nombre} (${item.cantidad} ${item.unidad})`, cal_100: item.kcal, prot_100: item.proteinas, carb_100: item.carbos, fat_100: item.grasas, gramos: 100 }),
+          body: JSON.stringify({ perfil, nombre: `${item.nombre} (${item.cantidad} ${item.unidad})`, cal_100: item.kcal, prot_100: item.proteinas, carb_100: item.carbos, fat_100: item.grasas, gramos: 100, source: 'natural' }),
         });
       } catch {}
     }
@@ -415,7 +415,7 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
     try {
       await authFetch(`${API}/api/nutricion/log-from-cache`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perfil, nombre: photoDraft.alimento || 'Comida (foto)', cal_100: photoDraft.calorias, prot_100: photoDraft.proteinas, carb_100: photoDraft.carbos, fat_100: photoDraft.grasas, gramos: 100 }),
+        body: JSON.stringify({ perfil, nombre: photoDraft.alimento || 'Comida (foto)', cal_100: photoDraft.calorias, prot_100: photoDraft.proteinas, carb_100: photoDraft.carbos, fat_100: photoDraft.grasas, gramos: 100, source: 'foto' }),
       });
       onShowToast?.(`📷 ${photoDraft.alimento || 'Foto'} · ${Math.round(photoDraft.calorias)} kcal`, 'success');
       const fotoNombre = photoDraft.alimento || 'Foto';

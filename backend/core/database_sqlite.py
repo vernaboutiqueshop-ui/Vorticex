@@ -2285,6 +2285,60 @@ def obtener_alimento_por_id(perfil: str, alimento_id: int):
         return dict(row) if row else None
 
 
+def guardar_en_cache_global(nombre: str, cal_100: float, prot_100: float,
+                            carb_100: float, fat_100: float, source: str = "ia") -> int | None:
+    """Save or update a food in the community global cache (user_id=NULL).
+    If already exists by name, skips to avoid duplicates.
+    Returns the cache entry id."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        nombre_clean = nombre.strip()
+        # Check if it already exists globally
+        cur.execute("""
+            SELECT id FROM alimentos_cache
+            WHERE user_id IS NULL AND LOWER(nombre) = LOWER(?)
+        """, (nombre_clean,))
+        existing = cur.fetchone()
+        if existing:
+            return existing["id"]
+        # Save new global entry
+        cur.execute("""
+            INSERT INTO alimentos_cache
+            (user_id, nombre, marca, cal_100, prot_100, carb_100, fat_100, fibra_100, source)
+            VALUES (NULL, ?, '', ?, ?, ?, ?, 0, ?)
+        """, (nombre_clean, round(cal_100, 1), round(prot_100, 1),
+              round(carb_100, 1), round(fat_100, 1), source))
+        conn.commit()
+        print(f"[CACHE GLOBAL] '{nombre_clean}' guardado como entrada comunitaria (source={source})")
+        return cur.lastrowid
+
+
+def obtener_trending_alimentos(dias: int = 7, limit: int = 10) -> list:
+    """Returns the most logged foods community-wide in the last N days.
+    Strips the '(Xg)' suffix from description to get clean food names."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT
+                CASE WHEN INSTR(description, ' (') > 0
+                     THEN SUBSTR(description, 1, INSTR(description, ' (') - 1)
+                     ELSE description
+                END as nombre,
+                COUNT(*) as veces,
+                COUNT(DISTINCT user_id) as usuarios,
+                ROUND(AVG(val1), 0) as kcal_promedio
+            FROM activity_logs
+            WHERE type = 'Nutricion'
+              AND timestamp >= date('now', ?)
+              AND description NOT LIKE 'Comida (foto)%'
+            GROUP BY nombre
+            HAVING veces > 1
+            ORDER BY usuarios DESC, veces DESC
+            LIMIT ?
+        """, (f"-{dias} days", limit))
+        return [dict(r) for r in cur.fetchall()]
+
+
 # ── FASTING SESSIONS (historical records) ──
 
 def _ensure_fasting_sessions_table(conn):

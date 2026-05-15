@@ -20,4 +20,5 @@ from core.database_sqlite import (
     obtener_comidas_fecha,
     guardar_sesion_ayuno, obtener_historial_ayuno,
     buscar_recetas_por_ingredientes, guardar_recetas_cache, validar_receta,
+    guardar_en_cache_global, obtener_trending_alimentos,
 )

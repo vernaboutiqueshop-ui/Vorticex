@@ -9,6 +9,7 @@ import HidratacionSection from './nutricion/HidratacionSection';
 import AlacenaSection from './nutricion/AlacenaSection';
 import LogSection from './nutricion/LogSection';
 import CalendarSection from './nutricion/CalendarSection';
+import TrendingSection from './nutricion/TrendingSection';
 
 const calcularTiempoAyuno = (inicioISO, metaHs) => {
   if (!inicioISO) return { str: '00:00:00', pct: 0, hrsDecimal: 0 };
@@ -395,6 +396,13 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
           }}
         />
       )}
+
+      {/* TRENDING COMUNITARIO */}
+      <TrendingSection
+        onSearchFood={(nombre) => {
+          window.dispatchEvent(new CustomEvent('vortice:search', { detail: { query: nombre } }));
+        }}
+      />
 
       {/* HIDRATACIÓN */}
       {prefs.secciones.hidratacion !== false && (
