@@ -126,7 +126,7 @@ def get_ai_stats_hoy() -> dict:
         return {"error": str(e)}
 
 # --- CONFIGURACIÓN DE MOTORES ---
-MODELO_PRINCIPAL = "gemini-2.5-flash"
+MODELO_PRINCIPAL = "gemini-1.5-flash"
 api_key = os.getenv("GEMINI_API_KEY")
 # Buscar archivo JSON de cuenta de servicio (probamos varios nombres posibles)
 JSON_POSIBLES = [
