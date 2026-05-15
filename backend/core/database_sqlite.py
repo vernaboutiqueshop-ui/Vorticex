@@ -2199,7 +2199,13 @@ def _ensure_alimentos_cache_table():
         """)
         conn.commit()
 
-_ensure_alimentos_cache_table()
+# --- Ejecutar migraciones críticas al cargar el módulo ---
+def run_migrations():
+    with get_conn() as conn:
+        _migrate_source_column(conn)
+        _ensure_alimentos_cache_table()
+
+run_migrations()
 
 
 def buscar_alimentos_cache(perfil: str, query: str, limit: int = 15):
