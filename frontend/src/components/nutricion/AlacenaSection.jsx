@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, X, Loader2, ChevronDown, ChevronUp, Sparkles, Save } from 'lucide-react';
 import { GiCookingPot } from 'react-icons/gi';
 import { motion, AnimatePresence } from 'motion/react';
 import API, { authFetch } from '../../config';
 import FeedbackWidget from './FeedbackWidget';
+
+const MAX_RECETAS = 40;
+const PAGE_SIZE = 5;
 
 const FOOD_EMOJI_MAP = {
   huevo: '🥚', leche: '🥛', pollo: '🍗', carne: '🥩', pescado: '🐟', atun: '🐟', salmon: '🐠',
@@ -144,10 +147,16 @@ function RecetaCard({ receta, onLog, idx, perfil, ingredients }) {
 
 export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIngrediente, onShowToast, dietMode, onLogFood }) {
   const [newIngrediente, setNewIngrediente] = useState('');
-  const [recetas, setRecetas] = useState([]);
+  const [allRecetas, setAllRecetas] = useState([]);    // all fetched so far (max 40)
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE); // how many are visible
   const [loadingRecetas, setLoadingRecetas] = useState(false);
-  const [recetasSource, setRecetasSource] = useState(null);
-  const [selectedIds, setSelectedIds] = useState(new Set()); // ingredient IDs selected for recipe search
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  // Add-recipe form
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [customRecipe, setCustomRecipe] = useState({ nombre: '', kcal: '', proteinas: '', carbos: '', grasas: '', tiempo_min: 20, dificultad: 'Facil', pasos: ['', '', ''], emoji: '🍳' });
+  const [validating, setValidating] = useState(false);
+  const [validationResult, setValidationResult] = useState(null);
 
   const toggleSelected = (id) => {
     setSelectedIds(prev => {
@@ -177,37 +186,103 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
     onRefresh();
   };
 
-  // Sentido común: Si cambian los ingredientes, las recetas viejas ya no valen.
+  // Reset cuando cambia la selección de ingredientes
   useEffect(() => {
-    if (recetas.length > 0) {
-      setRecetas([]);
-      setRecetasSource(null);
+    if (allRecetas.length > 0) {
+      setAllRecetas([]);
+      setDisplayCount(PAGE_SIZE);
+      setShowAddForm(false);
+      setValidationResult(null);
     }
-  }, [alacena.length]);
+  }, [alacena.length, selectedIds.size]);
+
+  const getIngredientesSeleccionados = () =>
+    selectedIds.size > 0
+      ? alacena.filter(i => selectedIds.has(i.id)).map(i => i.ingrediente)
+      : alacena.map(i => i.ingrediente);
+
+  const fetchRecetas = async (existing = []) => {
+    const ingsToSearch = getIngredientesSeleccionados();
+    const exclude_names = existing.map(r => r.nombre);
+    const res = await authFetch(`${API}/api/alacena/recetas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        perfil, diet_mode: dietMode,
+        ingredientes_seleccionados: ingsToSearch,
+        exclude_names,
+      }),
+    });
+    const data = await res.json();
+    return data.recetas || [];
+  };
 
   const pedirRecetas = async () => {
     setLoadingRecetas(true);
-    setRecetas([]);
+    setAllRecetas([]);
+    setDisplayCount(PAGE_SIZE);
+    setShowAddForm(false);
+    setValidationResult(null);
     try {
-      const ingsToSearch = selectedIds.size > 0
-        ? alacena.filter(i => selectedIds.has(i.id)).map(i => i.ingrediente)
-        : alacena.map(i => i.ingrediente);
-      const res = await authFetch(`${API}/api/alacena/recetas`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perfil, diet_mode: dietMode, ingredientes_seleccionados: ingsToSearch }),
-      });
-      const data = await res.json();
-      if (data.recetas?.length) {
-        setRecetas(data.recetas);
-        setRecetasSource(data.source);
+      const nuevas = await fetchRecetas([]);
+      if (nuevas.length) {
+        setAllRecetas(nuevas);
       } else {
         onShowToast?.('No se pudieron generar recetas', 'error');
       }
-    } catch {
-      onShowToast?.('Error de conexión', 'error');
-    }
+    } catch { onShowToast?.('Error de conexión', 'error'); }
     setLoadingRecetas(false);
+  };
+
+  const cargarMas = async () => {
+    if (allRecetas.length >= MAX_RECETAS) return;
+    setLoadingMore(true);
+    try {
+      const nuevas = await fetchRecetas(allRecetas);
+      const combined = [...allRecetas, ...nuevas].slice(0, MAX_RECETAS);
+      setAllRecetas(combined);
+      setDisplayCount(prev => Math.min(prev + PAGE_SIZE, combined.length));
+      if (combined.length >= MAX_RECETAS) setShowAddForm(true);
+    } catch {}
+    setLoadingMore(false);
+  };
+
+  const verMas = () => {
+    const next = displayCount + PAGE_SIZE;
+    if (next > allRecetas.length && allRecetas.length < MAX_RECETAS) {
+      cargarMas();
+    } else {
+      setDisplayCount(Math.min(next, allRecetas.length));
+    }
+  };
+
+  const validarRecetaCustom = async () => {
+    setValidating(true);
+    setValidationResult(null);
+    try {
+      const res = await authFetch(`${API}/api/alacena/receta/validar-custom`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          perfil,
+          ...customRecipe,
+          kcal: parseFloat(customRecipe.kcal) || 0,
+          proteinas: parseFloat(customRecipe.proteinas) || 0,
+          carbos: parseFloat(customRecipe.carbos) || 0,
+          grasas: parseFloat(customRecipe.grasas) || 0,
+          ingredientes_usados: getIngredientesSeleccionados(),
+          pasos: customRecipe.pasos.filter(p => p.trim()),
+        }),
+      });
+      const data = await res.json();
+      setValidationResult(data);
+      if (data.guardada) {
+        onShowToast?.('Receta guardada y validada por IA', 'success');
+        setShowAddForm(false);
+        setCustomRecipe({ nombre: '', kcal: '', proteinas: '', carbos: '', grasas: '', tiempo_min: 20, dificultad: 'Facil', pasos: ['', '', ''], emoji: '🍳' });
+      }
+    } catch { onShowToast?.('Error validando', 'error'); }
+    setValidating(false);
   };
 
   const handleLogFood = (receta) => {
@@ -332,26 +407,173 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
         </>
       )}
 
-      {/* Recipe cards */}
+      {/* Recipe cards — paginated */}
       <AnimatePresence>
-        {recetas.length > 0 && (
+        {allRecetas.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             style={{ marginTop: '0.85rem' }}>
+
+            {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--color-kcal)', letterSpacing: '0.5px' }}>
-                {recetas.length} RECETAS {recetasSource === 'cache' ? '· GUARDADAS' : '· GENERADAS POR IA'}
+                {displayCount}/{allRecetas.length} RECETAS
+                {allRecetas.length >= MAX_RECETAS && ' · LÍMITE ALCANZADO'}
               </span>
-              <button onClick={() => setRecetas([])}
+              <button onClick={() => { setAllRecetas([]); setDisplayCount(PAGE_SIZE); setShowAddForm(false); }}
                 style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.6rem' }}>
                 cerrar ×
               </button>
             </div>
+
+            {/* Cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {recetas.map((r, i) => (
-                <RecetaCard key={r.id || i} receta={r} idx={i} onLog={handleLogFood}
-                  perfil={perfil} ingredients={alacena.map(a => a.ingrediente)} />
+              {allRecetas.slice(0, displayCount).map((r, i) => (
+                <RecetaCard key={r.id || r.nombre || i} receta={r} idx={i} onLog={handleLogFood}
+                  perfil={perfil} ingredients={getIngredientesSeleccionados()} />
               ))}
             </div>
+
+            {/* Navigation */}
+            <div style={{ marginTop: '0.6rem', display: 'flex', gap: '0.4rem' }}>
+              {displayCount < allRecetas.length && (
+                <motion.button whileTap={{ scale: 0.95 }} onClick={verMas}
+                  style={{ flex: 1, height: '2rem', borderRadius: '10px', border: '1px solid var(--border-subtle)', background: 'var(--surface-2)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+                  Ver 5 más ({allRecetas.length - displayCount} restantes)
+                </motion.button>
+              )}
+              {displayCount >= allRecetas.length && allRecetas.length < MAX_RECETAS && (
+                <motion.button whileTap={{ scale: 0.95 }} onClick={cargarMas} disabled={loadingMore}
+                  style={{ flex: 1, height: '2rem', borderRadius: '10px', border: '1px solid rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.08)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 800, color: 'var(--color-kcal)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+                  {loadingMore ? <Loader2 size={12} className="spin" /> : <><Sparkles size={12} /> Generar 10 más ({MAX_RECETAS - allRecetas.length} disponibles)</>}
+                </motion.button>
+              )}
+            </div>
+
+            {/* Add recipe CTA — at max */}
+            {(allRecetas.length >= MAX_RECETAS || showAddForm) && (
+              <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                style={{ marginTop: '0.75rem', background: 'rgba(0,201,255,0.05)', border: '1px dashed rgba(0,201,255,0.25)', borderRadius: '12px', padding: '0.75rem' }}>
+                {!showAddForm ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--color-primary)', marginBottom: '0.25rem' }}>
+                      Llegaste al límite de {MAX_RECETAS} recetas
+                    </div>
+                    <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                      ¿Tenés una receta propia? La validamos con IA y la guardamos para toda la comunidad
+                    </div>
+                    <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowAddForm(true)}
+                      className="btn-elite" style={{ height: '2rem', padding: '0 1rem', fontSize: '0.62rem' }}>
+                      <Plus size={12} /> Agregar mi receta
+                    </motion.button>
+                  </div>
+                ) : (
+                  <div>
+                    <div style={{ fontSize: '0.6rem', fontWeight: 900, color: 'var(--color-primary)', marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <GiCookingPot size={12} /> TU RECETA — la IA la valida antes de guardar
+                    </div>
+
+                    {/* Name + emoji */}
+                    <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.4rem' }}>
+                      <input value={customRecipe.emoji} onChange={e => setCustomRecipe(p => ({ ...p, emoji: e.target.value }))}
+                        className="premium-input" style={{ width: '3rem', textAlign: 'center', fontSize: '1.2rem', flexShrink: 0 }} maxLength={2} />
+                      <input value={customRecipe.nombre} onChange={e => setCustomRecipe(p => ({ ...p, nombre: e.target.value }))}
+                        className="premium-input" placeholder="Nombre del plato..." style={{ flex: 1, height: '2.2rem', fontSize: '0.82rem' }} />
+                    </div>
+
+                    {/* Macros grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.35rem', marginBottom: '0.4rem' }}>
+                      {[
+                        { key: 'kcal', label: 'KCAL', color: 'var(--color-kcal)' },
+                        { key: 'proteinas', label: 'PROT g', color: 'var(--color-prot)' },
+                        { key: 'carbos', label: 'CARB g', color: 'var(--color-carb)' },
+                        { key: 'grasas', label: 'GRAS g', color: 'var(--color-gras)' },
+                      ].map(f => (
+                        <div key={f.key}>
+                          <div style={{ fontSize: '0.45rem', fontWeight: 900, color: f.color, marginBottom: '0.15rem' }}>{f.label}</div>
+                          <input type="number" value={customRecipe[f.key]}
+                            onChange={e => setCustomRecipe(p => ({ ...p, [f.key]: e.target.value }))}
+                            className="premium-input" style={{ width: '100%', height: '2rem', fontSize: '0.82rem', textAlign: 'center', color: f.color }} />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Time + difficulty */}
+                    <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.4rem' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.45rem', color: 'var(--text-muted)', fontWeight: 800, marginBottom: '0.15rem' }}>TIEMPO (min)</div>
+                        <input type="number" value={customRecipe.tiempo_min}
+                          onChange={e => setCustomRecipe(p => ({ ...p, tiempo_min: parseInt(e.target.value) || 20 }))}
+                          className="premium-input" style={{ width: '100%', height: '2rem', fontSize: '0.82rem', textAlign: 'center' }} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: '0.45rem', color: 'var(--text-muted)', fontWeight: 800, marginBottom: '0.15rem' }}>DIFICULTAD</div>
+                        <select value={customRecipe.dificultad}
+                          onChange={e => setCustomRecipe(p => ({ ...p, dificultad: e.target.value }))}
+                          className="premium-input" style={{ width: '100%', height: '2rem', fontSize: '0.75rem' }}>
+                          <option value="Facil">Fácil</option>
+                          <option value="Media">Media</option>
+                          <option value="Dificil">Difícil</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Steps */}
+                    <div style={{ marginBottom: '0.5rem' }}>
+                      <div style={{ fontSize: '0.45rem', color: 'var(--text-muted)', fontWeight: 800, marginBottom: '0.25rem' }}>PASOS</div>
+                      {customRecipe.pasos.map((paso, i) => (
+                        <div key={i} style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.25rem', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.55rem', color: 'var(--text-muted)', fontWeight: 900, width: '14px', flexShrink: 0 }}>{i + 1}.</span>
+                          <input value={paso}
+                            onChange={e => {
+                              const updated = [...customRecipe.pasos];
+                              updated[i] = e.target.value;
+                              setCustomRecipe(p => ({ ...p, pasos: updated }));
+                            }}
+                            className="premium-input"
+                            placeholder={`Paso ${i + 1}...`}
+                            style={{ flex: 1, height: '1.9rem', fontSize: '0.72rem' }} />
+                          {customRecipe.pasos.length > 2 && (
+                            <button onClick={() => setCustomRecipe(p => ({ ...p, pasos: p.pasos.filter((_, j) => j !== i) }))}
+                              style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={10} /></button>
+                          )}
+                        </div>
+                      ))}
+                      {customRecipe.pasos.length < 8 && (
+                        <button onClick={() => setCustomRecipe(p => ({ ...p, pasos: [...p.pasos, ''] }))}
+                          style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.55rem', fontWeight: 800 }}>
+                          + Agregar paso
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Validation result */}
+                    {validationResult && (
+                      <div style={{ marginBottom: '0.5rem', padding: '0.5rem 0.6rem', borderRadius: '8px',
+                        background: validationResult.valida ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
+                        border: `1px solid ${validationResult.valida ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}` }}>
+                        <div style={{ fontSize: '0.6rem', fontWeight: 900, color: validationResult.valida ? 'var(--color-prot)' : '#ef4444', marginBottom: '0.15rem' }}>
+                          {validationResult.valida ? '✓ Receta válida' : '✗ La IA no la aprobó'}
+                        </div>
+                        <div style={{ fontSize: '0.55rem', color: 'var(--text-secondary)' }}>{validationResult.mensaje}</div>
+                        {validationResult.guardada && <div style={{ fontSize: '0.52rem', color: 'var(--color-prot)', marginTop: '0.2rem', fontWeight: 800 }}>Guardada para toda la comunidad ✓</div>}
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div style={{ display: 'flex', gap: '0.4rem' }}>
+                      <motion.button whileTap={{ scale: 0.95 }} onClick={validarRecetaCustom} disabled={validating || !customRecipe.nombre.trim()}
+                        className="btn-elite" style={{ flex: 1, height: '2.2rem', fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
+                        {validating ? <Loader2 size={12} className="spin" /> : <><Sparkles size={12} /> Validar con IA</>}
+                      </motion.button>
+                      <button onClick={() => { setShowAddForm(false); setValidationResult(null); }}
+                        style={{ padding: '0 0.6rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--surface-2)', cursor: 'pointer', fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
