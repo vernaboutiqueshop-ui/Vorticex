@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Target, History } from 'lucide-react';
 import { GiTargetArrows } from 'react-icons/gi';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
 const DIET_PRESETS = {
   balanceada: { label: 'Balanceada', emoji: '⚖️', cal_goal: 2200, prot_goal: 150, carb_goal: 200, fat_goal: 70 },
