@@ -58,31 +58,54 @@ export default function BrujulaSection({ macrosHoy, metas, onSaveMetas, onNaviga
       </div>
 
       {/* Diet mode chips — estilo Gym tabs */}
-      <div style={{ background: 'var(--surface-1)', borderRadius: '12px', padding: '0.25rem', marginBottom: '0.75rem', display: 'flex', gap: '0.2rem', overflowX: 'auto', scrollbarWidth: 'none' }}>
-        {Object.entries(DIET_PRESETS).map(([key, preset]) => {
-          const active = dietMode === key;
-          return (
-            <motion.button key={key} whileTap={{ scale: 0.93 }}
-              onClick={() => onDietModeChange(active ? null : key, preset)}
-              style={{
-                flexShrink: 0, padding: '0.38rem 0.7rem', borderRadius: '9px', cursor: 'pointer', border: 'none',
-                fontSize: '0.62rem', fontWeight: 800, whiteSpace: 'nowrap',
-                background: active ? 'var(--color-primary)' : 'transparent',
-                color: active ? '#000' : 'var(--text-muted)',
-                transition: 'all 0.15s',
+      {/* Diet mode chips — estilo Gym tabs */}
+      <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '14px', padding: '0.35rem', marginBottom: '0.85rem', border: '1px solid var(--border-subtle)' }}>
+        <div style={{ display: 'flex', gap: '0.25rem', overflowX: 'auto', scrollbarWidth: 'none', marginBottom: '0.4rem' }}>
+          {Object.entries(DIET_PRESETS).map(([key, preset]) => {
+            const active = dietMode === key;
+            return (
+              <motion.button key={key} whileTap={{ scale: 0.93 }}
+                onClick={() => onDietModeChange(active ? null : key, preset)}
+                style={{
+                  flexShrink: 0, padding: '0.4rem 0.75rem', borderRadius: '10px', cursor: 'pointer', border: 'none',
+                  fontSize: '0.62rem', fontWeight: 800, whiteSpace: 'nowrap',
+                  background: active ? 'var(--color-primary)' : 'var(--surface-3)',
+                  color: active ? '#000' : 'var(--text-muted)',
+                  boxShadow: active ? '0 4px 12px rgba(6, 182, 212, 0.25)' : 'none',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}>
+                {preset.emoji} {preset.label}
+              </motion.button>
+            );
+          })}
+        </div>
+        
+        <AnimatePresence mode="wait">
+          {dietMode && (
+            <motion.div 
+              initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 5 }}
+              style={{ 
+                display: 'flex', alignItems: 'center', gap: '0.4rem', 
+                padding: '0.4rem 0.6rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' 
               }}>
-              {preset.emoji} {preset.label}
-            </motion.button>
-          );
-        })}
-        {dietMode === 'balanceada' && <span style={{ fontSize: '0.52rem', color: 'var(--color-prot)', alignSelf: 'center' }}>Estilo de vida sostenible ⚖️</span>}
-        {dietMode === 'keto' && <span style={{ fontSize: '0.52rem', color: '#F59E0B', alignSelf: 'center' }}>Quemando grasas (Cetosis) 🥑</span>}
-        {dietMode === 'low_carb' && <span style={{ fontSize: '0.52rem', color: 'var(--color-primary)', alignSelf: 'center' }}>Control de insulina activo 🥩</span>}
-        {dietMode === 'volumen' && <span style={{ fontSize: '0.52rem', color: '#ef4444', alignSelf: 'center' }}>Modo construcción: ¡Entrená pesado! 💪</span>}
-        {dietMode === 'paleo' && <span style={{ fontSize: '0.52rem', color: 'var(--color-prot)', alignSelf: 'center' }}>Alimentación ancestral 🍖</span>}
-        {dietMode === 'if' && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', alignSelf: 'center' }}>Ventana de ayuno activa ⏱</span>}
-        {dietMode === 'sinTACC' && <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', alignSelf: 'center' }}>100% Libre de gluten 🌾</span>}
-        {dietMode === 'vegana' && <span style={{ fontSize: '0.52rem', color: 'var(--color-prot)', alignSelf: 'center' }}>Plant-based power 🌿</span>}
+              <span style={{ fontSize: '0.68rem' }}>{DIET_PRESETS[dietMode]?.emoji}</span>
+              <span style={{ fontSize: '0.58rem', fontWeight: 900, color: 'var(--color-primary)', letterSpacing: '0.3px', textTransform: 'uppercase' }}>
+                Modo {DIET_PRESETS[dietMode]?.label}:
+              </span>
+              <span style={{ fontSize: '0.58rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                {dietMode === 'balanceada' && 'Estilo de vida sostenible y equilibrado ⚖️'}
+                {dietMode === 'keto' && 'Maximizando quema de grasas y cetosis 🥑'}
+                {dietMode === 'low_carb' && 'Control de glucemia y saciedad activa 🥩'}
+                {dietMode === 'volumen' && 'Superávit calórico para construcción muscular 💪'}
+                {dietMode === 'paleo' && 'Alimentación basada en raíces ancestrales 🍖'}
+                {dietMode === 'if' && 'Respetando ventanas de ayuno intermitente ⏱'}
+                {dietMode === 'sinTACC' && 'Garantizando una dieta 100% libre de gluten 🌾'}
+                {dietMode === 'vegana' && 'Energía pura a base de plantas y semillas 🌿'}
+                {dietMode === 'mediterranea' && 'Salud cardiovascular con grasas buenas 🥗'}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Metas editor */}

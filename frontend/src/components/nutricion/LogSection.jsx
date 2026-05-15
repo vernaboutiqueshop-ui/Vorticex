@@ -112,49 +112,106 @@ function SuplementosPanel({ suplementosData, setSuplementosData, perfil, onShowT
     setNewDosis('');
   };
 
+  const tomadas = suplementosData.items.filter(s => s.tomada).length;
+  const total = suplementosData.items.length;
+
   return (
     <motion.div key="suplementos" initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={{ duration: 0.15 }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+
+      {/* Progress header */}
+      {total > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
+          <div style={{ flex: 1, height: 3, background: 'var(--surface-hover)', borderRadius: 99, overflow: 'hidden' }}>
+            <motion.div
+              animate={{ width: `${(tomadas / total) * 100}%` }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+              style={{ height: '100%', borderRadius: 99, background: tomadas === total ? 'var(--color-prot)' : 'var(--color-primary)' }}
+            />
+          </div>
+          <span style={{ fontSize: '0.52rem', fontWeight: 900, color: tomadas === total ? 'var(--color-prot)' : 'var(--text-muted)', flexShrink: 0 }}>
+            {tomadas}/{total} {tomadas === total ? '✓' : ''}
+          </span>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
         {suplementosData.items.map(sup => (
           <motion.div key={sup.id} layout
-            style={{ background: sup.tomada ? 'rgba(34,197,94,0.08)' : 'var(--surface-3)', border: `1px solid ${sup.tomada ? 'rgba(34,197,94,0.3)' : 'var(--border-subtle)'}`, borderRadius: '14px', padding: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.78rem', fontWeight: 900, color: sup.tomada ? 'var(--color-prot)' : 'var(--text-primary)', marginBottom: '0.2rem' }}>
-                💊 {sup.nombre}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <button onClick={() => updateDosis(sup.id, -0.5)}
-                  style={{ width: 22, height: 22, borderRadius: '6px', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900, fontSize: '0.8rem' }}>−</button>
-                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--color-primary)', minWidth: '40px', textAlign: 'center' }}>{sup.dosis}{sup.unidad}</span>
-                <button onClick={() => updateDosis(sup.id, 0.5)}
-                  style={{ width: 22, height: 22, borderRadius: '6px', background: 'var(--surface-2)', border: 'none', cursor: 'pointer', color: 'var(--text-primary)', fontWeight: 900, fontSize: '0.8rem' }}>+</button>
+            style={{
+              background: sup.tomada ? 'rgba(34,197,94,0.06)' : 'var(--surface-3)',
+              border: `1px solid ${sup.tomada ? 'rgba(34,197,94,0.25)' : 'var(--border-subtle)'}`,
+              borderRadius: '12px', padding: '0.55rem 0.7rem',
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              transition: 'all 0.25s',
+            }}>
+            {/* Checkbox-style icon */}
+            <div style={{
+              width: 28, height: 28, borderRadius: '8px', flexShrink: 0,
+              background: sup.tomada ? 'rgba(34,197,94,0.15)' : 'var(--surface-2)',
+              border: `1.5px solid ${sup.tomada ? 'rgba(34,197,94,0.4)' : 'var(--border-subtle)'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem',
+            }}>
+              {sup.tomada ? '✓' : '💊'}
+            </div>
+
+            {/* Name */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 900, color: sup.tomada ? 'var(--color-prot)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {sup.nombre}
               </div>
             </div>
-            <motion.button whileTap={{ scale: 0.95 }} onClick={() => toggleSuplemento(sup.id)}
-              style={{ padding: '0.5rem 0.9rem', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '0.7rem', background: sup.tomada ? 'rgba(34,197,94,0.15)' : 'var(--color-primary)', color: sup.tomada ? 'var(--color-prot)' : '#000', flexShrink: 0 }}>
-              {sup.tomada ? '✓ LISTO' : 'TOMAR'}
+
+            {/* Dose stepper — compact inline */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0 }}>
+              <button onClick={() => updateDosis(sup.id, -0.5)}
+                style={{ width: 20, height: 20, borderRadius: '6px', background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', cursor: 'pointer', color: 'var(--text-secondary)', fontWeight: 900, fontSize: '0.75rem', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+              <span style={{ fontSize: '0.68rem', fontWeight: 900, color: 'var(--color-primary)', minWidth: '36px', textAlign: 'center' }}>{sup.dosis}{sup.unidad}</span>
+              <button onClick={() => updateDosis(sup.id, 0.5)}
+                style={{ width: 20, height: 20, borderRadius: '6px', background: 'var(--surface-2)', border: '1px solid var(--border-subtle)', cursor: 'pointer', color: 'var(--text-secondary)', fontWeight: 900, fontSize: '0.75rem', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+            </div>
+
+            {/* TOMAR / LISTO pill */}
+            <motion.button whileTap={{ scale: 0.92 }} onClick={() => toggleSuplemento(sup.id)}
+              style={{
+                padding: '0.32rem 0.7rem', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                fontWeight: 900, fontSize: '0.6rem', flexShrink: 0,
+                background: sup.tomada ? 'rgba(34,197,94,0.15)' : 'var(--color-primary)',
+                color: sup.tomada ? 'var(--color-prot)' : '#000',
+                letterSpacing: '0.3px',
+              }}>
+              {sup.tomada ? '✓ OK' : 'TOMAR'}
             </motion.button>
+
             <button onClick={() => eliminarSuplemento(sup.id)}
-              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '0.2rem', flexShrink: 0 }}>
-              <X size={12} />
+              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '0.15rem', flexShrink: 0, opacity: 0.6 }}>
+              <X size={11} />
             </button>
           </motion.div>
         ))}
 
-        {/* Agregar nuevo suplemento */}
-        <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem' }}>
-          <input value={newNombre} onChange={e => setNewNombre(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
-            className="premium-input" placeholder="Nombre (ej: Omega 3)"
-            style={{ flex: 2, height: '2.4rem', fontSize: '0.78rem' }} />
-          <input value={newDosis} onChange={e => setNewDosis(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
-            className="premium-input" placeholder="Dosis"
-            style={{ flex: 1, height: '2.4rem', fontSize: '0.78rem' }} />
-          <motion.button whileTap={{ scale: 0.9 }} onClick={agregarSuplemento}
-            className="btn-elite" style={{ width: '2.4rem', height: '2.4rem', padding: 0, flexShrink: 0 }}>
-            <Plus size={14} />
-          </motion.button>
+        {/* Add new supplement box */}
+        <div style={{ 
+          background: 'rgba(255,255,255,0.02)', 
+          border: '1px dashed var(--border-subtle)', 
+          borderRadius: '14px', 
+          padding: '0.75rem',
+          marginTop: '0.4rem'
+        }}>
+          <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--text-muted)', marginBottom: '0.5rem', letterSpacing: '0.5px' }}>AGREGAR OTRO</div>
+          <div style={{ display: 'flex', gap: '0.4rem' }}>
+            <input value={newNombre} onChange={e => setNewNombre(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
+              className="premium-input" placeholder="Nombre (ej: Omega 3)"
+              style={{ flex: 2, height: '2.4rem', fontSize: '0.75rem' }} />
+            <input value={newDosis} onChange={e => setNewDosis(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
+              className="premium-input" placeholder="Dosis"
+              style={{ flex: 1, height: '2.4rem', fontSize: '0.75rem' }} />
+            <motion.button whileTap={{ scale: 0.9 }} onClick={agregarSuplemento}
+              className="btn-elite" style={{ width: '2.4rem', height: '2.4rem', padding: 0, flexShrink: 0 }}>
+              <Plus size={16} />
+            </motion.button>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -733,33 +790,64 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
               <AnimatePresence>
                 {photoDraft && (
                   <motion.div initial={{ opacity: 0, y: 8, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8 }}
-                    style={{ background: 'rgba(0,201,255,0.05)', border: '1px solid rgba(0,201,255,0.2)', borderRadius: '14px', padding: '0.9rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-                      <div style={{ fontSize: '0.62rem', fontWeight: 900, color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        <FiEdit3 size={12} /> REVISÁ Y AJUSTÁ SI ES NECESARIO
+                    style={{ background: 'var(--surface-2)', border: '1px solid rgba(0,201,255,0.18)', borderRadius: '16px', overflow: 'hidden' }}>
+
+                    {/* Header bar */}
+                    <div style={{ background: 'rgba(0,201,255,0.07)', padding: '0.55rem 0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,201,255,0.12)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <Camera size={12} color="var(--color-primary)" />
+                        <span style={{ fontSize: '0.58rem', fontWeight: 900, color: 'var(--color-primary)', letterSpacing: '0.4px' }}>IA DETECTÓ · AJUSTÁ SI HACE FALTA</span>
                       </div>
-                      <button onClick={() => setPhotoDraft(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={14} /></button>
+                      <button onClick={() => setPhotoDraft(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '0.1rem' }}><X size={13} /></button>
                     </div>
-                    <input value={photoDraft.alimento || ''} onChange={e => setPhotoDraft(p => ({ ...p, alimento: e.target.value }))}
-                      className="premium-input" placeholder="Nombre del plato..."
-                      style={{ width: '100%', height: '2.2rem', fontSize: '0.82rem', marginBottom: '0.6rem' }} />
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', marginBottom: '0.6rem' }}>
-                      {[{ key: 'calorias', label: 'Kcal', color: 'var(--color-kcal)', unit: '' }, { key: 'proteinas', label: 'Proteínas', color: 'var(--color-prot)', unit: 'g' }, { key: 'carbos', label: 'Carbos', color: 'var(--color-carb)', unit: 'g' }, { key: 'grasas', label: 'Grasas', color: 'var(--color-gras)', unit: 'g' }].map(f => (
-                        <div key={f.key}>
-                          <div style={{ fontSize: '0.5rem', fontWeight: 800, color: f.color, marginBottom: '0.15rem' }}>{f.label.toUpperCase()}</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                            <input type="number" value={Math.round(photoDraft[f.key] || 0)}
-                              onChange={e => setPhotoDraft(p => ({ ...p, [f.key]: parseFloat(e.target.value) || 0 }))}
-                              className="premium-input" style={{ flex: 1, height: '2rem', fontSize: '0.82rem', textAlign: 'center', color: f.color }} />
-                            {f.unit && <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{f.unit}</span>}
+
+                    <div style={{ padding: '1rem 1.1rem' }}>
+                      <input 
+                        value={photoDraft.alimento} 
+                        onChange={e => setPhotoDraft(p => ({ ...p, alimento: e.target.value }))}
+                        className="premium-input"
+                        placeholder="Nombre del alimento..."
+                        style={{ width: '100%', height: '3rem', fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem', textAlign: 'center' }} 
+                      />
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginBottom: '1.25rem' }}>
+                        {[
+                          { key: 'calorias',  label: 'KCAL',      color: 'var(--color-kcal)', border: 'rgba(245,158,11,0.25)', unit: '' },
+                          { key: 'proteinas', label: 'PROTEÍNAS', color: 'var(--color-prot)', border: 'rgba(34,197,94,0.25)',  unit: 'g' },
+                          { key: 'carbos',    label: 'CARBOS',    color: 'var(--color-carb)', border: 'rgba(0,201,255,0.25)',  unit: 'g' },
+                          { key: 'grasas',    label: 'GRASAS',    color: 'var(--color-gras)', border: 'rgba(167,139,250,0.25)', unit: 'g' },
+                        ].map(f => (
+                          <div key={f.key} style={{ 
+                            background: 'rgba(255,255,255,0.02)', 
+                            border: `1px solid ${f.border}`, 
+                            borderRadius: '14px', 
+                            padding: '0.6rem 0.75rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center'
+                          }}>
+                            <div style={{ fontSize: '0.5rem', fontWeight: 900, color: f.color, marginBottom: '0.2rem', letterSpacing: '0.6px' }}>{f.label}</div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.1rem' }}>
+                              <input type="number" value={Math.round(photoDraft[f.key] || 0)}
+                                onChange={e => setPhotoDraft(p => ({ ...p, [f.key]: parseFloat(e.target.value) || 0 }))}
+                                style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '1.25rem', fontWeight: 900, color: '#fff', textAlign: 'center', width: '60px', padding: 0 }} />
+                              {f.unit && <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 700 }}>{f.unit}</span>}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+
+                      <motion.button whileTap={{ scale: 0.96 }} onClick={confirmarDraft} disabled={loggingDraft}
+                        style={{
+                          width: '100%', height: '3.2rem', borderRadius: '16px', border: 'none', cursor: 'pointer',
+                          background: loggingDraft ? 'var(--surface-3)' : 'var(--color-primary)',
+                          color: '#000', fontWeight: 900, fontSize: '0.85rem',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
+                          boxShadow: '0 4px 20px rgba(0,201,255,0.15)'
+                        }}>
+                        {loggingDraft ? <Loader2 size={16} className="spin" /> : <><Plus size={18} /> CONFIRMAR REGISTRO</>}
+                      </motion.button>
                     </div>
-                    <motion.button whileTap={{ scale: 0.96 }} onClick={confirmarDraft} disabled={loggingDraft} className="btn-elite"
-                      style={{ width: '100%', height: '2.6rem', fontSize: '0.8rem', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
-                      {loggingDraft ? <Loader2 size={14} className="spin" /> : <><Plus size={14} /> CONFIRMAR Y REGISTRAR</>}
-                    </motion.button>
                   </motion.div>
                 )}
               </AnimatePresence>
