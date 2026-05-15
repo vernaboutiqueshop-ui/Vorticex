@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { GiCookingPot } from 'react-icons/gi';
 import { motion, AnimatePresence } from 'motion/react';
