@@ -440,7 +440,7 @@ function AppContent() {
         <ErrorBoundary>
         <Suspense fallback={<TabLoader />}>
           <div style={{ display: activeTab === 'nutricion' ? 'block' : 'none' }}>
-            {mountedTabs.nutricion && (isAdmin ? <NutricionView perfil={perfil} onNavigateTo={setActiveTab} onShowToast={toast} /> : <ComingSoon label={t('nutrition')} />)}
+            {mountedTabs.nutricion && <NutricionView perfil={perfil} onNavigateTo={setActiveTab} onShowToast={toast} />}
           </div>
           <div style={{ display: activeTab === 'gym' ? 'block' : 'none' }}>
             {mountedTabs.gym && <GymView perfil={perfil} onStartSession={handleStartSession} sessionActive={sessionActive} sessionResult={sessionResult} onClearResult={() => { setSessionResult(null); }} />}
