@@ -2366,23 +2366,33 @@ def _ensure_recipes_table(conn):
 
 
 def buscar_recetas_por_ingredientes(ingredientes: list[str], diet_mode: str | None = None, limit: int = 10) -> list:
-    """Search cached recipes that match the given ingredients."""
+    """Search cached recipes that match the given ingredients, ranked by Wilson score + ingredient overlap."""
     with get_conn() as conn:
         _ensure_recipes_table(conn)
+        _ensure_ai_feedback_table(conn)
         cur = conn.cursor()
+        # Load recipes with their feedback scores via LEFT JOIN
         if diet_mode:
             cur.execute("""
-                SELECT * FROM recipes
-                WHERE (diet_mode = ? OR diet_mode IS NULL)
-                ORDER BY validaciones DESC, created_at DESC
+                SELECT r.*,
+                       COALESCE(SUM(CASE WHEN f.score=1 THEN 1 ELSE 0 END), 0) as fb_pos,
+                       COALESCE(SUM(CASE WHEN f.score=-1 THEN 1 ELSE 0 END), 0) as fb_neg
+                FROM recipes r
+                LEFT JOIN ai_feedback f ON f.item_type='recipe' AND f.item_key=r.nombre
+                WHERE (r.diet_mode = ? OR r.diet_mode IS NULL)
+                GROUP BY r.id
                 LIMIT ?
-            """, (diet_mode, limit * 3))
+            """, (diet_mode, limit * 4))
         else:
             cur.execute("""
-                SELECT * FROM recipes
-                ORDER BY validaciones DESC, created_at DESC
+                SELECT r.*,
+                       COALESCE(SUM(CASE WHEN f.score=1 THEN 1 ELSE 0 END), 0) as fb_pos,
+                       COALESCE(SUM(CASE WHEN f.score=-1 THEN 1 ELSE 0 END), 0) as fb_neg
+                FROM recipes r
+                LEFT JOIN ai_feedback f ON f.item_type='recipe' AND f.item_key=r.nombre
+                GROUP BY r.id
                 LIMIT ?
-            """, (limit * 3,))
+            """, (limit * 4,))
         all_rows = [dict(r) for r in cur.fetchall()]
 
     if not all_rows:
@@ -2390,17 +2400,29 @@ def buscar_recetas_por_ingredientes(ingredientes: list[str], diet_mode: str | No
 
     lower_ings = [i.lower() for i in ingredientes]
 
-    def score(recipe):
+    def ranking_score(recipe):
+        # Ingredient overlap (0-N)
         try:
             recipe_ings = json.loads(recipe.get("ingredientes_usados", "[]"))
         except Exception:
             recipe_ings = []
         recipe_lower = [ri.lower() for ri in recipe_ings]
-        matches = sum(1 for i in lower_ings if any(i in ri or ri in i for ri in recipe_lower))
-        return matches
+        overlap = sum(1 for i in lower_ings if any(i in ri or ri in i for ri in recipe_lower))
 
-    scored = sorted(all_rows, key=score, reverse=True)
-    top = scored[:limit]
+        # Wilson score from community feedback (0-1)
+        pos = recipe.get("fb_pos", 0) + recipe.get("validaciones", 0)
+        neg = recipe.get("fb_neg", 0)
+        wilson = _wilson_lower_bound(pos, neg)
+
+        # Hide items with strong negative signal (score_neto < -3)
+        if (pos - neg) < -3:
+            return -999
+
+        # Combined: overlap weight × 2 + wilson × 5 (feedback matters more over time)
+        return overlap * 2 + wilson * 5
+
+    scored = sorted(all_rows, key=ranking_score, reverse=True)
+    top = [r for r in scored if ranking_score(r) > -999][:limit]
 
     result = []
     for r in top:
@@ -2412,6 +2434,8 @@ def buscar_recetas_por_ingredientes(ingredientes: list[str], diet_mode: str | No
             r["pasos"] = json.loads(r.get("pasos", "[]"))
         except Exception:
             r["pasos"] = []
+        # Add community score to response
+        r["community_score"] = r.get("fb_pos", 0) - r.get("fb_neg", 0)
         result.append(r)
     return result
 
@@ -2448,3 +2472,203 @@ def validar_receta(receta_id: int):
         _ensure_recipes_table(conn)
         conn.execute("UPDATE recipes SET validaciones = validaciones + 1 WHERE id = ?", (receta_id,))
         conn.commit()
+
+
+# ── AI FEEDBACK SYSTEM ──
+
+import math as _math
+
+def _wilson_lower_bound(positivos: int, negativos: int, z: float = 1.96) -> float:
+    """Wilson score lower bound — conservative ranking for items with few votes."""
+    n = positivos + negativos
+    if n == 0:
+        return 0.0
+    p = positivos / n
+    score = (p + z*z/(2*n) - z*_math.sqrt((p*(1-p) + z*z/(4*n))/n)) / (1 + z*z/n)
+    return round(score, 4)
+
+
+def _ensure_ai_feedback_table(conn):
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS ai_feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            perfil TEXT NOT NULL,
+            item_type TEXT NOT NULL,
+            item_key TEXT NOT NULL,
+            score INTEGER NOT NULL CHECK(score IN (1, -1)),
+            context_json TEXT DEFAULT '{}',
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+    try:
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_feedback_type_key ON ai_feedback(item_type, item_key)")
+    except Exception:
+        pass
+    conn.commit()
+
+
+def guardar_ai_feedback(perfil: str, item_type: str, item_key: str, score: int, context: dict | None = None):
+    """Save +1 or -1 feedback for any AI-generated item (recipe, search, photo, chat)."""
+    with get_conn() as conn:
+        _ensure_ai_feedback_table(conn)
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
+        user = cur.fetchone()
+        uid = user["id"] if user else None
+        import json as _json
+        # Only one feedback per user per item — upsert
+        cur.execute("""
+            SELECT id FROM ai_feedback WHERE perfil = LOWER(?) AND item_type = ? AND item_key = ?
+        """, (perfil.lower(), item_type, item_key))
+        existing = cur.fetchone()
+        if existing:
+            cur.execute("UPDATE ai_feedback SET score=?, created_at=datetime('now') WHERE id=?",
+                        (score, existing["id"]))
+        else:
+            cur.execute("""
+                INSERT INTO ai_feedback (user_id, perfil, item_type, item_key, score, context_json)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (uid, perfil.lower(), item_type, item_key, score,
+                  _json.dumps(context or {}, ensure_ascii=False)))
+        conn.commit()
+
+
+def obtener_score_item(item_type: str, item_key: str) -> dict:
+    """Get aggregated score + wilson bound for a specific item."""
+    with get_conn() as conn:
+        _ensure_ai_feedback_table(conn)
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT
+                COUNT(CASE WHEN score = 1 THEN 1 END) as positivos,
+                COUNT(CASE WHEN score = -1 THEN 1 END) as negativos,
+                COUNT(*) as total
+            FROM ai_feedback
+            WHERE item_type = ? AND item_key = ?
+        """, (item_type, item_key))
+        row = cur.fetchone()
+        pos = row["positivos"] or 0
+        neg = row["negativos"] or 0
+        return {
+            "positivos": pos,
+            "negativos": neg,
+            "total": row["total"] or 0,
+            "score_neto": pos - neg,
+            "wilson_score": _wilson_lower_bound(pos, neg),
+        }
+
+
+def obtener_patrones_feedback(item_type: str, limit: int = 5) -> dict:
+    """Returns top-rated and worst-rated patterns for use in AI prompts."""
+    with get_conn() as conn:
+        _ensure_ai_feedback_table(conn)
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT item_key,
+                   COUNT(CASE WHEN score = 1 THEN 1 END) as pos,
+                   COUNT(CASE WHEN score = -1 THEN 1 END) as neg,
+                   COUNT(*) as total
+            FROM ai_feedback
+            WHERE item_type = ?
+            GROUP BY item_key
+            HAVING total >= 2
+            ORDER BY (pos - neg) DESC
+            LIMIT ?
+        """, (item_type, limit))
+        top = [dict(r) for r in cur.fetchall()]
+
+        cur.execute("""
+            SELECT item_key,
+                   COUNT(CASE WHEN score = 1 THEN 1 END) as pos,
+                   COUNT(CASE WHEN score = -1 THEN 1 END) as neg,
+                   COUNT(*) as total
+            FROM ai_feedback
+            WHERE item_type = ?
+            GROUP BY item_key
+            HAVING total >= 2
+            ORDER BY (pos - neg) ASC
+            LIMIT ?
+        """, (item_type, limit))
+        worst = [dict(r) for r in cur.fetchall()]
+        return {"top": top, "worst": worst}
+
+
+def obtener_stats_ai_feedback() -> dict:
+    """Admin stats: feedback breakdown by type, top/worst items, daily trend."""
+    import json as _json
+    with get_conn() as conn:
+        _ensure_ai_feedback_table(conn)
+        cur = conn.cursor()
+
+        # Resumen por tipo
+        cur.execute("""
+            SELECT item_type,
+                   COUNT(*) as total,
+                   COUNT(CASE WHEN score=1 THEN 1 END) as positivos,
+                   COUNT(CASE WHEN score=-1 THEN 1 END) as negativos
+            FROM ai_feedback
+            GROUP BY item_type
+            ORDER BY total DESC
+        """)
+        por_tipo = [dict(r) for r in cur.fetchall()]
+
+        # Top 10 items con mejor wilson score (mín 3 votos)
+        cur.execute("""
+            SELECT item_type, item_key,
+                   COUNT(CASE WHEN score=1 THEN 1 END) as pos,
+                   COUNT(CASE WHEN score=-1 THEN 1 END) as neg,
+                   COUNT(*) as total
+            FROM ai_feedback
+            GROUP BY item_type, item_key
+            HAVING total >= 3
+            ORDER BY (pos - neg) DESC
+            LIMIT 10
+        """)
+        top_items = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["wilson"] = _wilson_lower_bound(d["pos"], d["neg"])
+            top_items.append(d)
+
+        # Bottom 10 items
+        cur.execute("""
+            SELECT item_type, item_key,
+                   COUNT(CASE WHEN score=1 THEN 1 END) as pos,
+                   COUNT(CASE WHEN score=-1 THEN 1 END) as neg,
+                   COUNT(*) as total
+            FROM ai_feedback
+            GROUP BY item_type, item_key
+            HAVING total >= 2
+            ORDER BY (pos - neg) ASC
+            LIMIT 10
+        """)
+        worst_items = []
+        for r in cur.fetchall():
+            d = dict(r)
+            d["wilson"] = _wilson_lower_bound(d["pos"], d["neg"])
+            worst_items.append(d)
+
+        # Trend últimos 7 días
+        cur.execute("""
+            SELECT date(created_at) as fecha,
+                   COUNT(CASE WHEN score=1 THEN 1 END) as positivos,
+                   COUNT(CASE WHEN score=-1 THEN 1 END) as negativos
+            FROM ai_feedback
+            WHERE created_at >= date('now', '-7 days')
+            GROUP BY fecha
+            ORDER BY fecha
+        """)
+        trend = [dict(r) for r in cur.fetchall()]
+
+        # Total general
+        cur.execute("SELECT COUNT(*) as total, COUNT(DISTINCT perfil) as usuarios FROM ai_feedback")
+        totales = dict(cur.fetchone())
+
+        return {
+            "totales": totales,
+            "por_tipo": por_tipo,
+            "top_items": top_items,
+            "worst_items": worst_items,
+            "trend_7d": trend,
+        }

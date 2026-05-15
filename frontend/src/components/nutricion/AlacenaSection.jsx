@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Plus, X, Loader2, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { Plus, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { GiCookingPot } from 'react-icons/gi';
 import { motion, AnimatePresence } from 'motion/react';
 import API, { authFetch } from '../../config';
+import FeedbackWidget from './FeedbackWidget';
 
 const FOOD_EMOJI_MAP = {
   huevo: '🥚', leche: '🥛', pollo: '🍗', carne: '🥩', pescado: '🐟', atun: '🐟', salmon: '🐠',
@@ -22,9 +23,8 @@ const getEmoji = (nombre) => {
 
 const DIFICULTAD_COLOR = { 'Fácil': 'var(--color-prot)', 'Media': 'var(--color-kcal)', 'Difícil': '#ef4444' };
 
-function RecetaCard({ receta, onLog, idx }) {
+function RecetaCard({ receta, onLog, idx, perfil, ingredients }) {
   const [open, setOpen] = useState(false);
-  const [validated, setValidated] = useState(false);
 
   const handleLog = () => {
     onLog?.({
@@ -34,13 +34,6 @@ function RecetaCard({ receta, onLog, idx }) {
       carbos: receta.carbos,
       grasas: receta.grasas,
     });
-  };
-
-  const handleValidate = async () => {
-    if (receta.id && !validated) {
-      await authFetch(`${API}/api/alacena/receta/validar?receta_id=${receta.id}`, { method: 'POST' });
-      setValidated(true);
-    }
   };
 
   return (
@@ -80,7 +73,15 @@ function RecetaCard({ receta, onLog, idx }) {
           <span style={{ fontSize: '0.48rem', fontWeight: 800, color: DIFICULTAD_COLOR[receta.dificultad] || 'var(--text-muted)', background: 'var(--surface-1)', padding: '0.1rem 0.35rem', borderRadius: '6px' }}>
             {receta.dificultad}
           </span>
-          <span style={{ fontSize: '0.48rem', color: 'var(--text-muted)' }}>{receta.tiempo_min}min</span>
+          <div style={{ display: 'flex', gap: '0.2rem', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.48rem', color: 'var(--text-muted)' }}>{receta.tiempo_min}min</span>
+            {receta.community_score > 0 && (
+              <span style={{ fontSize: '0.45rem', color: 'var(--color-prot)', fontWeight: 900 }}>+{receta.community_score}</span>
+            )}
+            {receta.community_score < 0 && (
+              <span style={{ fontSize: '0.45rem', color: '#ef4444', fontWeight: 900 }}>{receta.community_score}</span>
+            )}
+          </div>
         </div>
         {open ? <ChevronUp size={14} color="var(--text-muted)" /> : <ChevronDown size={14} color="var(--text-muted)" />}
       </button>
@@ -120,21 +121,18 @@ function RecetaCard({ receta, onLog, idx }) {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '0.4rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <motion.button whileTap={{ scale: 0.95 }} onClick={handleLog}
                   className="btn-elite"
                   style={{ flex: 1, height: '2rem', fontSize: '0.62rem' }}>
-                  + Registrar en log
+                  + Registrar
                 </motion.button>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={handleValidate}
-                  style={{
-                    flexShrink: 0, height: '2rem', padding: '0 0.6rem', borderRadius: '8px', cursor: 'pointer', border: 'none',
-                    background: validated ? 'rgba(34,197,94,0.12)' : 'var(--surface-2)',
-                    color: validated ? 'var(--color-prot)' : 'var(--text-muted)',
-                    fontSize: '0.6rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.25rem',
-                  }}>
-                  <Check size={11} /> {validated ? 'Validada' : 'Validar'}
-                </motion.button>
+                <FeedbackWidget
+                  perfil={perfil}
+                  itemType="recipe"
+                  itemKey={receta.nombre}
+                  context={{ diet_mode: null, ingredients }}
+                />
               </div>
             </div>
           </motion.div>
@@ -278,7 +276,8 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {recetas.map((r, i) => (
-                <RecetaCard key={r.id || i} receta={r} idx={i} onLog={handleLogFood} />
+                <RecetaCard key={r.id || i} receta={r} idx={i} onLog={handleLogFood}
+                  perfil={perfil} ingredients={alacena.map(a => a.ingrediente)} />
               ))}
             </div>
           </motion.div>
