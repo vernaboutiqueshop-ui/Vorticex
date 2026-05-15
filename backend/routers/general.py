@@ -147,6 +147,7 @@ class AlacenaRequest(BaseModel):
 class RecetaRequest(BaseModel):
     perfil: str
     diet_mode: Optional[str] = None
+    ingredientes_seleccionados: Optional[list] = None  # subset to use; None = use all alacena
 
 
 @router.get("/alacena")
@@ -184,10 +185,15 @@ async def generar_receta(req: RecetaRequest, user: str = Depends(get_current_use
 @router.post("/alacena/recetas")
 async def generar_recetas(req: RecetaRequest, user: str = Depends(get_current_user)):
     """Returns up to 10 structured recipe cards with macros. DB cache → AI fallback."""
-    items = obtener_alacena(req.perfil)
-    if not items:
-        return {"status": "error", "error": "La alacena está vacía"}
-    ingredient_list = [i["ingrediente"] for i in items]
+    if req.ingredientes_seleccionados:
+        ingredient_list = [str(i) for i in req.ingredientes_seleccionados if i]
+    else:
+        items = obtener_alacena(req.perfil)
+        if not items:
+            return {"status": "error", "error": "La alacena está vacía"}
+        ingredient_list = [i["ingrediente"] for i in items]
+    if not ingredient_list:
+        return {"status": "error", "error": "Sin ingredientes seleccionados"}
     ingredientes_txt = ", ".join(ingredient_list)
 
     # 1. Search DB cache first
