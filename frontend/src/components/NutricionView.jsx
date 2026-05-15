@@ -389,6 +389,16 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
           waterGlasses={waterGlasses}
           waterGoal={prefs.agua_goal || 8}
           onAddWater={addWater}
+          onGoalChange={async (newGoal) => {
+            const newPrefs = { ...prefs, agua_goal: newGoal };
+            setPrefs(newPrefs);
+            try {
+              await authFetch(`${API}/api/nutricion/preferencias`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ perfil, preferencias: newPrefs }),
+              });
+            } catch {}
+          }}
         />
       )}
 

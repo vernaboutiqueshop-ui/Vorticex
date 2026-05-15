@@ -57,19 +57,18 @@ export default function BrujulaSection({ macrosHoy, metas, onSaveMetas, onNaviga
         </div>
       </div>
 
-      {/* Diet mode chips */}
-      <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.75rem', overflowX: 'auto' }}>
+      {/* Diet mode chips — estilo Gym tabs */}
+      <div style={{ background: 'var(--surface-1)', borderRadius: '12px', padding: '0.25rem', marginBottom: '0.75rem', display: 'flex', gap: '0.2rem', overflowX: 'auto', scrollbarWidth: 'none' }}>
         {Object.entries(DIET_PRESETS).map(([key, preset]) => {
           const active = dietMode === key;
           return (
-            <motion.button key={key} whileTap={{ scale: 0.9 }}
+            <motion.button key={key} whileTap={{ scale: 0.93 }}
               onClick={() => onDietModeChange(active ? null : key, preset)}
               style={{
-                flexShrink: 0, padding: '0.25rem 0.65rem', borderRadius: '20px', cursor: 'pointer', border: 'none',
-                fontSize: '0.62rem', fontWeight: 800,
-                background: active ? 'rgba(0,201,255,0.15)' : 'var(--surface-3)',
-                color: active ? 'var(--color-primary)' : 'var(--text-muted)',
-                outline: active ? '1.5px solid rgba(0,201,255,0.4)' : '1px solid var(--border-subtle)',
+                flexShrink: 0, padding: '0.38rem 0.7rem', borderRadius: '9px', cursor: 'pointer', border: 'none',
+                fontSize: '0.62rem', fontWeight: 800, whiteSpace: 'nowrap',
+                background: active ? 'var(--color-primary)' : 'transparent',
+                color: active ? '#000' : 'var(--text-muted)',
                 transition: 'all 0.15s',
               }}>
               {preset.emoji} {preset.label}

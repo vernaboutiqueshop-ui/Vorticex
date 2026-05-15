@@ -1,12 +1,10 @@
 import { Search, Camera } from 'lucide-react';
-import { GiCookingPot } from 'react-icons/gi';
 import { motion } from 'motion/react';
 
 const CHIPS = [
-  { id: 'buscar',   label: 'Buscar',   Icon: Search,      iconSize: 13 },
-  { id: 'foto',     label: 'Foto',     Icon: Camera,      iconSize: 13 },
-  { id: 'alacena',  label: 'Alacena',  Icon: GiCookingPot, iconSize: 13 },
-  { id: 'suplementos', label: 'Suplementos 💊', Icon: null,     iconSize: 13 },
+  { id: 'buscar',      label: 'Buscar',        Icon: Search, iconSize: 13 },
+  { id: 'foto',        label: 'Foto',           Icon: Camera, iconSize: 13 },
+  { id: 'suplementos', label: 'Suplementos 💊', Icon: null,   iconSize: 13 },
 ];
 
 export default function ActionHub({ activeChip, onChipSelect }) {

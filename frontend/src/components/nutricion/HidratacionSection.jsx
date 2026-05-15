@@ -2,7 +2,7 @@ import { Plus } from 'lucide-react';
 import { IoWater } from 'react-icons/io5';
 import { motion, AnimatePresence } from 'motion/react';
 
-export default function HidratacionSection({ waterGlasses, waterGoal, onAddWater }) {
+export default function HidratacionSection({ waterGlasses, waterGoal, onAddWater, onGoalChange }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -14,9 +14,15 @@ export default function HidratacionSection({ waterGlasses, waterGoal, onAddWater
         <h3 style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--color-primary)', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0 }}>
           <IoWater size={14} color="var(--color-primary)" /> HIDRATACIÓN
         </h3>
-        <span style={{ fontSize: '0.7rem', fontWeight: 900, color: waterGlasses >= waterGoal ? 'var(--color-success)' : 'var(--text-muted)' }}>
-          {waterGlasses}/{waterGoal}
-        </span>
+        {/* Inline goal stepper */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+          <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700 }}>Meta:</span>
+          <motion.button whileTap={{ scale: 0.9 }} onClick={() => onGoalChange?.(Math.max(1, waterGoal - 1))}
+            style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--surface-3)', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 900, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</motion.button>
+          <span style={{ fontSize: '0.7rem', fontWeight: 900, color: waterGlasses >= waterGoal ? 'var(--color-success)' : 'var(--color-primary)', minWidth: '28px', textAlign: 'center' }}>{waterGlasses}/{waterGoal}</span>
+          <motion.button whileTap={{ scale: 0.9 }} onClick={() => onGoalChange?.(Math.min(20, waterGoal + 1))}
+            style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--surface-3)', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 900, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</motion.button>
+        </div>
       </div>
 
       <AnimatePresence mode="wait">

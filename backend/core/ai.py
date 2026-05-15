@@ -126,7 +126,7 @@ def get_ai_stats_hoy() -> dict:
         return {"error": str(e)}
 
 # --- CONFIGURACIÓN DE MOTORES ---
-MODELO_PRINCIPAL = "gemini-1.5-flash"
+MODELO_PRINCIPAL = "gemini-2.0-flash"
 api_key = os.getenv("GEMINI_API_KEY")
 # Buscar archivo JSON de cuenta de servicio (probamos varios nombres posibles)
 JSON_POSIBLES = [
@@ -311,36 +311,62 @@ def estimar_nutricion_ollama(alimento):
     try: return json.loads(clean_json(res))
     except: return None
 
-def generar_receta_alacena(perfil, ings, diet_mode=None):
-    # Contexto de dieta para el prompt
+async def _groq_texto(prompt: str, max_tokens: int = 600) -> str | None:
+    """Genera texto via Groq llama — fallback cuando Gemini falla."""
+    import httpx
+    groq_key = os.getenv("GROQ_API_KEY", "")
+    if not groq_key:
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=30) as hc:
+            resp = await hc.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {groq_key}", "Content-Type": "application/json"},
+                json={"model": "llama-3.1-8b-instant", "messages": [{"role": "user", "content": prompt}], "max_tokens": max_tokens, "temperature": 0.7},
+            )
+            if resp.status_code == 200:
+                return resp.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        print(f"[GROQ TEXT] Error: {e}")
+    return None
+
+
+def _build_receta_prompt(ings: str, diet_mode: str | None = None) -> str:
     diet_context = ""
     if diet_mode:
-        diet_context = f"\nIMPORTANTE: El usuario sigue una dieta de tipo: {diet_mode.upper()}."
-        if diet_mode == "keto":
-            diet_context += " Prioriza grasas saludables y proteínas. Evita carbohidratos, harinas y azúcares."
-        elif diet_mode == "sinTACC":
-            diet_context += " Asegúrate de que la receta sea 100% libre de gluten (sin trigo, avena, cebada ni centeno)."
-        elif diet_mode == "paleo":
-            diet_context += " Usa solo alimentos naturales (carnes, vegetales, frutas, semillas). Sin procesados ni legumbres."
-        elif diet_mode == "volumen":
-            diet_context += " Sugiere una receta alta en calorías y carbohidratos complejos para ganar masa muscular."
-        elif diet_mode == "vegana":
-            diet_context += " La receta debe ser 100% libre de productos de origen animal."
+        contexts = {
+            "keto":    "Prioriza grasas saludables y proteínas. Evita carbohidratos, harinas y azúcares.",
+            "sinTACC": "La receta debe ser 100% libre de gluten.",
+            "paleo":   "Usa solo alimentos naturales. Sin procesados ni legumbres.",
+            "volumen": "Alta en calorías y carbohidratos complejos para ganar masa muscular.",
+            "vegana":  "100% libre de productos de origen animal.",
+            "lowCarb": "Baja en carbohidratos, moderada en proteínas.",
+        }
+        diet_context = f"\nIMPORTANTE: Dieta {diet_mode.upper()}. {contexts.get(diet_mode, '')}"
+    return f"""Actúa como un Chef Nutricionista de Élite con mucha onda argentina.
+Ingredientes disponibles: {ings}{diet_context}
 
-    prompt = f"""
-    Actúa como un Chef Nutricionista de Élite con mucha onda.
-    Ingredientes disponibles en la alacena: {ings}{diet_context}
-    
-    Genera una receta creativa, rápida y nutritiva usando preferentemente estos ingredientes.
-    Indica:
-    1. Nombre del plato (con emojis).
-    2. Tiempo estimado.
-    3. Breve paso a paso con estilo argentino.
-    4. Por qué es ideal para el perfil del usuario y su dieta.
-    
-    Mantenlo conciso, motivador y con toda la onda.
-    """
-    return consultar_gemini([{"role": "user", "content": prompt}])
+Genera una receta creativa, rápida y nutritiva. Indica:
+1. Nombre del plato (con emojis)
+2. Tiempo estimado
+3. Paso a paso con estilo argentino
+4. Por qué es ideal para la dieta del usuario
+
+Conciso, motivador, con onda."""
+
+
+async def generar_receta_alacena(perfil, ings, diet_mode=None):
+    prompt = _build_receta_prompt(ings, diet_mode)
+    # 1. Intentar Gemini
+    resultado = consultar_gemini([{"role": "user", "content": prompt}])
+    if resultado and not resultado.startswith("Error") and resultado != "ERROR_CUOTA" and resultado != "ERROR_CONFIG":
+        return resultado
+    # 2. Fallback Groq
+    print("[RECETA] Gemini falló, usando Groq como fallback...")
+    resultado_groq = await _groq_texto(prompt, max_tokens=700)
+    if resultado_groq:
+        return resultado_groq
+    return "No se pudo generar la receta. Revisá tu conexión."
 
 
 def analizar_foto_gemini(image_bytes):

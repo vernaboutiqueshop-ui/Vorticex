@@ -171,12 +171,12 @@ def delete_alacena(item_id: str, perfil: str, user: str = Depends(get_current_us
 
 
 @router.post("/alacena/receta")
-def generar_receta(req: RecetaRequest, user: str = Depends(get_current_user)):
+async def generar_receta(req: RecetaRequest, user: str = Depends(get_current_user)):
     items = obtener_alacena(req.perfil)
     if not items:
         return {"status": "error", "error": "La alacena está vacía"}
     ingredientes_txt = ", ".join([i["ingrediente"] for i in items])
-    receta = generar_receta_alacena(req.perfil, ingredientes_txt, diet_mode=req.diet_mode)
+    receta = await generar_receta_alacena(req.perfil, ingredientes_txt, diet_mode=req.diet_mode)
     return {"status": "success", "receta": receta}
 
 
