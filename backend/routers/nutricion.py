@@ -13,8 +13,10 @@ from core.database import (
     obtener_historial_nutricion,
     get_preferencias_usuario, guardar_preferencias_usuario,
     obtener_comidas_fecha,
+    guardar_sesion_ayuno, obtener_historial_ayuno,
+    buscar_recetas_por_ingredientes, guardar_recetas_cache, validar_receta,
 )
-from core.ai import estimar_nutricion_ollama, generar_receta_alacena, analizar_foto_gemini, analizar_foto_groq
+from core.ai import estimar_nutricion_ollama, generar_receta_alacena, analizar_foto_gemini, analizar_foto_groq, generar_recetas_cards
 from core.database import guardar_alimento_cache, obtener_alimento_por_id
 from core.nutrition_search import busqueda_hibrida
 
@@ -284,6 +286,7 @@ def get_ayuno(perfil: str, user: str = Depends(get_current_user)):
 
 @router.post("/ayuno")
 def set_ayuno(req: AyunoRequest, user: str = Depends(get_current_user)):
+    from datetime import datetime
     en_ayuno = req.en_ayuno
     inicio_iso = req.inicio_iso
     if en_ayuno is None:
@@ -291,8 +294,35 @@ def set_ayuno(req: AyunoRequest, user: str = Depends(get_current_user)):
         actual = obtener_ayuno(req.perfil)
         en_ayuno = actual.get("en_ayuno", False) if actual else False
         inicio_iso = actual.get("inicio") if actual else None
+    else:
+        # Stopping a fast → save the session record
+        if en_ayuno is False:
+            actual = obtener_ayuno(req.perfil)
+            if actual and actual.get("en_ayuno") and actual.get("inicio"):
+                try:
+                    start = datetime.fromisoformat(actual["inicio"])
+                    end = datetime.now()
+                    actual_h = (end - start).total_seconds() / 3600
+                    goal_h = actual.get("meta_horas", 0) or 0
+                    completed = actual_h >= goal_h if goal_h > 0 else False
+                    guardar_sesion_ayuno(
+                        req.perfil,
+                        actual["inicio"],
+                        end.isoformat(),
+                        goal_h,
+                        actual_h,
+                        completed,
+                    )
+                except Exception as e:
+                    print(f"[AYUNO] Error guardando sesión: {e}")
     actualizar_ayuno(req.perfil, en_ayuno, inicio_iso, req.meta_horas)
     return {"status": "success"}
+
+
+@router.get("/ayuno/historial")
+def get_ayuno_historial(perfil: str, user: str = Depends(get_current_user)):
+    data = obtener_historial_ayuno(perfil, limit=30)
+    return {"status": "success", "historial": data}
 
 
 # --- Metas nutricionales ---

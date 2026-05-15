@@ -2283,3 +2283,168 @@ def obtener_alimento_por_id(perfil: str, alimento_id: int):
         """, (alimento_id, uid))
         row = cur.fetchone()
         return dict(row) if row else None
+
+
+# ── FASTING SESSIONS (historical records) ──
+
+def _ensure_fasting_sessions_table(conn):
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS fasting_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            start_time TEXT NOT NULL,
+            end_time TEXT,
+            goal_hours REAL DEFAULT 0,
+            actual_hours REAL DEFAULT 0,
+            completed INTEGER DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+    conn.commit()
+
+
+def guardar_sesion_ayuno(perfil: str, start_time: str, end_time: str, goal_hours: float, actual_hours: float, completed: bool):
+    """Save a completed (or interrupted) fasting session."""
+    with get_conn() as conn:
+        _ensure_fasting_sessions_table(conn)
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
+        user = cur.fetchone()
+        if not user:
+            return
+        uid = user["id"]
+        cur.execute("""
+            INSERT INTO fasting_sessions (user_id, start_time, end_time, goal_hours, actual_hours, completed)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (uid, start_time, end_time, goal_hours, round(actual_hours, 2), 1 if completed else 0))
+        conn.commit()
+
+
+def obtener_historial_ayuno(perfil: str, limit: int = 30) -> list:
+    """Returns the last N fasting sessions for a user."""
+    with get_conn() as conn:
+        _ensure_fasting_sessions_table(conn)
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
+        user = cur.fetchone()
+        if not user:
+            return []
+        uid = user["id"]
+        cur.execute("""
+            SELECT start_time, end_time, goal_hours, actual_hours, completed
+            FROM fasting_sessions
+            WHERE user_id = ?
+            ORDER BY start_time DESC
+            LIMIT ?
+        """, (uid, limit))
+        return [dict(r) for r in cur.fetchall()]
+
+
+# ── RECIPE CACHE ──
+
+def _ensure_recipes_table(conn):
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS recipes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            emoji TEXT DEFAULT '🍳',
+            tiempo_min INTEGER DEFAULT 20,
+            porciones INTEGER DEFAULT 1,
+            ingredientes_usados TEXT DEFAULT '[]',
+            kcal REAL DEFAULT 0,
+            proteinas REAL DEFAULT 0,
+            carbos REAL DEFAULT 0,
+            grasas REAL DEFAULT 0,
+            dificultad TEXT DEFAULT 'Fácil',
+            pasos TEXT DEFAULT '[]',
+            diet_mode TEXT DEFAULT NULL,
+            validaciones INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now'))
+        )
+    """)
+    conn.commit()
+
+
+def buscar_recetas_por_ingredientes(ingredientes: list[str], diet_mode: str | None = None, limit: int = 10) -> list:
+    """Search cached recipes that match the given ingredients."""
+    with get_conn() as conn:
+        _ensure_recipes_table(conn)
+        cur = conn.cursor()
+        if diet_mode:
+            cur.execute("""
+                SELECT * FROM recipes
+                WHERE (diet_mode = ? OR diet_mode IS NULL)
+                ORDER BY validaciones DESC, created_at DESC
+                LIMIT ?
+            """, (diet_mode, limit * 3))
+        else:
+            cur.execute("""
+                SELECT * FROM recipes
+                ORDER BY validaciones DESC, created_at DESC
+                LIMIT ?
+            """, (limit * 3,))
+        all_rows = [dict(r) for r in cur.fetchall()]
+
+    if not all_rows:
+        return []
+
+    lower_ings = [i.lower() for i in ingredientes]
+
+    def score(recipe):
+        try:
+            recipe_ings = json.loads(recipe.get("ingredientes_usados", "[]"))
+        except Exception:
+            recipe_ings = []
+        recipe_lower = [ri.lower() for ri in recipe_ings]
+        matches = sum(1 for i in lower_ings if any(i in ri or ri in i for ri in recipe_lower))
+        return matches
+
+    scored = sorted(all_rows, key=score, reverse=True)
+    top = scored[:limit]
+
+    result = []
+    for r in top:
+        try:
+            r["ingredientes_usados"] = json.loads(r.get("ingredientes_usados", "[]"))
+        except Exception:
+            r["ingredientes_usados"] = []
+        try:
+            r["pasos"] = json.loads(r.get("pasos", "[]"))
+        except Exception:
+            r["pasos"] = []
+        result.append(r)
+    return result
+
+
+def guardar_recetas_cache(recetas: list, diet_mode: str | None = None):
+    """Save AI-generated recipes to the cache table."""
+    with get_conn() as conn:
+        _ensure_recipes_table(conn)
+        cur = conn.cursor()
+        for r in recetas:
+            cur.execute("""
+                INSERT INTO recipes (nombre, emoji, tiempo_min, porciones, ingredientes_usados, kcal, proteinas, carbos, grasas, dificultad, pasos, diet_mode)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                r.get("nombre", "Receta"),
+                r.get("emoji", "🍳"),
+                r.get("tiempo_min", 20),
+                r.get("porciones", 1),
+                json.dumps(r.get("ingredientes_usados", []), ensure_ascii=False),
+                r.get("kcal", 0),
+                r.get("proteinas", 0),
+                r.get("carbos", 0),
+                r.get("grasas", 0),
+                r.get("dificultad", "Fácil"),
+                json.dumps(r.get("pasos", []), ensure_ascii=False),
+                diet_mode,
+            ))
+        conn.commit()
+
+
+def validar_receta(receta_id: int):
+    """Increment validation count for a recipe (community upvote)."""
+    with get_conn() as conn:
+        _ensure_recipes_table(conn)
+        conn.execute("UPDATE recipes SET validaciones = validaciones + 1 WHERE id = ?", (receta_id,))
+        conn.commit()

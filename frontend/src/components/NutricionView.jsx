@@ -156,10 +156,12 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
     } catch {}
   };
 
-  const toggleAyuno = async () => {
+  const toggleAyuno = async (overrideMeta) => {
     const nuevoEstado = !ayuno.en_ayuno;
     const inicio = nuevoEstado ? new Date().toISOString() : null;
-    const metaActual = metaHorasLocal || ayuno.meta_horas || 16;
+    // overrideMeta=0 means "libre" (no specific goal)
+    const metaActual = overrideMeta === 0 ? 0 : (metaHorasLocal || ayuno.meta_horas || 16);
+    if (overrideMeta === 0 && nuevoEstado) setMetaHorasLocal(0);
     const nuevoAyuno = { en_ayuno: nuevoEstado, inicio, meta_horas: metaActual };
     setAyuno(nuevoAyuno);
     if (nuevoEstado && inicio) localStorage.setItem(`vortice_ayuno_${perfil}`, JSON.stringify(nuevoAyuno));
@@ -204,6 +206,16 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
     else if (mode === 'if') onShowToast?.('⏱ Modo Ayuno IF activado', 'success');
     else if (mode === 'sinTACC') onShowToast?.('🌾 Modo Sin TACC activado', 'success');
     else onShowToast?.('Modo dieta desactivado', 'info');
+  };
+
+  const logFoodDirect = async ({ alimento, calorias, proteinas, carbos, grasas }) => {
+    try {
+      await authFetch(`${API}/api/nutricion/log-from-cache`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ perfil, nombre: alimento, cal_100: calorias, prot_100: proteinas, carb_100: carbos, fat_100: grasas, gramos: 100 }),
+      });
+      fetchDashboard();
+    } catch {}
   };
 
   useEffect(() => {
@@ -377,6 +389,7 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
           onRefresh={fetchAlacena}
           onShowToast={onShowToast}
           dietMode={prefs.diet_mode}
+          onLogFood={logFoodDirect}
           onSearchIngrediente={(ingrediente) => {
             window.dispatchEvent(new CustomEvent('vortice:search', { detail: { query: ingrediente } }));
           }}

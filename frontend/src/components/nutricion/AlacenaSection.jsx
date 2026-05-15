@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Plus, X, Loader2 } from 'lucide-react';
-import { GiCookingPot, GiMeal } from 'react-icons/gi';
-import { motion } from 'motion/react';
+import { Plus, X, Loader2, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { GiCookingPot } from 'react-icons/gi';
+import { motion, AnimatePresence } from 'motion/react';
 import API, { authFetch } from '../../config';
 
 const FOOD_EMOJI_MAP = {
@@ -10,7 +10,7 @@ const FOOD_EMOJI_MAP = {
   tomate: '🍅', lechuga: '🥬', zanahoria: '🥕', brocoli: '🥦', espinaca: '🥬', zapallo: '🎃',
   manzana: '🍎', banana: '🍌', naranja: '🍊', limon: '🍋', pera: '🍐', frutilla: '🍓',
   queso: '🧀', yogurt: '🫙', manteca: '🧈', crema: '🥛', aceite: '🫙', aceitunas: '🫒',
-  ajo: '🧄', cebolla: '🧅', pimiento: '🫑', choclo: '🌽', lechuga: '🥗',
+  ajo: '🧄', cebolla: '🧅', pimiento: '🫑', choclo: '🌽',
   lentejas: '🫘', porotos: '🫘', garbanzos: '🫘', soja: '🌿',
   proteina: '💪', whey: '💪', creatina: '💊', suplemento: '💊',
 };
@@ -20,10 +20,135 @@ const getEmoji = (nombre) => {
   return Object.entries(FOOD_EMOJI_MAP).find(([k]) => lower.includes(k))?.[1] || '🛒';
 };
 
-export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIngrediente, onShowToast, dietMode }) {
+const DIFICULTAD_COLOR = { 'Fácil': 'var(--color-prot)', 'Media': 'var(--color-kcal)', 'Difícil': '#ef4444' };
+
+function RecetaCard({ receta, onLog, idx }) {
+  const [open, setOpen] = useState(false);
+  const [validated, setValidated] = useState(false);
+
+  const handleLog = () => {
+    onLog?.({
+      nombre: receta.nombre,
+      kcal: receta.kcal,
+      proteinas: receta.proteinas,
+      carbos: receta.carbos,
+      grasas: receta.grasas,
+    });
+  };
+
+  const handleValidate = async () => {
+    if (receta.id && !validated) {
+      await authFetch(`${API}/api/alacena/receta/validar?receta_id=${receta.id}`, { method: 'POST' });
+      setValidated(true);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: idx * 0.05, type: 'spring', stiffness: 400, damping: 28 }}
+      style={{
+        background: 'var(--surface-3)', border: '1px solid var(--border-subtle)',
+        borderRadius: '14px', overflow: 'hidden',
+      }}
+    >
+      {/* Header row */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{
+          width: '100%', background: 'transparent', border: 'none', cursor: 'pointer',
+          padding: '0.65rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.6rem', textAlign: 'left',
+        }}
+      >
+        <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>{receta.emoji || '🍳'}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: '0.72rem', fontWeight: 900, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {receta.nombre}
+          </div>
+          <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.52rem', fontWeight: 800, color: 'var(--color-kcal)' }}>{Math.round(receta.kcal)} kcal</span>
+            <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)' }}>·</span>
+            <span style={{ fontSize: '0.52rem', fontWeight: 700, color: 'var(--color-prot)' }}>P {Math.round(receta.proteinas)}g</span>
+            <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)' }}>·</span>
+            <span style={{ fontSize: '0.52rem', fontWeight: 700, color: 'var(--color-carb)' }}>C {Math.round(receta.carbos)}g</span>
+            <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)' }}>·</span>
+            <span style={{ fontSize: '0.52rem', fontWeight: 700, color: 'var(--color-gras)' }}>G {Math.round(receta.grasas)}g</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem', flexShrink: 0 }}>
+          <span style={{ fontSize: '0.48rem', fontWeight: 800, color: DIFICULTAD_COLOR[receta.dificultad] || 'var(--text-muted)', background: 'var(--surface-1)', padding: '0.1rem 0.35rem', borderRadius: '6px' }}>
+            {receta.dificultad}
+          </span>
+          <span style={{ fontSize: '0.48rem', color: 'var(--text-muted)' }}>{receta.tiempo_min}min</span>
+        </div>
+        {open ? <ChevronUp size={14} color="var(--text-muted)" /> : <ChevronDown size={14} color="var(--text-muted)" />}
+      </button>
+
+      {/* Expanded steps */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ overflow: 'hidden', borderTop: '1px solid var(--border-subtle)' }}
+          >
+            <div style={{ padding: '0.65rem 0.75rem' }}>
+              {receta.ingredientes_usados?.length > 0 && (
+                <div style={{ marginBottom: '0.5rem' }}>
+                  <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--text-muted)', marginBottom: '0.25rem', letterSpacing: '0.5px' }}>INGREDIENTES</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                    {receta.ingredientes_usados.map((ing, i) => (
+                      <span key={i} style={{ fontSize: '0.6rem', background: 'var(--surface-1)', padding: '0.1rem 0.4rem', borderRadius: '8px', color: 'var(--text-secondary)', fontWeight: 700 }}>
+                        {getEmoji(ing)} {ing}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {receta.pasos?.length > 0 && (
+                <div style={{ marginBottom: '0.65rem' }}>
+                  <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--text-muted)', marginBottom: '0.3rem', letterSpacing: '0.5px' }}>PREPARACIÓN</div>
+                  <ol style={{ margin: 0, paddingLeft: '1rem' }}>
+                    {receta.pasos.map((paso, i) => (
+                      <li key={i} style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', marginBottom: '0.25rem', lineHeight: 1.5 }}>{paso}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={handleLog}
+                  className="btn-elite"
+                  style={{ flex: 1, height: '2rem', fontSize: '0.62rem' }}>
+                  + Registrar en log
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={handleValidate}
+                  style={{
+                    flexShrink: 0, height: '2rem', padding: '0 0.6rem', borderRadius: '8px', cursor: 'pointer', border: 'none',
+                    background: validated ? 'rgba(34,197,94,0.12)' : 'var(--surface-2)',
+                    color: validated ? 'var(--color-prot)' : 'var(--text-muted)',
+                    fontSize: '0.6rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.25rem',
+                  }}>
+                  <Check size={11} /> {validated ? 'Validada' : 'Validar'}
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIngrediente, onShowToast, dietMode, onLogFood }) {
   const [newIngrediente, setNewIngrediente] = useState('');
-  const [receta, setReceta] = useState('');
-  const [loadingReceta, setLoadingReceta] = useState(false);
+  const [recetas, setRecetas] = useState([]);
+  const [loadingRecetas, setLoadingRecetas] = useState(false);
+  const [recetasSource, setRecetasSource] = useState(null);
 
   const agregarAlacena = async () => {
     if (!newIngrediente.trim()) return;
@@ -41,19 +166,38 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
     onRefresh();
   };
 
-  const pedirReceta = async () => {
-    setLoadingReceta(true);
-    setReceta('');
+  const pedirRecetas = async () => {
+    setLoadingRecetas(true);
+    setRecetas([]);
     try {
-      const res = await authFetch(`${API}/api/alacena/receta`, {
+      const res = await authFetch(`${API}/api/alacena/recetas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ perfil, diet_mode: dietMode }),
       });
       const data = await res.json();
-      if (data.receta) setReceta(data.receta);
-    } catch {}
-    setLoadingReceta(false);
+      if (data.recetas?.length) {
+        setRecetas(data.recetas);
+        setRecetasSource(data.source);
+      } else {
+        onShowToast?.('No se pudieron generar recetas', 'error');
+      }
+    } catch {
+      onShowToast?.('Error de conexión', 'error');
+    }
+    setLoadingRecetas(false);
+  };
+
+  const handleLogFood = (receta) => {
+    onLogFood?.({
+      alimento: receta.nombre,
+      calorias: receta.kcal,
+      proteinas: receta.proteinas,
+      carbos: receta.carbos,
+      grasas: receta.grasas,
+      descripcion: receta.nombre,
+    });
+    onShowToast?.(`${receta.nombre} registrado`, 'success');
   };
 
   return (
@@ -63,13 +207,12 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
           <GiCookingPot size={14} color="var(--color-kcal)" /> ALACENA
         </h3>
         {alacena.length > 0 && (
-          <div style={{ display: 'flex', gap: '0.3rem' }}>
-            <button className="btn-elite"
-              style={{ height: '1.8rem', padding: '0 0.6rem', fontSize: '0.58rem', background: 'rgba(245,158,11,0.12)', color: 'var(--color-kcal)', border: '1px solid rgba(245,158,11,0.25)' }}
-              onClick={pedirReceta} disabled={loadingReceta}>
-              {loadingReceta ? <Loader2 size={12} className="spin" /> : <><GiMeal size={12} /> RECETA</>}
-            </button>
-          </div>
+          <motion.button whileTap={{ scale: 0.93 }}
+            className="btn-elite"
+            style={{ height: '1.8rem', padding: '0 0.6rem', fontSize: '0.58rem', background: 'rgba(245,158,11,0.12)', color: 'var(--color-kcal)', border: '1px solid rgba(245,158,11,0.25)' }}
+            onClick={pedirRecetas} disabled={loadingRecetas}>
+            {loadingRecetas ? <Loader2 size={12} className="spin" /> : '🍽 VER RECETAS'}
+          </motion.button>
         )}
       </div>
 
@@ -94,7 +237,7 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
 
       {alacena.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '0.75rem', color: 'var(--text-muted)', fontSize: '0.65rem' }}>
-          Agregá ingredientes — la IA te sugerirá recetas y qué comprar
+          Agregá ingredientes — la IA te sugerirá 10 recetas con sus macros
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
@@ -119,12 +262,28 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
         </div>
       )}
 
-      {receta && (
-        <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-          style={{ marginTop: '0.75rem', background: 'var(--surface-3)', padding: '0.85rem', borderRadius: '12px', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: '1.6', whiteSpace: 'pre-wrap', borderLeft: '2px solid var(--color-kcal)' }}>
-          {receta}
-        </motion.div>
-      )}
+      {/* Recipe cards */}
+      <AnimatePresence>
+        {recetas.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            style={{ marginTop: '0.85rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--color-kcal)', letterSpacing: '0.5px' }}>
+                {recetas.length} RECETAS {recetasSource === 'cache' ? '· GUARDADAS' : '· GENERADAS POR IA'}
+              </span>
+              <button onClick={() => setRecetas([])}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.6rem' }}>
+                cerrar ×
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              {recetas.map((r, i) => (
+                <RecetaCard key={r.id || i} receta={r} idx={i} onLog={handleLogFood} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

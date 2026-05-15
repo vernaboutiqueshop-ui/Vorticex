@@ -369,6 +369,63 @@ async def generar_receta_alacena(perfil, ings, diet_mode=None):
     return "No se pudo generar la receta. Revisá tu conexión."
 
 
+def _build_recetas_cards_prompt(ings: str, diet_mode: str | None = None) -> str:
+    diet_context = ""
+    if diet_mode:
+        contexts = {
+            "keto":    "Prioriza grasas y proteinas. Sin carbohidratos ni azucares.",
+            "sinTACC": "100% libre de gluten.",
+            "paleo":   "Solo alimentos naturales. Sin procesados ni legumbres.",
+            "volumen": "Alta en calorias y carbohidratos para ganar masa.",
+            "vegana":  "100% sin productos de origen animal.",
+            "low_carb": "Baja en carbohidratos, moderada en proteinas.",
+            "mediterranea": "Aceite de oliva, legumbres, verduras, pescado.",
+        }
+        diet_context = f" Restriccion de dieta: {contexts.get(diet_mode, diet_mode.upper())}."
+    return f"""Sos un nutricionista argentino experto en recetas saludables.
+Ingredientes disponibles: {ings}.{diet_context}
+
+Genera EXACTAMENTE 10 recetas que puedan hacerse con esos ingredientes (podés asumir que tienen condimentos y aceite básicos).
+Respondé ÚNICAMENTE con este JSON array, sin explicaciones ni markdown:
+[
+  {{
+    "nombre": "Nombre del plato",
+    "emoji": "🍳",
+    "tiempo_min": 15,
+    "porciones": 1,
+    "ingredientes_usados": ["ingrediente1", "ingrediente2"],
+    "kcal": 450,
+    "proteinas": 30,
+    "carbos": 40,
+    "grasas": 12,
+    "dificultad": "Fácil",
+    "pasos": ["Paso 1...", "Paso 2...", "Paso 3..."]
+  }}
+]
+Estimá macros reales para Argentina (porciones caseras normales). Variá los tipos de plato (desayuno, almuerzo, cena, snack)."""
+
+
+async def generar_recetas_cards(ings: str, diet_mode: str | None = None) -> list:
+    """Genera 10 recetas estructuradas como cards con macros. Gemini → Groq fallback."""
+    prompt = _build_recetas_cards_prompt(ings, diet_mode)
+
+    raw = consultar_gemini([{"role": "user", "content": prompt}], formato_json=True)
+    if raw and not raw.startswith("Error") and raw not in ("ERROR_CUOTA", "ERROR_CONFIG"):
+        try:
+            return json.loads(clean_json(raw))
+        except Exception as e:
+            print(f"[RECETAS] Gemini parse error: {e}")
+
+    print("[RECETAS] Gemini falló, usando Groq...")
+    raw_groq = await _groq_texto(prompt, max_tokens=2000)
+    if raw_groq:
+        try:
+            return json.loads(clean_json(raw_groq))
+        except Exception as e:
+            print(f"[RECETAS] Groq parse error: {e}")
+    return []
+
+
 def analizar_foto_gemini(image_bytes):
     """Analyze a food photo using Gemini Vision and return nutrition estimate."""
     try:
@@ -393,12 +450,20 @@ def analizar_foto_gemini(image_bytes):
             response_mime_type="application/json"
         )
 
+        # Detect MIME type from bytes signature
+        if image_bytes[:4] == b"\x89PNG":
+            mime_type = "image/png"
+        elif image_bytes[:4] == b"RIFF":
+            mime_type = "image/webp"
+        else:
+            mime_type = "image/jpeg"
+
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.0-flash",
             contents=[
                 types.Content(parts=[
                     types.Part.from_text(text=prompt),
-                    types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+                    types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
                 ])
             ],
             config=config
@@ -422,7 +487,7 @@ def _compress_image(image_bytes: bytes, max_px: int = 1024, quality: int = 72) -
         img.thumbnail((max_px, max_px), Image.LANCZOS)
         out = io.BytesIO()
         img.save(out, format="JPEG", quality=quality, optimize=True)
-        print(f"[GROQ VISION] imagen comprimida: {len(image_bytes)//1024}KB → {out.tell()//1024}KB")
+        print(f"[GROQ VISION] imagen comprimida: {len(image_bytes)//1024}KB -> {out.tell()//1024}KB")
         return out.getvalue(), "image/jpeg"
     except Exception as e:
         print(f"[GROQ VISION] compresión falló ({e}), usando bytes originales")
@@ -448,15 +513,15 @@ async def analizar_foto_groq(image_bytes: bytes) -> dict | None:
     data_url = f"data:{mime};base64,{b64}"
 
     prompt = (
-        "Sos un nutricionista argentino experto. Analizá esta foto de comida. "
-        "Estimá los macros TOTALES de la porción visible (no por 100g). "
-        "Para una comida casera típica, sé realista: un plato de arroz con pollo "
-        "ronda 400-600 kcal, no más de 800 salvo que sea una porción enorme. "
-        "Respondé SOLO JSON: "
+        "Sos un nutricionista argentino experto. Analiza esta foto de comida. "
+        "Estima los macros TOTALES de la porcion visible (no por 100g). "
+        "Para una comida casera tipica, se realista: un plato de arroz con pollo "
+        "ronda 400-600 kcal, no mas de 800 salvo que sea una porcion enorme. "
+        "Responde SOLO JSON: "
         '{"alimento": "nombre", "calorias": 0, "proteinas": 0, "carbos": 0, "grasas": 0}'
     )
 
-    for model in ["llama-3.2-11b-vision-preview", "llama-3.2-90b-vision-preview"]:
+    for model in ["meta-llama/llama-4-scout-17b-16e-instruct"]:
         try:
             async with httpx.AsyncClient(timeout=25.0) as client:
                 resp = await client.post(
