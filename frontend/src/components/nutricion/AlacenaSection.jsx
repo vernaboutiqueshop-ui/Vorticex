@@ -147,8 +147,9 @@ function RecetaCard({ receta, onLog, idx, perfil, ingredients }) {
 
 export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIngrediente, onShowToast, dietMode, onLogFood }) {
   const [newIngrediente, setNewIngrediente] = useState('');
-  const [allRecetas, setAllRecetas] = useState([]);    // all fetched so far (max 40)
-  const [displayCount, setDisplayCount] = useState(PAGE_SIZE); // how many are visible
+  const [allRecetas, setAllRecetas] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [slideDir, setSlideDir] = useState(1); // 1=forward, -1=backward
   const [loadingRecetas, setLoadingRecetas] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
@@ -190,7 +191,7 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
   useEffect(() => {
     if (allRecetas.length > 0) {
       setAllRecetas([]);
-      setDisplayCount(PAGE_SIZE);
+      setCurrentPage(0);
       setShowAddForm(false);
       setValidationResult(null);
     }
@@ -217,19 +218,18 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
     return data.recetas || [];
   };
 
+  const totalPages = Math.ceil(allRecetas.length / PAGE_SIZE);
+
   const pedirRecetas = async () => {
     setLoadingRecetas(true);
     setAllRecetas([]);
-    setDisplayCount(PAGE_SIZE);
+    setCurrentPage(0);
     setShowAddForm(false);
     setValidationResult(null);
     try {
       const nuevas = await fetchRecetas([]);
-      if (nuevas.length) {
-        setAllRecetas(nuevas);
-      } else {
-        onShowToast?.('No se pudieron generar recetas', 'error');
-      }
+      if (nuevas.length) setAllRecetas(nuevas);
+      else onShowToast?.('No se pudieron generar recetas', 'error');
     } catch { onShowToast?.('Error de conexión', 'error'); }
     setLoadingRecetas(false);
   };
@@ -241,18 +241,30 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
       const nuevas = await fetchRecetas(allRecetas);
       const combined = [...allRecetas, ...nuevas].slice(0, MAX_RECETAS);
       setAllRecetas(combined);
-      setDisplayCount(prev => Math.min(prev + PAGE_SIZE, combined.length));
+      // Go to first new page
+      const newPage = Math.floor(allRecetas.length / PAGE_SIZE);
+      setSlideDir(1);
+      setCurrentPage(newPage);
       if (combined.length >= MAX_RECETAS) setShowAddForm(true);
     } catch {}
     setLoadingMore(false);
   };
 
-  const verMas = () => {
-    const next = displayCount + PAGE_SIZE;
-    if (next > allRecetas.length && allRecetas.length < MAX_RECETAS) {
+  const goNext = () => {
+    if (currentPage < totalPages - 1) {
+      setSlideDir(1);
+      setCurrentPage(p => p + 1);
+    } else if (allRecetas.length < MAX_RECETAS) {
       cargarMas();
     } else {
-      setDisplayCount(Math.min(next, allRecetas.length));
+      setShowAddForm(true);
+    }
+  };
+
+  const goPrev = () => {
+    if (currentPage > 0) {
+      setSlideDir(-1);
+      setCurrentPage(p => p - 1);
     }
   };
 
@@ -407,44 +419,88 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
         </>
       )}
 
-      {/* Recipe cards — paginated */}
+      {/* Recipe cards — horizontal pagination */}
       <AnimatePresence>
         {allRecetas.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             style={{ marginTop: '0.85rem' }}>
 
-            {/* Header */}
+            {/* Header: page indicator + close */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <span style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--color-kcal)', letterSpacing: '0.5px' }}>
-                {displayCount}/{allRecetas.length} RECETAS
-                {allRecetas.length >= MAX_RECETAS && ' · LÍMITE ALCANZADO'}
+                PÁG {currentPage + 1}/{totalPages} · {allRecetas.length} RECETAS
               </span>
-              <button onClick={() => { setAllRecetas([]); setDisplayCount(PAGE_SIZE); setShowAddForm(false); }}
+              <button onClick={() => { setAllRecetas([]); setCurrentPage(0); setShowAddForm(false); }}
                 style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.6rem' }}>
                 cerrar ×
               </button>
             </div>
 
-            {/* Cards */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {allRecetas.slice(0, displayCount).map((r, i) => (
-                <RecetaCard key={r.id || r.nombre || i} receta={r} idx={i} onLog={handleLogFood}
-                  perfil={perfil} ingredients={getIngredientesSeleccionados()} />
-              ))}
+            {/* Animated page of cards */}
+            <div style={{ overflow: 'hidden', position: 'relative' }}>
+              <AnimatePresence mode="wait" custom={slideDir}>
+                <motion.div
+                  key={currentPage}
+                  custom={slideDir}
+                  initial={{ x: slideDir * 280, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: -slideDir * 280, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: 'easeInOut' }}
+                  style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}
+                >
+                  {allRecetas.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
+                    .map((r, i) => (
+                      <RecetaCard key={r.id || r.nombre || i} receta={r} idx={i}
+                        onLog={handleLogFood} perfil={perfil}
+                        ingredients={getIngredientesSeleccionados()} />
+                    ))}
+                </motion.div>
+              </AnimatePresence>
             </div>
 
-            {/* Navigation */}
-            <div style={{ marginTop: '0.6rem', display: 'flex', gap: '0.4rem' }}>
-              {displayCount < allRecetas.length && (
-                <motion.button whileTap={{ scale: 0.95 }} onClick={verMas}
-                  style={{ flex: 1, height: '2rem', borderRadius: '10px', border: '1px solid var(--border-subtle)', background: 'var(--surface-2)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 800, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
-                  Ver 5 más ({allRecetas.length - displayCount} restantes)
+            {/* Navigation bar: ← dots → */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.65rem', gap: '0.4rem' }}>
+              {/* Prev */}
+              <motion.button whileTap={{ scale: 0.88 }} onClick={goPrev} disabled={currentPage === 0}
+                style={{
+                  width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border-subtle)',
+                  background: currentPage === 0 ? 'transparent' : 'var(--surface-2)',
+                  cursor: currentPage === 0 ? 'default' : 'pointer',
+                  color: currentPage === 0 ? 'var(--surface-hover)' : 'var(--text-secondary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  fontSize: '1rem', fontWeight: 900,
+                }}>‹</motion.button>
+
+              {/* Dots */}
+              <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', flex: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <motion.button key={i} whileTap={{ scale: 0.8 }}
+                    onClick={() => { setSlideDir(i > currentPage ? 1 : -1); setCurrentPage(i); }}
+                    style={{
+                      width: i === currentPage ? 18 : 7, height: 7,
+                      borderRadius: 99, border: 'none', cursor: 'pointer', padding: 0,
+                      background: i === currentPage ? 'var(--color-kcal)' : 'var(--surface-hover)',
+                      transition: 'all 0.2s',
+                    }} />
+                ))}
+                {allRecetas.length < MAX_RECETAS && (
+                  <div style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--border-subtle)', border: '1px dashed var(--text-muted)', opacity: 0.5 }} />
+                )}
+              </div>
+
+              {/* Next / Load more */}
+              {currentPage < totalPages - 1 ? (
+                <motion.button whileTap={{ scale: 0.88 }} onClick={goNext}
+                  style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border-subtle)', background: 'var(--surface-2)', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '1rem', fontWeight: 900 }}>›</motion.button>
+              ) : allRecetas.length < MAX_RECETAS ? (
+                <motion.button whileTap={{ scale: 0.88 }} onClick={goNext} disabled={loadingMore}
+                  style={{ height: 32, padding: '0 0.6rem', borderRadius: '16px', border: '1px solid rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.1)', cursor: 'pointer', color: 'var(--color-kcal)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.55rem', fontWeight: 900, flexShrink: 0 }}>
+                  {loadingMore ? <Loader2 size={11} className="spin" /> : <><Sparkles size={11} />+10</>}
                 </motion.button>
-              )}
-              {displayCount >= allRecetas.length && allRecetas.length < MAX_RECETAS && (
-                <motion.button whileTap={{ scale: 0.95 }} onClick={cargarMas} disabled={loadingMore}
-                  style={{ flex: 1, height: '2rem', borderRadius: '10px', border: '1px solid rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.08)', cursor: 'pointer', fontSize: '0.62rem', fontWeight: 800, color: 'var(--color-kcal)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.3rem' }}>
-                  {loadingMore ? <Loader2 size={12} className="spin" /> : <><Sparkles size={12} /> Generar 10 más ({MAX_RECETAS - allRecetas.length} disponibles)</>}
+              ) : (
+                <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowAddForm(true)}
+                  style={{ height: 32, padding: '0 0.6rem', borderRadius: '16px', border: '1px solid rgba(0,201,255,0.3)', background: 'rgba(0,201,255,0.08)', cursor: 'pointer', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.55rem', fontWeight: 900, flexShrink: 0 }}>
+                  <Plus size={11} /> Agregar
                 </motion.button>
               )}
             </div>
