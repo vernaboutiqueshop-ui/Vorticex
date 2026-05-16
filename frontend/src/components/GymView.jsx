@@ -1802,6 +1802,7 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
   const [activeTab, setActiveTab] = useState("train");
   const [ejerciciosMaster, setEjerciciosMaster] = useState([]);
   const [rutinas, setRutinas] = useState([]);
+  const [communityRoutines, setCommunityRoutines] = useState([]);
   const [folders, setFolders] = useState([]);
   const exerciseCacheRef = useRef({});  // { es: [...], en: [...] }
 
@@ -1901,18 +1902,21 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
       const fetches = [
         authFetch(`${API}/api/gym/rutinas?perfil=${perfil}&lang=${lang}`, { signal: controller.signal }),
         authFetch(`${API}/api/gym/folders?perfil=${perfil}`, { signal: controller.signal }),
+        authFetch(`${API}/api/gym/rutinas/comunidad?lang=${lang}`, { signal: controller.signal }),
         ...(!cached ? [authFetch(`${API}/api/exercises?lang=${lang}`, { signal: controller.signal })] : []),
       ];
       const results = await Promise.all(fetches);
-      const [rData, fData] = await Promise.all([results[0].json(), results[1].json()]);
+      const [rData, fData, cData] = await Promise.all([results[0].json(), results[1].json(), results[2].json()]);
       if (rData.status === "success")
         setRutinas(Array.isArray(rData.rutinas) ? rData.rutinas : []);
       if (fData.status === "success")
         setFolders(Array.isArray(fData.folders) ? fData.folders : []);
+      if (cData.status === "success")
+        setCommunityRoutines(Array.isArray(cData.rutinas) ? cData.rutinas : []);
       if (cached) {
         setEjerciciosMaster(cached);
       } else {
-        const eData = await results[2].json();
+        const eData = await results[3].json();
         if (eData.status === "success") {
           const ejs = Array.isArray(eData.ejercicios) ? eData.ejercicios : [];
           exerciseCacheRef.current[lang] = ejs;
@@ -3213,6 +3217,50 @@ export default function GymView({ perfil, onStartSession, sessionActive, session
                   <ChevronRight size={18} color="var(--text-muted)" />
                 </motion.button>
               </div>
+
+                            {/* RUTINAS DE LA COMUNIDAD */}
+              {communityRoutines.length > 0 && (
+                <div style={{ marginTop: "1rem", marginBottom: "0.5rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.8rem", padding: "0 0.2rem" }}>
+                    <Users size={16} color="var(--color-primary)" />
+                    <span style={{ fontWeight: 900, fontSize: "0.85rem", color: "var(--color-primary)", letterSpacing: "1px" }}>
+                      RUTINAS DE LA COMUNIDAD
+                    </span>
+                  </div>
+                  <div style={{ 
+                    display: "flex", overflowX: "auto", gap: "0.75rem", paddingBottom: "0.5rem",
+                    scrollSnapType: "x mandatory"
+                  }} className="no-scrollbar">
+                    {communityRoutines.map(r => (
+                      <motion.div 
+                        key={`comm-${r.id}`}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setSelectedRoutineForView(r)}
+                        style={{
+                          minWidth: "220px", width: "220px", height: "140px", flexShrink: 0,
+                          borderRadius: "16px", overflow: "hidden", position: "relative",
+                          cursor: "pointer", scrollSnapAlign: "start",
+                          border: "1px solid rgba(255,255,255,0.1)"
+                        }}
+                      >
+                        <img 
+                          src={r.image_url || "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=400"} 
+                          style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0, opacity: 0.4 }}
+                        />
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #050508 10%, transparent 90%)" }} />
+                        <div style={{ position: "absolute", bottom: "0.8rem", left: "0.8rem", right: "0.8rem" }}>
+                          <div style={{ fontWeight: 900, fontSize: "0.95rem", color: "#fff", lineHeight: 1.1, marginBottom: "0.2rem" }}>
+                            {r.name}
+                          </div>
+                          <div style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--color-primary)" }}>
+                            {Array.isArray(r.ejercicios) ? r.ejercicios.length : 0} ejercicios · Vórtice
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Carpetas colapsables */}
               <div

@@ -8,7 +8,7 @@ async def busqueda_hibrida(perfil: str, query: str) -> dict:
     # 1. Cache local (SQLite)
     locales = buscar_alimentos_cache(perfil, query, limit=10)
     if locales:
-        return {"status": "success", "resultados": locales, "fuente": "cache"}
+        return {"status": "success", "cache": locales, "external": [], "source": "cache"}
         
     # 2. Fallback simple a Open Food Facts
     try:
@@ -29,8 +29,8 @@ async def busqueda_hibrida(perfil: str, query: str) -> dict:
                         "fat_100": p.get("nutriments", {}).get("fat_100g", 0),
                         "source": "off"
                     })
-                return {"status": "success", "resultados": res, "fuente": "openfoodfacts"}
+                return {"status": "success", "cache": [], "external": res, "source": "openfoodfacts"}
     except:
         pass
 
-    return {"status": "success", "resultados": [], "fuente": "ninguna"}
+    return {"status": "success", "cache": [], "external": [], "source": "ninguna"}

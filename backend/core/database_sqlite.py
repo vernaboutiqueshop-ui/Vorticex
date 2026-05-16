@@ -743,6 +743,63 @@ def guardar_rutina_template(
     return rid
 
 
+def obtener_rutinas_comunidad(lang: str = "es"):
+    lang = lang if lang in ("es", "en") else "es"
+    cat_col = "name_en" if lang == "en" else "name_es"
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT routines.*, users.name as author_name 
+            FROM routines
+            JOIN users ON users.id = routines.user_id
+            WHERE routines.is_shared = 1 AND routines.active = 1
+        """
+        )
+        rutinas = [dict(r) for r in cur.fetchall()]
+        for r in rutinas:
+            cur.execute(
+                """
+                SELECT AVG(CAST(val1 AS INTEGER)) as avg_duration
+                FROM activity_logs
+                WHERE type = 'GymSession' AND val2 = ?
+            """,
+                (str(r["id"]),),
+            )
+            avg_res = cur.fetchone()
+            r["avg_duration_seconds"] = (
+                int(avg_res["avg_duration"])
+                if avg_res and avg_res["avg_duration"]
+                else 0
+            )
+
+            cur.execute(
+                f"""
+                SELECT re.exercise_id as id_ejercicio, re.sets_data, re.notes, re.rest_seconds,
+                       i.name as nombre_es, i.name as name, c_group.{cat_col} as group_name, e.gif_url,
+                       e.equipment, e.difficulty
+                FROM routine_exercises re
+                JOIN exercises e ON e.id = re.exercise_id
+                JOIN exercise_i18n i ON e.id = i.exercise_id AND i.lang = ?
+                LEFT JOIN exercise_categories c_group ON e.group_id = c_group.id
+                WHERE re.routine_id = ?
+            """,
+                (lang, r["id"]),
+            )
+            r["ejercicios"] = []
+            for e_row in cur.fetchall():
+                e = dict(e_row)
+                e["body_part"] = e["group_name"]
+                e["target"] = e["group_name"]
+                try:
+                    e["sets_data"] = (
+                        json.loads(e["sets_data"]) if e["sets_data"] else []
+                    )
+                except:
+                    e["sets_data"] = []
+                r["ejercicios"].append(e)
+        return rutinas
+
 def obtener_rutinas_templates(perfil: str, lang: str = "es"):
     lang = lang if lang in ("es", "en") else "es"
     cat_col = "name_en" if lang == "en" else "name_es"

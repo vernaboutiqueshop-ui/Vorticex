@@ -476,8 +476,19 @@ export default function WorkoutTracker({
                       {ej?.nombre_es}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.15rem" }}>
-                      <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", fontWeight: 700 }}>
-                        {ejSetsCompleted}/{ej.sets.length} series
+                      <div style={{ display: "flex", flex: 1, gap: "3px", maxWidth: "120px" }}>
+                        {ej.sets.map((s, idx) => (
+                          <div key={idx} style={{
+                            flex: 1,
+                            height: "4px",
+                            borderRadius: "2px",
+                            background: s.done ? "var(--color-primary)" : "var(--surface-3)",
+                            transition: "background 0.3s"
+                          }} />
+                        ))}
+                      </div>
+                      <span style={{ fontSize: "0.55rem", color: "var(--text-muted)", fontWeight: 700, whiteSpace: "nowrap" }}>
+                        {ejSetsCompleted}/{ej.sets.length}
                       </span>
                       {lastW && (
                         <span

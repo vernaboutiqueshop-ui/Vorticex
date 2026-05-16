@@ -12,6 +12,7 @@ from core.database_sqlite import (
     buscar_ejercicios_por_ids, buscar_ejercicios_textual,
     obtener_conteos_ejercicios, obtener_intensidad_muscular,
     obtener_ultimos_pesos, obtener_rutinas_templates,
+    obtener_rutinas_comunidad,
     guardar_rutina_template, eliminar_rutina, actualizar_rutina_template,
     obtener_carpetas, guardar_carpeta, eliminar_carpeta,
     obtener_rutina_publica, eliminar_evento_historial,
@@ -184,6 +185,13 @@ def api_actualizar_rutina(rid: int, req: RutinaUpdatePayload, user: str = Depend
         return {"status": "success"}
     except Exception as e:
         return {"status": "error", "error": str(e)}
+
+
+@router.get("/rutinas/comunidad")
+def get_rutinas_comunidad(lang: str = "es", user: str = Depends(get_current_user)):
+    rutinas = obtener_rutinas_comunidad(lang=lang)
+    return {"status": "success", "rutinas": rutinas}
+
 
 
 @router.get("/rutinas")
