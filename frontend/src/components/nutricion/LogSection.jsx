@@ -341,7 +341,7 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
     try {
       const res = await authFetch(`${API}/api/nutricion/log-from-cache`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ perfil, alimento_id: food.id || null, nombre: food.nombre, cal_100: food.cal_100, prot_100: food.prot_100, carb_100: food.carb_100, fat_100: food.fat_100, gramos: gramosInput }),
+        body: JSON.stringify({ perfil, alimento_id: food.id || null, nombre: food.nombre, cal_100: food.cal_100, prot_100: food.prot_100, carb_100: food.carb_100, fat_100: food.fat_100, gramos: gramosInput, source: food.source || 'cache' }),
       });
       const data = await res.json();
       if (data.status === 'success') {
@@ -365,7 +365,7 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
       try {
         await authFetch(`${API}/api/nutricion/log-from-cache`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ perfil, alimento_id: item.food.id || null, nombre: item.food.nombre, cal_100: item.food.cal_100, prot_100: item.food.prot_100, carb_100: item.food.carb_100, fat_100: item.food.fat_100, gramos: item.gramos }),
+          body: JSON.stringify({ perfil, alimento_id: item.food.id || null, nombre: item.food.nombre, cal_100: item.food.cal_100, prot_100: item.food.prot_100, carb_100: item.food.carb_100, fat_100: item.food.fat_100, gramos: item.gramos, source: item.food.source || 'cache' }),
         });
       } catch {}
     }
