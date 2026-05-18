@@ -6,7 +6,7 @@ import API, { authFetch } from '../../config';
 import FeedbackWidget from './FeedbackWidget';
 
 const MAX_RECETAS = 40;
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 1; // 1 card at a time — true horizontal swipe
 
 const FOOD_EMOJI_MAP = {
   huevo: '🥚', leche: '🥛', pollo: '🍗', carne: '🥩', pescado: '🐟', atun: '🐟', salmon: '🐠',
@@ -26,8 +26,8 @@ const getEmoji = (nombre) => {
 
 const DIFICULTAD_COLOR = { 'Fácil': 'var(--color-prot)', 'Media': 'var(--color-kcal)', 'Difícil': '#ef4444' };
 
-function RecetaCard({ receta, onLog, idx, perfil, ingredients }) {
-  const [open, setOpen] = useState(false);
+function RecetaCard({ receta, onLog, idx, perfil, ingredients, forceOpen = false }) {
+  const [open, setOpen] = useState(forceOpen);
 
   const handleLog = () => {
     onLog?.({
@@ -251,7 +251,7 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
   };
 
   const goNext = () => {
-    if (currentPage < totalPages - 1) {
+    if (currentPage < allRecetas.length - 1) {
       setSlideDir(1);
       setCurrentPage(p => p + 1);
     } else if (allRecetas.length < MAX_RECETAS) {
@@ -419,88 +419,107 @@ export default function AlacenaSection({ perfil, alacena, onRefresh, onSearchIng
         </>
       )}
 
-      {/* Recipe cards — horizontal pagination */}
+      {/* Recipe carousel — 1 card at a time, swipe horizontal */}
       <AnimatePresence>
         {allRecetas.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             style={{ marginTop: '0.85rem' }}>
 
-            {/* Header: page indicator + close */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--color-kcal)', letterSpacing: '0.5px' }}>
-                PÁG {currentPage + 1}/{totalPages} · {allRecetas.length} RECETAS
-              </span>
+            {/* Header: X de N + close */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--color-kcal)' }}>
+                  {currentPage + 1}
+                </span>
+                <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                  de {allRecetas.length} recetas
+                </span>
+              </div>
               <button onClick={() => { setAllRecetas([]); setCurrentPage(0); setShowAddForm(false); }}
                 style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.6rem' }}>
                 cerrar ×
               </button>
             </div>
 
-            {/* Animated page of cards */}
-            <div style={{ overflow: 'hidden', position: 'relative' }}>
+            {/* Single card with horizontal slide */}
+            <div style={{ overflow: 'hidden' }}>
               <AnimatePresence mode="wait" custom={slideDir}>
                 <motion.div
                   key={currentPage}
                   custom={slideDir}
-                  initial={{ x: slideDir * 280, opacity: 0 }}
+                  initial={{ x: slideDir * '100%', opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
-                  exit={{ x: -slideDir * 280, opacity: 0 }}
-                  transition={{ duration: 0.22, ease: 'easeInOut' }}
-                  style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}
+                  exit={{ x: -slideDir * '100%', opacity: 0 }}
+                  transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
                 >
-                  {allRecetas.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
-                    .map((r, i) => (
-                      <RecetaCard key={r.id || r.nombre || i} receta={r} idx={i}
-                        onLog={handleLogFood} perfil={perfil}
-                        ingredients={getIngredientesSeleccionados()} />
-                    ))}
+                  <RecetaCard
+                    receta={allRecetas[currentPage]}
+                    idx={currentPage}
+                    onLog={handleLogFood}
+                    perfil={perfil}
+                    ingredients={getIngredientesSeleccionados()}
+                    forceOpen={true}
+                  />
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* Navigation bar: ← dots → */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.65rem', gap: '0.4rem' }}>
-              {/* Prev */}
-              <motion.button whileTap={{ scale: 0.88 }} onClick={goPrev} disabled={currentPage === 0}
+            {/* Nav: ← progress dots → */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.65rem' }}>
+              <motion.button whileTap={{ scale: 0.85 }} onClick={goPrev} disabled={currentPage === 0}
                 style={{
-                  width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border-subtle)',
+                  width: 34, height: 34, borderRadius: '50%', flexShrink: 0, border: 'none',
                   background: currentPage === 0 ? 'transparent' : 'var(--surface-2)',
                   cursor: currentPage === 0 ? 'default' : 'pointer',
                   color: currentPage === 0 ? 'var(--surface-hover)' : 'var(--text-secondary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  fontSize: '1rem', fontWeight: 900,
+                  fontSize: '1.1rem', fontWeight: 900,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: currentPage === 0 ? 'none' : '1px solid var(--border-subtle)',
                 }}>‹</motion.button>
 
-              {/* Dots */}
-              <div style={{ display: 'flex', gap: '0.3rem', alignItems: 'center', flex: 1, justifyContent: 'center', flexWrap: 'wrap' }}>
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <motion.button key={i} whileTap={{ scale: 0.8 }}
-                    onClick={() => { setSlideDir(i > currentPage ? 1 : -1); setCurrentPage(i); }}
-                    style={{
-                      width: i === currentPage ? 18 : 7, height: 7,
-                      borderRadius: 99, border: 'none', cursor: 'pointer', padding: 0,
-                      background: i === currentPage ? 'var(--color-kcal)' : 'var(--surface-hover)',
-                      transition: 'all 0.2s',
-                    }} />
-                ))}
-                {allRecetas.length < MAX_RECETAS && (
-                  <div style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--border-subtle)', border: '1px dashed var(--text-muted)', opacity: 0.5 }} />
+              {/* Progress bar + dots */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                {/* Bar */}
+                <div style={{ height: 3, background: 'var(--surface-hover)', borderRadius: 99, overflow: 'hidden' }}>
+                  <motion.div
+                    animate={{ width: `${((currentPage + 1) / allRecetas.length) * 100}%` }}
+                    transition={{ duration: 0.3 }}
+                    style={{ height: '100%', borderRadius: 99, background: 'var(--color-kcal)' }}
+                  />
+                </div>
+                {/* Mini dots — show max 10 */}
+                {allRecetas.length <= 20 && (
+                  <div style={{ display: 'flex', gap: '0.2rem', justifyContent: 'center' }}>
+                    {allRecetas.map((_, i) => (
+                      <motion.button key={i} whileTap={{ scale: 0.8 }}
+                        onClick={() => { setSlideDir(i > currentPage ? 1 : -1); setCurrentPage(i); }}
+                        style={{
+                          width: i === currentPage ? 14 : 5, height: 5, borderRadius: 99,
+                          border: 'none', cursor: 'pointer', padding: 0,
+                          background: i === currentPage ? 'var(--color-kcal)' : 'var(--surface-hover)',
+                          transition: 'all 0.18s',
+                        }} />
+                    ))}
+                    {allRecetas.length < MAX_RECETAS && (
+                      <div style={{ width: 5, height: 5, borderRadius: 99, border: '1px dashed var(--text-muted)', opacity: 0.4 }} />
+                    )}
+                  </div>
                 )}
               </div>
 
-              {/* Next / Load more */}
-              {currentPage < totalPages - 1 ? (
-                <motion.button whileTap={{ scale: 0.88 }} onClick={goNext}
-                  style={{ width: 32, height: 32, borderRadius: '50%', border: '1px solid var(--border-subtle)', background: 'var(--surface-2)', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '1rem', fontWeight: 900 }}>›</motion.button>
+              {/* Next or load more */}
+              {currentPage < allRecetas.length - 1 ? (
+                <motion.button whileTap={{ scale: 0.85 }} onClick={goNext}
+                  style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid var(--border-subtle)', background: 'var(--surface-2)', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '1.1rem', fontWeight: 900 }}>›</motion.button>
               ) : allRecetas.length < MAX_RECETAS ? (
-                <motion.button whileTap={{ scale: 0.88 }} onClick={goNext} disabled={loadingMore}
-                  style={{ height: 32, padding: '0 0.6rem', borderRadius: '16px', border: '1px solid rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.1)', cursor: 'pointer', color: 'var(--color-kcal)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.55rem', fontWeight: 900, flexShrink: 0 }}>
-                  {loadingMore ? <Loader2 size={11} className="spin" /> : <><Sparkles size={11} />+10</>}
+                <motion.button whileTap={{ scale: 0.85 }} onClick={goNext} disabled={loadingMore}
+                  style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid rgba(245,158,11,0.4)', background: 'rgba(245,158,11,0.1)', cursor: 'pointer', color: 'var(--color-kcal)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.55rem', fontWeight: 900, flexDirection: 'column', gap: 0 }}>
+                  {loadingMore ? <Loader2 size={11} className="spin" /> : <><Sparkles size={10} /><span style={{ fontSize: '0.45rem' }}>+10</span></>}
                 </motion.button>
               ) : (
-                <motion.button whileTap={{ scale: 0.88 }} onClick={() => setShowAddForm(true)}
-                  style={{ height: 32, padding: '0 0.6rem', borderRadius: '16px', border: '1px solid rgba(0,201,255,0.3)', background: 'rgba(0,201,255,0.08)', cursor: 'pointer', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.55rem', fontWeight: 900, flexShrink: 0 }}>
-                  <Plus size={11} /> Agregar
+                <motion.button whileTap={{ scale: 0.85 }} onClick={() => setShowAddForm(true)}
+                  style={{ width: 34, height: 34, borderRadius: '50%', border: '1px solid rgba(0,201,255,0.3)', background: 'rgba(0,201,255,0.08)', cursor: 'pointer', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Plus size={13} />
                 </motion.button>
               )}
             </div>
