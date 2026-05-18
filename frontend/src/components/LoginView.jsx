@@ -1,6 +1,38 @@
 import { useState, useRef } from 'react';
-import { Zap, ChevronRight, ChevronLeft, Camera, Check } from 'lucide-react';
+import { Zap, ChevronRight, ChevronLeft, Camera, Check, X, Eye, EyeOff } from 'lucide-react';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import API from '../config';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+// Client-side name validation matching backend rules
+const validateNombre = (v) => {
+  v = v.trim();
+  if (v.length < 3) return 'Mínimo 3 caracteres';
+  if (v.length > 20) return 'Máximo 20 caracteres';
+  if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9_ ]+$/.test(v)) return 'Solo letras, números y guiones bajos';
+  if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]/.test(v)) return 'Debe empezar con una letra';
+  const letters = v.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]/g, '');
+  if (letters.length < 2) return 'Debe tener al menos 2 letras';
+  if (/[bcdfghjklmnpqrstvwxyz]{5,}/i.test(v)) return 'Nombre no válido — usá un nombre real o apodo';
+  const vowels = letters.replace(/[^aeiouáéíóúAEIOUÁÉÍÓÚ]/g, '');
+  if (letters.length >= 4 && vowels.length === 0) return 'Nombre no válido — usá un nombre real o apodo';
+  return '';
+};
+
+const validatePassword = (v) => {
+  if (v.length < 6) return 'Mínimo 6 caracteres';
+  if (['123456','password','contraseña','111111','qwerty','123123'].includes(v.toLowerCase())) return 'Contraseña muy común';
+  return '';
+};
+
+const FieldStatus = ({ value, validate, show }) => {
+  if (!show || !value) return null;
+  const err = validate(value);
+  return err
+    ? <span style={{ fontSize: '0.6rem', color: '#ef4444', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.25rem' }}><X size={10} /> {err}</span>
+    : <span style={{ fontSize: '0.6rem', color: 'var(--color-prot)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.25rem' }}><Check size={10} /> OK</span>;
+};
 
 const METAS = [
   { id: 'bajar_peso', icon: '🔥', label: 'Bajar de peso', desc: 'Déficit calórico inteligente' },
@@ -61,7 +93,30 @@ export default function LoginView({ onLogin }) {
     nombre: '', password: '', edad: '', peso: '', altura: '',
     meta: '', deportes: [], profilePic: null,
   });
+  const [showPassword, setShowPassword] = useState(false);
   const fileRef = useRef(null);
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true); setError('');
+    try {
+      const res = await fetch(`${API}/api/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      });
+      const data = await res.json();
+      if (data.access_token) {
+        localStorage.setItem('vortice_token', data.access_token);
+        localStorage.setItem('vortice_user', data.username);
+        onLogin(data.username, data.access_token);
+      } else {
+        setError(data.detail || 'Error con Google Login');
+      }
+    } catch {
+      setError('Sin conexión con el servidor');
+    }
+    setLoading(false);
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -142,8 +197,8 @@ export default function LoginView({ onLogin }) {
   };
 
   const stepValid = [
-    () => wizardData.nombre.trim().length > 1 && wizardData.password.length >= 4,
-    () => wizardData.edad > 0 && wizardData.peso > 0,
+    () => !validateNombre(wizardData.nombre) && !validatePassword(wizardData.password),
+    () => parseInt(wizardData.edad) >= 10 && parseInt(wizardData.edad) <= 100 && parseFloat(wizardData.peso) >= 30 && parseFloat(wizardData.peso) <= 300,
     () => wizardData.meta !== '',
     () => wizardData.deportes.length > 0,
     () => true,
@@ -250,7 +305,22 @@ export default function LoginView({ onLogin }) {
             }}>
               {loading ? 'Ingresando...' : 'Ingresar'}
             </button>
-            <div style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+            {/* Google login */}
+            {GOOGLE_CLIENT_ID && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <div style={{ flex: 1, height: 1, background: 'var(--surface-3)' }} />
+                  <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 700 }}>o continuá con</span>
+                  <div style={{ flex: 1, height: 1, background: 'var(--surface-3)' }} />
+                </div>
+                <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+                  <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError('Error con Google')}
+                    theme="filled_black" shape="pill" size="large" locale="es" />
+                </GoogleOAuthProvider>
+              </div>
+            )}
+
+            <div style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
               ¿Primera vez?{' '}
               <button type="button" onClick={() => { setMode('wizard'); setStep(0); setError(''); }}
                 style={{ color: 'var(--color-primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 800 }}>
@@ -318,17 +388,70 @@ export default function LoginView({ onLogin }) {
               <>
                 <div>
                   <h2 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fff', margin: '0 0 0.15rem' }}>¿Cómo te llamás?</h2>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: 0 }}>Tu nombre y una contraseña para ingresar</p>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', margin: 0 }}>Tu nombre de usuario y una contraseña para ingresar</p>
                 </div>
+
+                {/* Google Sign-In */}
+                {GOOGLE_CLIENT_ID && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+                      <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => setError('Error al iniciar con Google')}
+                        theme="filled_black"
+                        shape="pill"
+                        size="large"
+                        text="continue_with"
+                        locale="es"
+                      />
+                    </GoogleOAuthProvider>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{ flex: 1, height: 1, background: 'var(--surface-3)' }} />
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700 }}>o con email</span>
+                      <div style={{ flex: 1, height: 1, background: 'var(--surface-3)' }} />
+                    </div>
+                  </div>
+                )}
+
                 <div>
-                  <label style={labelStyle}>TU NOMBRE</label>
-                  <input style={inputStyle} type="text" placeholder="Ej: Gonzalo"
-                    value={wizardData.nombre} onChange={e => setWizardData(p => ({ ...p, nombre: e.target.value }))} />
+                  <label style={labelStyle}>TU NOMBRE O APODO</label>
+                  <input style={{
+                    ...inputStyle,
+                    borderColor: wizardData.nombre && validateNombre(wizardData.nombre) ? 'rgba(239,68,68,0.5)' : wizardData.nombre && !validateNombre(wizardData.nombre) ? 'rgba(34,197,94,0.4)' : undefined
+                  }} type="text" placeholder="Ej: Gonzalo, MatiasX, gonza_fit"
+                    value={wizardData.nombre} onChange={e => setWizardData(p => ({ ...p, nombre: e.target.value }))}
+                    maxLength={20} />
+                  <FieldStatus value={wizardData.nombre} validate={validateNombre} show={wizardData.nombre.length >= 2} />
+                  <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                    Solo letras, números y guiones bajos. Sin caracteres especiales.
+                  </div>
                 </div>
+
                 <div>
                   <label style={labelStyle}>CONTRASEÑA</label>
-                  <input style={inputStyle} type="password" placeholder="Mínimo 4 caracteres"
-                    value={wizardData.password} onChange={e => setWizardData(p => ({ ...p, password: e.target.value }))} />
+                  <div style={{ position: 'relative' }}>
+                    <input style={{
+                      ...inputStyle,
+                      paddingRight: '2.5rem',
+                      borderColor: wizardData.password && validatePassword(wizardData.password) ? 'rgba(239,68,68,0.5)' : wizardData.password && !validatePassword(wizardData.password) ? 'rgba(34,197,94,0.4)' : undefined
+                    }} type={showPassword ? 'text' : 'password'} placeholder="Mínimo 6 caracteres"
+                      value={wizardData.password} onChange={e => setWizardData(p => ({ ...p, password: e.target.value }))} />
+                    <button type="button" onClick={() => setShowPassword(s => !s)}
+                      style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                  <FieldStatus value={wizardData.password} validate={validatePassword} show={wizardData.password.length >= 1} />
+                  {/* Password strength bar */}
+                  {wizardData.password && (
+                    <div style={{ marginTop: '0.35rem', height: 3, background: 'var(--surface-3)', borderRadius: 99, overflow: 'hidden' }}>
+                      <div style={{
+                        height: '100%', borderRadius: 99, transition: 'all 0.3s',
+                        width: `${Math.min((wizardData.password.length / 12) * 100, 100)}%`,
+                        background: wizardData.password.length < 6 ? '#ef4444' : wizardData.password.length < 10 ? '#f59e0b' : '#22c55e'
+                      }} />
+                    </div>
+                  )}
                 </div>
               </>
             )}
