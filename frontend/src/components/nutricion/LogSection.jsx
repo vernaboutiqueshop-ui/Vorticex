@@ -363,6 +363,7 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
     setSearching(true);
     setSmartResults([]); setHybridResults([]); setSelectedFood(null);
     setHybridSource(''); setMultiPending([]); setNaturalItems([]);
+    setSuggestions([]); setShowSuggestions(false);
     setSearchMsg('Analizando...');
 
     // Always use the smart endpoint — handles single and multi-food
@@ -652,7 +653,7 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
                 </AnimatePresence>
 
                 <AnimatePresence>
-                  {showSuggestions && suggestions.length > 0 && (
+                  {showSuggestions && suggestions.length > 0 && smartResults.length === 0 && (
                     <motion.div initial={{ opacity: 0, y: -4, scaleY: 0.9 }} animate={{ opacity: 1, y: 0, scaleY: 1 }} exit={{ opacity: 0, y: -4, scaleY: 0.9 }} transition={{ duration: 0.12 }}
                       style={{ position: 'absolute', top: '100%', left: 0, right: '3.5rem', marginTop: '0.3rem', background: 'var(--surface-2)', border: '1px solid var(--border-default)', borderRadius: '12px', overflow: 'hidden', zIndex: 50, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', transformOrigin: 'top' }}>
                       {suggestions.map((food, idx) => {
@@ -660,7 +661,21 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
                         const prot = Math.round(food.prot_100 || 0);
                         return (
                           <motion.button key={idx} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.03 }}
-                            onClick={() => { setSelectedFood(food); setGramosInput(100); setShowSuggestions(false); setSuggestions([]); setHybridResults([]); }}
+                            onClick={() => {
+                              setShowSuggestions(false); setSuggestions([]);
+                              // Convert suggestion to smart result directly
+                              const g = 100;
+                              setSmartResults([{
+                                nombre: food.nombre, query: food.nombre, gramos: g,
+                                kcal: Math.round((food.cal_100||0) * g / 100),
+                                proteinas: +((food.prot_100||0) * g / 100).toFixed(1),
+                                carbos: +((food.carb_100||0) * g / 100).toFixed(1),
+                                grasas: +((food.fat_100||0) * g / 100).toFixed(1),
+                                cal_100: food.cal_100, prot_100: food.prot_100,
+                                carb_100: food.carb_100, fat_100: food.fat_100,
+                                source: food.source || 'cache', alimento_id: food.id,
+                              }]);
+                            }}
                             style={{ width: '100%', background: 'transparent', border: 'none', borderBottom: idx < suggestions.length - 1 ? '1px solid var(--border-subtle)' : 'none', padding: '0.55rem 0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.6rem', textAlign: 'left' }}
                             onMouseEnter={e => e.currentTarget.style.background = 'var(--surface-hover)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
