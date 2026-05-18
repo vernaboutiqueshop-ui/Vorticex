@@ -126,10 +126,72 @@ class ParsearTextoRequest(BaseModel):
 
 @router.post("/parsear")
 async def parsear_texto_libre(req: ParsearTextoRequest, user: str = Depends(get_current_user)):
-    """Usa IA (Groq) para extraer alimentos y gramos de texto libre.
-    Entiende lenguaje natural, prepaciones, conectores argentinos."""
+    """Usa IA (Groq) para extraer alimentos y gramos de texto libre."""
     items = await parsear_alimentos_texto(req.texto)
     return {"status": "success", "items": items}
+
+
+@router.post("/buscar-inteligente")
+async def buscar_inteligente(req: NutricionTextoRequest, user: str = Depends(get_current_user)):
+    """One-shot: entiende texto libre → busca en cache → estima macros → listo para confirmar.
+    Sin pasos intermedios. Devuelve items listos para log con macros ya calculados."""
+    import re as _re
+    texto = req.alimento.strip()
+    if not texto:
+        return {"status": "error", "items": []}
+
+    # Decide si parsear con IA (texto complejo) o tratar como alimento único
+    has_gramos = bool(_re.search(r'\d+\s*(?:g\b|gr\b|gramos?\b)', texto, _re.I))
+    has_comma = ',' in texto
+    multi_numbers = len(_re.findall(r'\d+\s*(?:g\b|gr\b|gramos?\b)', texto, _re.I)) > 1
+
+    parsed = []
+    if has_gramos and (has_comma or multi_numbers or len(texto.split()) > 4):
+        parsed = await parsear_alimentos_texto(texto)
+
+    if not parsed:
+        # Extraer gramos simples si hay un número al inicio/final
+        m = _re.match(r'^(\d+(?:[.,]\d+)?)\s*(?:g\b|gr\b|gramos?\b|de\b)?\s+(.+)$', texto, _re.I)
+        if m:
+            parsed = [{"alimento": m.group(2).strip(), "gramos": float(m.group(1).replace(',', '.'))}]
+        else:
+            m2 = _re.match(r'^(.+?)\s+(\d+(?:[.,]\d+)?)\s*(?:g\b|gr\b|gramos?\b)$', texto, _re.I)
+            if m2:
+                parsed = [{"alimento": m2.group(1).strip(), "gramos": float(m2.group(2).replace(',', '.'))}]
+            else:
+                parsed = [{"alimento": texto, "gramos": 100}]
+
+    results = []
+    for item in parsed:
+        nombre = item.get("alimento", "")
+        gramos = float(item.get("gramos", 100))
+        if not nombre:
+            continue
+
+        r = await busqueda_hibrida(req.perfil, nombre)
+        todos = r.get('cache', []) + r.get('external', [])
+
+        if todos:
+            top = todos[0]
+            factor = gramos / 100
+            results.append({
+                "nombre": top["nombre"],
+                "query": nombre,
+                "gramos": gramos,
+                "kcal": round(top["cal_100"] * factor),
+                "proteinas": round(top["prot_100"] * factor, 1),
+                "carbos": round(top["carb_100"] * factor, 1),
+                "grasas": round(top["fat_100"] * factor, 1),
+                "cal_100": top["cal_100"],
+                "prot_100": top["prot_100"],
+                "carb_100": top["carb_100"],
+                "fat_100": top["fat_100"],
+                "source": r["source"],
+                "alimento_id": top.get("id"),
+            })
+        # Items not found are silently skipped — UI handles empty response
+
+    return {"status": "success", "items": results}
 
 
 # --- Hybrid food search ---

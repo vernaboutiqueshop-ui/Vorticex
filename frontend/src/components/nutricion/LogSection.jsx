@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Camera, Search, Plus, X, Loader2 } from 'lucide-react';
+import { Camera, Search, Plus, X, Loader2, CheckCircle } from 'lucide-react';
 import { GiMeal, GiFlame } from 'react-icons/gi';
 import { FiEdit3 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'motion/react';
@@ -65,6 +65,81 @@ const parseMultiFoodFallback = (text) => {
   if (segments.length > 1) return segments.map(m => ({ nombre: m[2].trim(), gramos: parseFloat(m[1].replace(',', '.')) }));
   return [extractFood(text)];
 };
+
+const SOURCE_ICON = { cache: '⚡', openfoodfacts: '🌍', groq: '🤖', off: '🌍', ninguna: '?' };
+
+function SmartResultCard({ item, onLog, idx }) {
+  const [gramos, setGramos] = useState(item.gramos || 100);
+  const [logging, setLogging] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const factor = gramos / 100;
+  const kcal = Math.round((item.cal_100 || 0) * factor);
+  const prot = ((item.prot_100 || 0) * factor).toFixed(1);
+  const carb = ((item.carb_100 || 0) * factor).toFixed(1);
+  const fat  = ((item.fat_100  || 0) * factor).toFixed(1);
+
+  const handleLog = async () => {
+    setLogging(true);
+    await onLog({ ...item, gramos, kcal: item.cal_100, prot: item.prot_100, carb: item.carb_100, fat: item.fat_100 }, gramos);
+    setDone(true);
+    setLogging(false);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: idx * 0.06, type: 'spring', stiffness: 400, damping: 28 }}
+      style={{
+        background: done ? 'rgba(34,197,94,0.07)' : 'var(--surface-2)',
+        border: `1px solid ${done ? 'rgba(34,197,94,0.3)' : 'var(--border-default)'}`,
+        borderRadius: '14px', padding: '0.65rem 0.75rem',
+        display: 'flex', alignItems: 'center', gap: '0.6rem',
+        transition: 'all 0.25s',
+      }}
+    >
+      {/* Food info */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: '0.75rem', fontWeight: 900, color: done ? 'var(--color-prot)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '0.2rem' }}>
+          {SOURCE_ICON[item.source] || '📦'} {item.nombre}
+          {item.query && item.query.toLowerCase() !== item.nombre.toLowerCase() && (
+            <span style={{ fontSize: '0.48rem', color: 'var(--text-muted)', fontWeight: 600, marginLeft: '0.3rem' }}>({item.query})</span>
+          )}
+        </div>
+        {/* Live macros */}
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.65rem', fontWeight: 900, color: 'var(--color-kcal)' }}>{kcal} kcal</span>
+          <span style={{ fontSize: '0.55rem', color: 'var(--color-prot)', fontWeight: 700 }}>P{prot}g</span>
+          <span style={{ fontSize: '0.55rem', color: 'var(--color-carb)', fontWeight: 700 }}>C{carb}g</span>
+          <span style={{ fontSize: '0.55rem', color: 'var(--color-gras)', fontWeight: 700 }}>G{fat}g</span>
+        </div>
+      </div>
+
+      {/* Gram stepper */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', flexShrink: 0 }}>
+        <button onClick={() => setGramos(g => Math.max(10, g - 25))}
+          style={{ width: 22, height: 22, borderRadius: '6px', background: 'var(--surface-3)', border: '1px solid var(--border-subtle)', cursor: 'pointer', color: 'var(--text-secondary)', fontWeight: 900, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
+        <input type="number" value={gramos} onChange={e => setGramos(Math.max(1, Number(e.target.value) || 100))}
+          style={{ width: '44px', textAlign: 'center', background: 'var(--surface-3)', border: '1px solid var(--border-subtle)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.7rem', fontWeight: 900, padding: '0.15rem', outline: 'none' }} />
+        <button onClick={() => setGramos(g => g + 25)}
+          style={{ width: 22, height: 22, borderRadius: '6px', background: 'var(--surface-3)', border: '1px solid var(--border-subtle)', cursor: 'pointer', color: 'var(--text-secondary)', fontWeight: 900, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+        <span style={{ fontSize: '0.5rem', color: 'var(--text-muted)', fontWeight: 700 }}>g</span>
+      </div>
+
+      {/* Log button */}
+      <motion.button whileTap={{ scale: 0.9 }} onClick={handleLog} disabled={logging || done}
+        style={{
+          flexShrink: 0, width: 36, height: 36, borderRadius: '10px', border: 'none', cursor: done ? 'default' : 'pointer',
+          background: done ? 'rgba(34,197,94,0.15)' : 'var(--color-primary)',
+          color: done ? 'var(--color-prot)' : '#000',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+        {logging ? <Loader2 size={14} className="spin" /> : done ? <CheckCircle size={14} /> : <Plus size={14} />}
+      </motion.button>
+    </motion.div>
+  );
+}
+
 
 function SuplementosPanel({ suplementosData, setSuplementosData, perfil, onShowToast }) {
   const [newNombre, setNewNombre] = useState('');
@@ -223,14 +298,16 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
   const [activeChip, setActiveChip] = useState('buscar');
   const [searchText, setSearchText] = useState('');
   const [searching, setSearching] = useState(false);
+  const [smartResults, setSmartResults] = useState([]); // new unified results
+  const [loggingFood, setLoggingFood] = useState(false);
+  const [logSuccess, setLogSuccess] = useState(null);
+  const [pendingFeedback, setPendingFeedback] = useState(null);
+  const [searchMsg, setSearchMsg] = useState('');
+  // Legacy states kept for edge cases
   const [hybridResults, setHybridResults] = useState([]);
   const [hybridSource, setHybridSource] = useState('');
   const [selectedFood, setSelectedFood] = useState(null);
   const [gramosInput, setGramosInput] = useState(100);
-  const [loggingFood, setLoggingFood] = useState(false);
-  const [logSuccess, setLogSuccess] = useState(null);
-  const [pendingFeedback, setPendingFeedback] = useState(null); // { name, itemType }
-  const [searchMsg, setSearchMsg] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [multiPending, setMultiPending] = useState([]);
@@ -283,49 +360,30 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
   const buscarAlimento = async (queryOverride) => {
     const query = (queryOverride || searchText).trim();
     if (!query) return;
+    setSearching(true);
+    setSmartResults([]); setHybridResults([]); setSelectedFood(null);
+    setHybridSource(''); setMultiPending([]); setNaturalItems([]);
+    setSearchMsg('Analizando...');
 
-    // Detect if text has multiple quantities/foods → use AI parser
-    const looksMultiFood = /\d+\s*(?:g\b|gr\b|gramos?\b)/i.test(query) &&
-      (query.split(',').length > 1 || (query.match(/\d+\s*(?:g\b|gr\b|gramos?\b)/gi) || []).length > 1);
-
-    if (looksMultiFood) {
-      setSearching(true);
-      setHybridResults([]); setSelectedFood(null); setHybridSource(''); setMultiPending([]); setNaturalItems([]);
-      setSearchMsg('IA interpretando texto...');
-
-      let parts = [];
-      try {
-        // Use AI parser first
-        const parseRes = await authFetch(`${API}/api/nutricion/parsear`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ texto: query }),
-        });
-        const parseData = await parseRes.json();
-        if (parseData.items?.length > 0) {
-          parts = parseData.items.map(i => ({ nombre: i.alimento, gramos: i.gramos || 100 }));
-        }
-      } catch {}
-
-      // Fallback to regex if AI parser failed
-      if (!parts.length) parts = parseMultiFoodFallback(query);
-
-      const results = [];
-      for (const part of parts) {
-        try {
-          const res = await authFetch(`${API}/api/nutricion/buscar`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ perfil, query: part.nombre }),
-          });
-          const data = await res.json();
-          results.push({ nombre: part.nombre, gramos: part.gramos || 100, food: (data.items || [])[0] || null });
-        } catch { results.push({ nombre: part.nombre, gramos: part.gramos || 100, food: null }); }
+    // Always use the smart endpoint — handles single and multi-food
+    try {
+      const res = await authFetch(`${API}/api/nutricion/buscar-inteligente`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ perfil, alimento: query }),
+      });
+      const data = await res.json();
+      searchTimers.current.forEach(clearTimeout);
+      setSearchMsg('');
+      if (data.items?.length > 0) {
+        setSmartResults(data.items);
+        setSearching(false);
+        return;
       }
-      setMultiPending(results);
-      setSearching(false);
-      return;
-    }
+    } catch {}
 
-    // Single food — extract gramos if present
+    // Fallback: old single-food search for edge cases
+    searchTimers.current.forEach(clearTimeout);
+    setSearchMsg('');
     const singleParts = parseMultiFoodFallback(query);
     const { nombre, gramos } = singleParts[0];
     if (gramos) setGramosInput(gramos);
@@ -625,7 +683,61 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
                 </AnimatePresence>
               </div>
 
-              {/* Did you mean? */}
+              {/* ── SMART RESULTS — main path ── */}
+              <AnimatePresence>
+                {smartResults.length > 0 && (
+                  <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    style={{ marginTop: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                      <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                        {smartResults.length === 1 ? 'Ajustá y registrá' : `${smartResults.length} alimentos detectados`}
+                      </span>
+                      {smartResults.length > 1 && (
+                        <button onClick={async () => {
+                          const total = smartResults.reduce((s, r) => s + Math.round((r.cal_100||0) * (r.gramos||100) / 100), 0);
+                          for (const item of smartResults) {
+                            try {
+                              await authFetch(`${API}/api/nutricion/log-from-cache`, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ perfil, alimento_id: item.alimento_id || null, nombre: item.nombre, cal_100: item.cal_100||0, prot_100: item.prot_100||0, carb_100: item.carb_100||0, fat_100: item.fat_100||0, gramos: item.gramos||100, source: item.source||'cache' }),
+                              });
+                            } catch {}
+                          }
+                          onShowToast?.(`${smartResults.length} alimentos · ~${total} kcal`, 'success');
+                          setSmartResults([]); setSearchText(''); onRefresh();
+                        }}
+                          className="btn-elite" style={{ height: '1.6rem', padding: '0 0.6rem', fontSize: '0.55rem' }}>
+                          ✓ Registrar todo ({smartResults.reduce((s,r) => s + Math.round((r.cal_100||0)*(r.gramos||100)/100), 0)} kcal)
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                      {smartResults.map((item, i) => (
+                        <SmartResultCard key={i} item={item} idx={i}
+                          onLog={async (item, gramos) => {
+                            await authFetch(`${API}/api/nutricion/log-from-cache`, {
+                              method: 'POST', headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ perfil, alimento_id: item.alimento_id || null, nombre: item.nombre, cal_100: item.cal_100||0, prot_100: item.prot_100||0, carb_100: item.carb_100||0, fat_100: item.fat_100||0, gramos, source: item.source||'cache' }),
+                            });
+                            setPendingFeedback({ name: item.nombre, itemType: 'food_search' });
+                            setTimeout(() => setPendingFeedback(null), 9000);
+                            onRefresh();
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* No results */}
+              {!searching && searchText.trim() && smartResults.length === 0 && hybridResults.length === 0 && !selectedFood && multiPending.length === 0 && naturalItems.length === 0 && (
+                <div style={{ marginTop: '0.5rem', fontSize: '0.6rem', color: 'var(--text-muted)', textAlign: 'center', padding: '0.5rem' }}>
+                  Sin resultados. Probá con otro término.
+                </div>
+              )}
+
+              {/* Did you mean? (legacy) */}
               <AnimatePresence>
                 {hybridSource === 'semantic' && hybridResults.length > 0 && searchText.trim() &&
                   hybridResults[0]?.nombre?.toLowerCase() !== searchText.trim().toLowerCase() && (

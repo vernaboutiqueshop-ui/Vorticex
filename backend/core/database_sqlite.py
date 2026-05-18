@@ -2267,10 +2267,31 @@ def _ensure_alimentos_cache_table():
         conn.commit()
 
 # --- Ejecutar migraciones críticas al cargar el módulo ---
+def _auto_seed_ar():
+    """Auto-seed 115 Argentine foods on first run. Safe to call multiple times."""
+    try:
+        with get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) as n FROM alimentos_cache WHERE user_id IS NULL AND source='seed_ar'")
+            n = cur.fetchone()["n"]
+        if n < 50:
+            import sys as _sys, os as _os, subprocess as _sp
+            seed_path = _os.path.join(_os.path.dirname(__file__), '..', 'seed_alimentos_ar.py')
+            if _os.path.exists(seed_path):
+                result = _sp.run([_sys.executable, seed_path], capture_output=True, timeout=30)
+                inserted = result.stdout.decode('utf-8', errors='replace').strip().split('\n')[-1]
+                print(f"[SEED-AR] {inserted}")
+            else:
+                print("[SEED-AR] seed_alimentos_ar.py no encontrado")
+    except Exception as e:
+        print(f"[SEED-AR] Error: {e}")
+
+
 def run_migrations():
     with get_conn() as conn:
         _migrate_source_column(conn)
         _ensure_alimentos_cache_table()
+    _auto_seed_ar()
 
 run_migrations()
 
