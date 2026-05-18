@@ -40,17 +40,49 @@ class RegisterRequest(BaseModel):
         v = v.strip()
         if len(v) < 3:
             raise ValueError('El nombre debe tener al menos 3 caracteres')
-        if len(v) > 30:
-            raise ValueError('El nombre no puede superar 30 caracteres')
-        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9._-]+$', v):
-            raise ValueError('El nombre solo puede contener letras, números, puntos, guiones y guiones bajos')
+        if len(v) > 20:
+            raise ValueError('El nombre no puede superar 20 caracteres')
+        # Only letters (with accents), numbers, spaces, underscores — NO dots, slashes, dashes
+        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9_ ]+$', v):
+            raise ValueError('Solo letras, números, espacios y guiones bajos')
+        # Must start with a letter
+        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]', v):
+            raise ValueError('El nombre debe comenzar con una letra')
+        # Must have at least 2 letters (not all numbers/symbols)
+        letters = re.sub(r'[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]', '', v)
+        if len(letters) < 2:
+            raise ValueError('El nombre debe contener al menos 2 letras')
+        # Gibberish check: no more than 4 consecutive consonants
+        consonant_streak = re.search(r'[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]{5,}', v)
+        if consonant_streak:
+            raise ValueError('El nombre no parece válido. Usá tu nombre real o un apodo')
+        # Must have at least one vowel in the letters
+        vowels = re.sub(r'[^aeiouáéíóúAEIOUÁÉÍÓÚ]', '', letters)
+        if len(letters) >= 4 and len(vowels) == 0:
+            raise ValueError('El nombre no parece válido. Usá tu nombre real o un apodo')
         return v
 
     @field_validator('password')
     @classmethod
     def validar_password(cls, v):
-        if len(v) < 4:
-            raise ValueError('La contraseña debe tener al menos 4 caracteres')
+        if len(v) < 6:
+            raise ValueError('La contraseña debe tener al menos 6 caracteres')
+        if v.lower() in ('123456', 'password', 'contraseña', '111111', 'qwerty', '123123'):
+            raise ValueError('Esa contraseña es muy común, elegí una más segura')
+        return v
+
+    @field_validator('edad')
+    @classmethod
+    def validar_edad(cls, v):
+        if v != 0 and not (10 <= v <= 100):
+            raise ValueError('La edad debe estar entre 10 y 100 años')
+        return v
+
+    @field_validator('peso')
+    @classmethod
+    def validar_peso(cls, v):
+        if v != 0 and not (30 <= v <= 300):
+            raise ValueError('El peso debe estar entre 30 y 300 kg')
         return v
 
     model_config = {
@@ -127,3 +159,64 @@ def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestFor
 @router.get("/recover")
 def recover_password(username: str):
     return {"error": "La recuperación por contraseña está deshabilitada. Contactá al administrador."}
+
+
+# ── Google OAuth ──
+class GoogleTokenRequest(BaseModel):
+    credential: str  # Google ID token from frontend
+
+@router.post("/google")
+def google_login(req: GoogleTokenRequest):
+    """Verify Google ID token and create/find user. Returns JWT."""
+    import os
+    from core.database_sqlite import get_conn
+
+    GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=503, detail="Google login no configurado en el servidor")
+
+    try:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
+        idinfo = id_token.verify_oauth2_token(req.credential, google_requests.Request(), GOOGLE_CLIENT_ID)
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Token de Google inválido: {str(e)[:60]}")
+
+    email = idinfo.get("email", "")
+    google_name = idinfo.get("name", "")
+    picture = idinfo.get("picture", "")
+    if not email:
+        raise HTTPException(status_code=400, detail="Google no devolvió un email válido")
+
+    # Derive username from name or email
+    base_name = re.sub(r'[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9_ ]', '', google_name or email.split("@")[0])[:20].strip() or "usuario"
+
+    # Find existing user by email or by name
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT name FROM users WHERE LOWER(email) = LOWER(?)", (email,))
+        row = cur.fetchone()
+        if row:
+            username = row["name"]
+        else:
+            # Check if name taken
+            username = base_name
+            cur.execute("SELECT name FROM users WHERE LOWER(name) = LOWER(?)", (username,))
+            if cur.fetchone():
+                username = f"{base_name}_{email.split('@')[0][:8]}"
+            # Create new user
+            guardar_perfil(username, {
+                "descripcion": f"Registrado con Google. Email: {email}",
+                "objetivo_ia": "bienestar",
+                "peso": 70,
+                "password": f"google_{idinfo['sub']}"  # unusable password for google accounts
+            })
+            # Save email and picture
+            with get_conn() as conn2:
+                cur2 = conn2.cursor()
+                cur2.execute("UPDATE users SET email=?, profile_pic=? WHERE LOWER(name)=LOWER(?)",
+                             (email, picture, username))
+                conn2.commit()
+
+    access_token = create_access_token(data={"sub": username})
+    return {"access_token": access_token, "token_type": "bearer", "status": "success", "username": username, "is_new": not row if 'row' in dir() else True}
