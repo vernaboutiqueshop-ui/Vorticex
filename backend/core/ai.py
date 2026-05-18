@@ -355,6 +355,41 @@ Genera una receta creativa, rápida y nutritiva. Indica:
 Conciso, motivador, con onda."""
 
 
+async def parsear_alimentos_texto(texto: str) -> list:
+    """Usa Groq para extraer alimentos y gramos de texto libre en español argentino.
+    Entiende lenguaje natural complejo, prepaciones, conectores ('con', 'a la', etc.)
+    Devuelve: [{"alimento": "nombre limpio", "gramos": 100}]
+    """
+    prompt = f"""Sos un nutricionista argentino. El usuario describió su comida en texto libre.
+
+Texto del usuario: "{texto}"
+
+Tu tarea: identificar CADA alimento distinto y su cantidad en gramos.
+
+Reglas de parseo:
+1. Cada vez que haya DOS cantidades en gramos separadas, son DOS alimentos distintos.
+2. "con", "a la", "al" dentro de UN solo alimento = parte del nombre, NO separador.
+3. Normalizá: "surimis asados" → "surimi asado", "fideos" → "fideos cocidos".
+4. Si no hay gramos explícitos, usá 100g.
+5. Si el texto es solo UN alimento, devolvé un array con UN elemento.
+
+Ejemplos:
+- "100g pollo, 200g arroz" → [{{"alimento":"pechuga de pollo","gramos":100}},{{"alimento":"arroz blanco cocido","gramos":200}}]
+- "100 gramos surimi, 100 gramos surimis asados, 300 gramos risotto" → [{{"alimento":"surimi","gramos":100}},{{"alimento":"surimi asado","gramos":100}},{{"alimento":"risotto","gramos":300}}]
+- "milanesa con puré 250g" → [{{"alimento":"milanesa con puré","gramos":250}}]
+- "100 gramos surimi, 100 gramos surimis asados con 300 gramos de risotto" → [{{"alimento":"surimi","gramos":100}},{{"alimento":"surimi asado","gramos":100}},{{"alimento":"risotto","gramos":300}}]
+
+Respondé UNICAMENTE con el JSON array, sin texto ni markdown."""
+
+    raw = await _groq_texto(prompt, max_tokens=400)
+    if raw:
+        try:
+            return json.loads(clean_json(raw))
+        except Exception as e:
+            print(f"[PARSER] Error parseando respuesta de Groq: {e} | raw: {raw[:100]}")
+    return []
+
+
 async def generar_receta_alacena(perfil, ings, diet_mode=None):
     prompt = _build_receta_prompt(ings, diet_mode)
     # 1. Intentar Gemini

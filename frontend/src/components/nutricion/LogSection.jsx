@@ -50,7 +50,8 @@ const getSuplementosHoy = (perfil) => {
 };
 const saveSuplementosHoy = (perfil, data) => localStorage.setItem(suplementosKey(perfil), JSON.stringify(data));
 
-const parseMultiFood = (text) => {
+// Regex fallback — solo para texto simple cuando la IA no está disponible
+const parseMultiFoodFallback = (text) => {
   const extractFood = (str) => {
     str = str.trim();
     const m = str.match(/^(\d+(?:[.,]\d+)?)\s*(?:g\b|gr\b|gramos?\b|kg\b|de\b)?\s+(.+)$/i);
@@ -282,11 +283,32 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
   const buscarAlimento = async (queryOverride) => {
     const query = (queryOverride || searchText).trim();
     if (!query) return;
-    const parts = parseMultiFood(query);
 
-    if (parts.length > 1) {
+    // Detect if text has multiple quantities/foods → use AI parser
+    const looksMultiFood = /\d+\s*(?:g\b|gr\b|gramos?\b)/i.test(query) &&
+      (query.split(',').length > 1 || (query.match(/\d+\s*(?:g\b|gr\b|gramos?\b)/gi) || []).length > 1);
+
+    if (looksMultiFood) {
       setSearching(true);
       setHybridResults([]); setSelectedFood(null); setHybridSource(''); setMultiPending([]); setNaturalItems([]);
+      setSearchMsg('IA interpretando texto...');
+
+      let parts = [];
+      try {
+        // Use AI parser first
+        const parseRes = await authFetch(`${API}/api/nutricion/parsear`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ texto: query }),
+        });
+        const parseData = await parseRes.json();
+        if (parseData.items?.length > 0) {
+          parts = parseData.items.map(i => ({ nombre: i.alimento, gramos: i.gramos || 100 }));
+        }
+      } catch {}
+
+      // Fallback to regex if AI parser failed
+      if (!parts.length) parts = parseMultiFoodFallback(query);
+
       const results = [];
       for (const part of parts) {
         try {
@@ -303,7 +325,9 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
       return;
     }
 
-    const { nombre, gramos } = parts[0];
+    // Single food — extract gramos if present
+    const singleParts = parseMultiFoodFallback(query);
+    const { nombre, gramos } = singleParts[0];
     if (gramos) setGramosInput(gramos);
     setSearching(true);
     setHybridResults([]); setSelectedFood(null); setHybridSource(''); setMultiPending([]); setNaturalItems([]);

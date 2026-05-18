@@ -17,7 +17,7 @@ from core.database import (
     buscar_recetas_por_ingredientes, guardar_recetas_cache, validar_receta,
     guardar_en_cache_global, obtener_trending_alimentos,
 )
-from core.ai import estimar_nutricion_ollama, generar_receta_alacena, analizar_foto_gemini, analizar_foto_groq, generar_recetas_cards
+from core.ai import estimar_nutricion_ollama, generar_receta_alacena, analizar_foto_gemini, analizar_foto_groq, generar_recetas_cards, parsear_alimentos_texto
 from core.database import guardar_alimento_cache, obtener_alimento_por_id
 from core.nutrition_search import busqueda_hibrida
 
@@ -119,6 +119,17 @@ class LogFromCacheRequest(BaseModel):
         "gramos": 200,
         "source": "ia"
     }}}
+
+
+class ParsearTextoRequest(BaseModel):
+    texto: str
+
+@router.post("/parsear")
+async def parsear_texto_libre(req: ParsearTextoRequest, user: str = Depends(get_current_user)):
+    """Usa IA (Groq) para extraer alimentos y gramos de texto libre.
+    Entiende lenguaje natural, prepaciones, conectores argentinos."""
+    items = await parsear_alimentos_texto(req.texto)
+    return {"status": "success", "items": items}
 
 
 # --- Hybrid food search ---
