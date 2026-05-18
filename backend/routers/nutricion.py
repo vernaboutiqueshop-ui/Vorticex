@@ -169,10 +169,12 @@ def log_from_cache(req: LogFromCacheRequest, user: str = Depends(get_current_use
         )
 
         # Save to community global cache when food came from AI/external and has no cache entry
-        SOURCES_TO_CACHE = {"foto", "ia", "groq", "natural", "openfoodfacts"}
+        # 'off' = OpenFoodFacts direct item source (mapped here to 'openfoodfacts')
+        SOURCES_TO_CACHE = {"foto", "ia", "groq", "natural", "openfoodfacts", "off"}
+        cache_source = "openfoodfacts" if req.source == "off" else req.source
         if not req.alimento_id and req.source in SOURCES_TO_CACHE and cal > 0 and nombre.strip():
             try:
-                guardar_en_cache_global(nombre, cal, prot, carb, fat, source=req.source)
+                guardar_en_cache_global(nombre, cal, prot, carb, fat, source=cache_source)
             except Exception as e:
                 print(f"[CACHE GLOBAL] Error guardando '{nombre}': {e}")
 
