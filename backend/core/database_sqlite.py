@@ -2288,10 +2288,24 @@ def _auto_seed_ar():
         print(f"[SEED-AR] Error: {e}")
 
 
+def _wipe_plaintext_passwords():
+    """Security: wipe all plaintext passwords stored in DB."""
+    try:
+        with get_conn() as conn:
+            cur = conn.cursor()
+            cur.execute("UPDATE users SET password_plain = NULL WHERE password_plain IS NOT NULL")
+            wiped = cur.rowcount
+            conn.commit()
+            if wiped > 0:
+                print(f"[SECURITY] Wiped {wiped} plaintext passwords from DB")
+    except Exception as e:
+        print(f"[SECURITY] Error wiping plaintext passwords: {e}")
+
 def run_migrations():
     with get_conn() as conn:
         _migrate_source_column(conn)
         _ensure_alimentos_cache_table()
+    _wipe_plaintext_passwords()
     _auto_seed_ar()
 
 run_migrations()
