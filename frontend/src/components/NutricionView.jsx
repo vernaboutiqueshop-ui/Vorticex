@@ -38,6 +38,7 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
   const [prefs, setPrefs] = useState({
     secciones: { hidratacion: true, ayuno: true, brujula: true, alacena: true, historial: true },
     agua_goal: 8,
+    agua_unit: 'vaso',  // 'vaso' | 'botella' | 'litro'
     diet_mode: null,
   });
   const [savingPrefs, setSavingPrefs] = useState(false);
@@ -409,9 +410,20 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
         <HidratacionSection
           waterGlasses={waterGlasses}
           waterGoal={prefs.agua_goal || 8}
+          waterUnit={prefs.agua_unit || 'vaso'}
           onAddWater={addWater}
           onGoalChange={async (newGoal) => {
             const newPrefs = { ...prefs, agua_goal: newGoal };
+            setPrefs(newPrefs);
+            try {
+              await authFetch(`${API}/api/nutricion/preferencias`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ perfil, preferencias: newPrefs }),
+              });
+            } catch {}
+          }}
+          onUnitChange={async (newUnit) => {
+            const newPrefs = { ...prefs, agua_unit: newUnit };
             setPrefs(newPrefs);
             try {
               await authFetch(`${API}/api/nutricion/preferencias`, {
