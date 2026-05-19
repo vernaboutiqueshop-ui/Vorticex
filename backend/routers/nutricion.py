@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, UploadFile, File
 from pydantic import BaseModel
 from typing import Optional
 
-from core.auth import get_current_user
+from core.auth import get_current_user, require_own_profile
 from core.database import (
     guardar_evento, obtener_alacena, guardar_en_alacena,
     eliminar_de_alacena_perfil, obtener_macros_hoy,
@@ -214,6 +214,7 @@ async def buscar_alimento_hibrido(req: FoodSearchRequest, user: str = Depends(ge
 @router.post("/log-from-cache")
 def log_from_cache(req: LogFromCacheRequest, user: str = Depends(get_current_user)):
     """Log a meal. Scales macros by gramos. Saves to global cache when source is AI/foto/external."""
+    require_own_profile(req.perfil, user)
     try:
         cal = req.cal_100
         prot = req.prot_100
@@ -281,9 +282,18 @@ def analizar_texto(req: NutricionTextoRequest, user: str = Depends(get_current_u
 
 @router.post("/analizar-foto")
 async def analizar_foto(perfil: str, file: UploadFile = File(...), user: str = Depends(get_current_user)):
+    require_own_profile(perfil, user)
+    # Validate file type and size
+    allowed_types = {"image/jpeg", "image/png", "image/webp", "image/heic"}
+    if file.content_type and file.content_type not in allowed_types:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=415, detail="Solo se aceptan imágenes (JPEG, PNG, WebP)")
     try:
         from core.ai import analizar_foto_vortice
         image_bytes = await file.read()
+        if len(image_bytes) > 8 * 1024 * 1024:  # 8MB max
+            from fastapi import HTTPException
+            raise HTTPException(status_code=413, detail="Imagen demasiado grande (máx 8MB)")
         resultado = await analizar_foto_vortice(image_bytes)
         if resultado:
             guardar_evento(
@@ -324,6 +334,7 @@ def macros_hoy(perfil: str, user: str = Depends(get_current_user)):
 
 @router.get("/comidas-hoy")
 def get_comidas_hoy(perfil: str, user: str = Depends(get_current_user)):
+    require_own_profile(perfil, user)
     try:
         comidas = obtener_comidas_hoy(perfil)
         return {"status": "success", "comidas": comidas}
@@ -342,6 +353,7 @@ def get_comidas_fecha(perfil: str, fecha: str, user: str = Depends(get_current_u
 
 @router.get("/dashboard-hoy")
 def get_dashboard_hoy(perfil: str, user: str = Depends(get_current_user)):
+    require_own_profile(perfil, user)
     try:
         # Consultas rápidas e independientes
         return {
@@ -367,6 +379,7 @@ def delete_evento_nutricion(evento_id: str, perfil: str, user: str = Depends(get
 # --- Ayuno ---
 @router.get("/ayuno")
 def get_ayuno(perfil: str, user: str = Depends(get_current_user)):
+    require_own_profile(perfil, user)
     datos = obtener_ayuno(perfil)
     return {"status": "success", "ayuno": datos}
 
@@ -415,6 +428,7 @@ def get_ayuno_historial(perfil: str, user: str = Depends(get_current_user)):
 # --- Metas nutricionales ---
 @router.get("/metas")
 def get_metas(perfil: str, user: str = Depends(get_current_user)):
+    require_own_profile(perfil, user)
     metas = obtener_metas_nutricion(perfil)
     return {"status": "success", "metas": metas}
 

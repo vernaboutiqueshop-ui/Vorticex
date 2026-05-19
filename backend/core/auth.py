@@ -4,10 +4,13 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta
 import os
 
-# Clave secreta para firmar los JWT localmente (esto normalmente va en un .env)
-SECRET_KEY = os.getenv("JWT_SECRET", "super-secret-vortice-key")
+SECRET_KEY = os.getenv("JWT_SECRET") or os.getenv("SECRET_KEY", "")
+if not SECRET_KEY or SECRET_KEY in ("super-secret-vortice-key", "vortice-dev-secret-key-local"):
+    import secrets as _s
+    SECRET_KEY = _s.token_hex(32)  # safe random fallback for dev only
+    print("[AUTH] WARNING: JWT_SECRET not set in .env — using random key (tokens reset on restart)")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 7 días
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24h (was 7 days)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/token")
 
@@ -35,3 +38,15 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         return username
     except JWTError:
         raise credentials_exception
+
+
+ADMIN_USERS = {"gonza"}  # users allowed to access any profile
+
+def require_own_profile(perfil: str, current_user: str):
+    """Raise 403 if current_user tries to access another user's data.
+    Admins can access any profile."""
+    if current_user.lower() not in ADMIN_USERS and current_user.lower() != perfil.lower():
+        raise HTTPException(
+            status_code=403,
+            detail="No autorizado para acceder a los datos de otro usuario"
+        )
