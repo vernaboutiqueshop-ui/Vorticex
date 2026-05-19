@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()  # ensure .env is loaded before reading tokens
 from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, field_validator
@@ -24,13 +26,12 @@ def _check_rate_limit(ip: str, store: dict, max_attempts: int = 10, window_secon
     store[ip].append(now)
 
 # ── App token — protege el registro contra bots / Postman ──
-_APP_TOKEN = os.getenv("VORTICE_APP_TOKEN", "")
-
 def _verify_app_token(x_app_token: Optional[str] = Header(default=None, alias="X-App-Token")):
     """Require X-App-Token header for registration. Blocks external tools without the secret."""
-    if not _APP_TOKEN:
+    required = os.getenv("VORTICE_APP_TOKEN", "")  # read at request time, not at import
+    if not required:
         return  # Token not configured → open (dev mode only)
-    if x_app_token != _APP_TOKEN:
+    if x_app_token != required:
         raise HTTPException(
             status_code=403,
             detail="Acceso no autorizado. Registrate desde la aplicación oficial."
