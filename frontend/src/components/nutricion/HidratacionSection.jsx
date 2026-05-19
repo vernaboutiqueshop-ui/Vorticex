@@ -2,7 +2,20 @@ import { Plus } from 'lucide-react';
 import { IoWater } from 'react-icons/io5';
 import { motion, AnimatePresence } from 'motion/react';
 
+const getMsg = (glasses, goal) => {
+  if (glasses === 0) return '¡Empezá a hidratarte! 💧';
+  if (glasses >= goal) return '¡Meta cumplida! 🎉';
+  const pct = glasses / goal;
+  if (pct < 0.25) return 'Buen comienzo, seguí así 💧';
+  if (pct < 0.5)  return '¡Ya cubrís un cuarto! 💪';
+  if (pct < 0.75) return '¡Vas por la mitad! 🔥';
+  return '¡Casi llegás! ⚡';
+};
+
 export default function HidratacionSection({ waterGlasses, waterGoal, onAddWater, onGoalChange }) {
+  const safeGoal = Math.max(2, waterGoal || 8); // never less than 2
+  const pct = Math.min((waterGlasses / safeGoal) * 100, 100);
+  const done = waterGlasses >= safeGoal;
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -17,29 +30,25 @@ export default function HidratacionSection({ waterGlasses, waterGoal, onAddWater
         {/* Inline goal stepper */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
           <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700 }}>Meta:</span>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={() => onGoalChange?.(Math.max(1, waterGoal - 1))}
-            style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--surface-3)', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 900, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</motion.button>
-          <span style={{ fontSize: '0.7rem', fontWeight: 900, color: waterGlasses >= waterGoal ? 'var(--color-success)' : 'var(--color-primary)', minWidth: '28px', textAlign: 'center' }}>{waterGlasses}/{waterGoal}</span>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={() => onGoalChange?.(Math.min(20, waterGoal + 1))}
-            style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--surface-3)', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 900, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</motion.button>
+          <motion.button whileTap={{ scale: 0.9 }} onClick={() => onGoalChange?.(Math.max(2, safeGoal - 1))}
+            style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--surface-3)', border: '1px solid var(--border-subtle)', cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 900, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>-</motion.button>
+          <span style={{ fontSize: '0.7rem', fontWeight: 900, color: done ? 'var(--color-success)' : 'var(--color-primary)', minWidth: '32px', textAlign: 'center' }}>{waterGlasses}/{safeGoal}</span>
+          <motion.button whileTap={{ scale: 0.9 }} onClick={() => onGoalChange?.(Math.min(20, safeGoal + 1))}
+            style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--surface-3)', border: '1px solid var(--border-subtle)', cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 900, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>+</motion.button>
         </div>
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.p key={waterGlasses}
+        <motion.p key={`${waterGlasses}-${safeGoal}`}
           initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-          style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginBottom: '0.65rem', fontWeight: 600, margin: '0 0 0.65rem' }}>
-          {waterGlasses === 0 ? '¡Empezá a hidratarte! 💧' :
-           waterGlasses <= 2 ? 'Buen comienzo, seguí así 💧' :
-           waterGlasses <= 4 ? '¡Vas por la mitad! 💪' :
-           waterGlasses <= 7 ? '¡Casi llegás! 🔥' :
-           '¡Meta cumplida! 🎉'}
+          style={{ fontSize: '0.62rem', color: done ? 'var(--color-success)' : 'var(--text-muted)', marginBottom: '0.65rem', fontWeight: 600, margin: '0 0 0.65rem' }}>
+          {getMsg(waterGlasses, safeGoal)}
         </motion.p>
       </AnimatePresence>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <div style={{ flex: 1, display: 'flex', gap: '0.25rem' }}>
-          {Array.from({ length: waterGoal }, (_, i) => {
+        <div style={{ flex: 1, display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+          {Array.from({ length: safeGoal }, (_, i) => {
             const filled = i < waterGlasses;
             return (
               <motion.button key={i}
@@ -65,24 +74,24 @@ export default function HidratacionSection({ waterGlasses, waterGoal, onAddWater
         </div>
         <motion.button whileTap={{ scale: 0.85 }} whileHover={{ scale: 1.05 }}
           onClick={onAddWater}
-          disabled={waterGlasses >= waterGoal}
+          disabled={done}
           style={{
-            background: waterGlasses >= waterGoal ? 'rgba(34,197,94,0.15)' : 'rgba(0,201,255,0.12)',
-            border: `1px solid ${waterGlasses >= waterGoal ? 'rgba(34,197,94,0.3)' : 'rgba(0,201,255,0.25)'}`,
-            borderRadius: '10px', padding: '0.5rem 0.75rem', cursor: waterGlasses >= waterGoal ? 'default' : 'pointer',
-            color: waterGlasses >= waterGoal ? 'var(--color-success)' : 'var(--color-primary)',
+            background: done ? 'rgba(34,197,94,0.15)' : 'rgba(0,201,255,0.12)',
+            border: `1px solid ${done ? 'rgba(34,197,94,0.3)' : 'rgba(0,201,255,0.25)'}`,
+            borderRadius: '10px', padding: '0.5rem 0.75rem', cursor: done ? 'default' : 'pointer',
+            color: done ? 'var(--color-success)' : 'var(--color-primary)',
             fontWeight: 900, fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0,
           }}>
-          {waterGlasses >= waterGoal ? '✓' : <><Plus size={14} /> 1</>}
+          {done ? '✓' : <><Plus size={14} /> 1</>}
         </motion.button>
       </div>
 
       <div style={{ marginTop: '0.6rem', height: 3, background: 'var(--surface-hover)', borderRadius: 99, overflow: 'hidden' }}>
         <motion.div
           initial={{ width: 0 }}
-          animate={{ width: `${Math.min((waterGlasses / waterGoal) * 100, 100)}%` }}
+          animate={{ width: `${pct}%` }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          style={{ height: '100%', borderRadius: 99, background: waterGlasses >= waterGoal ? 'var(--color-success)' : 'linear-gradient(90deg, var(--color-primary), var(--color-accent))' }}
+          style={{ height: '100%', borderRadius: 99, background: done ? 'var(--color-success)' : 'linear-gradient(90deg, var(--color-primary), var(--color-accent))' }}
         />
       </div>
     </motion.div>
