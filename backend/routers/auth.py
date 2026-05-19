@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+import os
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, field_validator
 from typing import Optional, List
@@ -11,16 +12,29 @@ from core.auth import create_access_token, get_current_user, ACCESS_TOKEN_EXPIRE
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-# Rate limiter simple en memoria: máx 10 intentos por IP en 60 segundos
+# ── Rate limiters en memoria ──────────────────────────────
 _login_attempts: dict = defaultdict(list)
+_register_attempts: dict = defaultdict(list)
 
-def _check_rate_limit(ip: str):
+def _check_rate_limit(ip: str, store: dict, max_attempts: int = 10, window_seconds: int = 60, msg: str = "Demasiados intentos"):
     now = datetime.utcnow()
-    window = [t for t in _login_attempts[ip] if (now - t).seconds < 60]
-    _login_attempts[ip] = window
-    if len(window) >= 10:
-        raise HTTPException(status_code=429, detail="Demasiados intentos. Esperá 1 minuto.")
-    _login_attempts[ip].append(now)
+    store[ip] = [t for t in store[ip] if (now - t).total_seconds() < window_seconds]
+    if len(store[ip]) >= max_attempts:
+        raise HTTPException(status_code=429, detail=msg)
+    store[ip].append(now)
+
+# ── App token — protege el registro contra bots / Postman ──
+_APP_TOKEN = os.getenv("VORTICE_APP_TOKEN", "")
+
+def _verify_app_token(x_app_token: Optional[str] = Header(default=None, alias="X-App-Token")):
+    """Require X-App-Token header for registration. Blocks external tools without the secret."""
+    if not _APP_TOKEN:
+        return  # Token not configured → open (dev mode only)
+    if x_app_token != _APP_TOKEN:
+        raise HTTPException(
+            status_code=403,
+            detail="Acceso no autorizado. Registrate desde la aplicación oficial."
+        )
 
 
 class RegisterRequest(BaseModel):
@@ -52,13 +66,24 @@ class RegisterRequest(BaseModel):
         letters = re.sub(r'[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]', '', v)
         if len(letters) < 2:
             raise ValueError('El nombre debe contener al menos 2 letras')
-        # Gibberish check: no more than 4 consecutive consonants
-        consonant_streak = re.search(r'[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]{5,}', v)
-        if consonant_streak:
+        # Gibberish check: no 5+ consecutive consonants
+        if re.search(r'[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]{5,}', v):
             raise ValueError('El nombre no parece válido. Usá tu nombre real o un apodo')
-        # Must have at least one vowel in the letters
+        # Must have vowels proportional to length
         vowels = re.sub(r'[^aeiouáéíóúAEIOUÁÉÍÓÚ]', '', letters)
         if len(letters) >= 4 and len(vowels) == 0:
+            raise ValueError('El nombre no parece válido. Usá tu nombre real o un apodo')
+        # Keyboard pattern detection — if all letters come from 1 QWERTY row = gibberish
+        QWERTY_ROWS = [
+            set('qwertyuiop'),
+            set('asdfghjkl'),
+            set('zxcvbnm'),
+        ]
+        letters_lower = set(letters.lower())
+        if len(letters) >= 3 and any(letters_lower.issubset(row) for row in QWERTY_ROWS):
+            raise ValueError('El nombre no parece válido. Usá tu nombre real o un apodo')
+        # Names >= 5 chars need at least 2 vowels (prevents 'asd12', 'qrt23', etc.)
+        if len(letters) >= 5 and len(vowels) < 2:
             raise ValueError('El nombre no parece válido. Usá tu nombre real o un apodo')
         return v
 
@@ -101,7 +126,12 @@ class RegisterRequest(BaseModel):
 
 
 @router.post("/register")
-def register_user(req: RegisterRequest):
+def register_user(req: RegisterRequest, request: Request, _: None = Depends(_verify_app_token)):
+    # Rate limit: max 5 registrations per IP per hour
+    ip = request.client.host if request.client else "unknown"
+    _check_rate_limit(ip, _register_attempts, max_attempts=5, window_seconds=3600,
+                      msg="Demasiados registros desde tu IP. Intentá en 1 hora.")
+
     existing = obtener_perfil(req.nombre)
     if existing:
         raise HTTPException(status_code=400, detail="El nombre de usuario ya está en uso")
@@ -131,7 +161,8 @@ def register_user(req: RegisterRequest):
 @router.post("/token")
 def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     ip = request.client.host if request.client else "unknown"
-    _check_rate_limit(ip)
+    _check_rate_limit(ip, _login_attempts, max_attempts=10, window_seconds=60,
+                      msg="Demasiados intentos. Esperá 1 minuto.")
     nombres_a_probar = [form_data.username, form_data.username.capitalize(), form_data.username.lower()]
     user = None
     final_username = form_data.username

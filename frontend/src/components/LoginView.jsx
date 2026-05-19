@@ -36,7 +36,11 @@ const validateNombre = (raw) => {
   const letters = v.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]/g, '');
   if (letters.length < 2) return 'Necesita al menos 2 letras';
   if (/[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]{5,}/.test(v)) return 'Nombre no parece válido — usá tu nombre o un apodo';
-  return null; // null = válido
+  const GIBBERISH = ['qwert','asdf','zxcv','asdl','qwerl','zxcvb'];
+  if (GIBBERISH.some(g => v.toLowerCase().includes(g))) return 'Nombre no parece válido — usá tu nombre o un apodo';
+  const vowels2 = letters.replace(/[^aeiouáéíóúAEIOUÁÉÍÓÚ]/g, '');
+  if (letters.length >= 5 && vowels2.length < 2) return 'Nombre no parece real — necesita más vocales';
+  return null;
 };
 
 const validatePassword = (v) => {
@@ -227,7 +231,11 @@ export default function LoginView({ onLogin }) {
       };
       const res = await fetch(`${API}/api/auth/register`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          'X-App-Token': import.meta.env.VITE_APP_TOKEN || '',
+        },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
