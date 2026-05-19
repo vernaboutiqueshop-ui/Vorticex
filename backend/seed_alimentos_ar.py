@@ -144,6 +144,40 @@ ALIMENTOS = [
     ("Choripan",                        380, 16.0, 35.0, 19.0, 0.0, "Chorizo sandwich"),
     ("Tostado de jamon y queso",        290, 14.0, 28.0, 13.0, 0.0, "Ham and cheese toastie"),
     ("Pollo al horno",                  215, 28.0,  0.0, 11.0, 0.0, "Baked chicken"),
+    # ── HUEVOS ──────────────────────────────────────────────────────────────────
+    ("Huevo cocido (duro)",             155, 13.0,  1.1, 11.0, 0.0, "Hard boiled egg"),
+    ("Huevo frito",                     196, 13.6,  0.0, 15.4, 0.0, "Fried egg"),
+    ("Huevo revuelto (con leche)",      149, 10.6,  1.5, 11.3, 0.0, "Scrambled egg"),
+    ("Huevo al plato",                  160, 12.8,  0.5, 12.0, 0.0, "Baked egg"),
+    # ── CARNES Y FIAMBRES ────────────────────────────────────────────────────────
+    ("Bondiola de cerdo asada",         310, 24.0,  0.0, 23.0, 0.0, "Pork neck roasted"),
+    ("Bondiola al horno",               285, 22.0,  0.0, 21.5, 0.0, "Baked pork neck"),
+    ("Milanesa de cerdo",               218, 20.5,  9.0, 11.0, 0.5, "Breaded pork schnitzel"),
+    ("Jamon cocido (fiambre)",          145, 17.0,  1.5,  8.0, 0.0, "Cooked ham"),
+    ("Salame argentino",                380, 19.0,  1.0, 33.0, 0.0, "Argentine salami"),
+    ("Panceta ahumada",                 458, 14.0,  0.0, 45.0, 0.0, "Smoked bacon"),
+    ("Chorizo criollo asado",           290, 16.0,  0.0, 25.0, 0.0, "Grilled chorizo"),
+    # ── BEBIDAS ─────────────────────────────────────────────────────────────────
+    ("Mate cocido sin azucar",            5,  0.3,  0.5,  0.1, 0.0, "Brewed mate tea"),
+    ("Cafe negro sin azucar",             2,  0.2,  0.3,  0.0, 0.0, "Black coffee"),
+    ("Cafe con leche entera",            52,  2.8,  4.2,  2.5, 0.0, "Coffee with whole milk"),
+    ("Jugo de naranja natural",          45,  0.7, 10.4,  0.2, 0.2, "Fresh orange juice"),
+    ("Gaseosa cola",                     42,  0.0, 10.6,  0.0, 0.0, "Cola soft drink"),
+    # ── PANIFICADOS Y DESAYUNO ───────────────────────────────────────────────────
+    ("Medialunas de grasa (2 uni)",     280,  6.0, 34.0, 13.5, 0.5, "Butter croissants"),
+    ("Facturas mixtas (2 uni)",         290,  5.5, 36.0, 14.0, 0.4, "Mixed pastries"),
+    ("Tostadas de pan lactal (2)",      135,  4.5, 25.0,  1.8, 1.0, "White toast slices"),
+    ("Dulce de leche",                  328,  7.0, 55.5,  9.0, 0.0, "Milk caramel spread"),
+    ("Manteca (mantequilla)",           717,  0.9,  0.1, 81.0, 0.0, "Butter"),
+    # ── COMIDAS ELABORADAS ───────────────────────────────────────────────────────
+    ("Pure de papas casero",             95,  2.2, 17.0,  2.0, 1.5, "Mashed potatoes"),
+    ("Ensalada rusa",                   140,  3.0, 16.0,  7.5, 2.0, "Russian salad"),
+    ("Pizza de muzzarella porcion",     266, 11.0, 33.0,  9.0, 1.0, "Mozzarella pizza slice"),
+    ("Tarta de jamon y queso",          240, 10.0, 22.0, 12.0, 0.5, "Ham and cheese tart"),
+    # ── CONDIMENTOS ─────────────────────────────────────────────────────────────
+    ("Mayonesa",                        680,  1.2,  0.6, 74.9, 0.0, "Mayonnaise"),
+    ("Ketchup",                         112,  1.2, 26.0,  0.1, 0.8, "Ketchup"),
+    ("Aceite de girasol",               884,  0.0,  0.0,100.0, 0.0, "Sunflower oil"),
 ]
 
 

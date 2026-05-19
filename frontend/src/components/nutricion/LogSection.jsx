@@ -265,29 +265,20 @@ function SuplementosPanel({ suplementosData, setSuplementosData, perfil, onShowT
           </motion.div>
         ))}
 
-        {/* Add new supplement box */}
-        <div style={{ 
-          background: 'rgba(255,255,255,0.02)', 
-          border: '1px dashed var(--border-subtle)', 
-          borderRadius: '14px', 
-          padding: '0.75rem',
-          marginTop: '0.4rem'
-        }}>
-          <div style={{ fontSize: '0.55rem', fontWeight: 900, color: 'var(--text-muted)', marginBottom: '0.5rem', letterSpacing: '0.5px' }}>AGREGAR OTRO</div>
-          <div style={{ display: 'flex', gap: '0.4rem' }}>
-            <input value={newNombre} onChange={e => setNewNombre(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
-              className="premium-input" placeholder="Nombre (ej: Omega 3)"
-              style={{ flex: 2, height: '2.4rem', fontSize: '0.75rem' }} />
-            <input value={newDosis} onChange={e => setNewDosis(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
-              className="premium-input" placeholder="Dosis"
-              style={{ flex: 1, height: '2.4rem', fontSize: '0.75rem' }} />
-            <motion.button whileTap={{ scale: 0.9 }} onClick={agregarSuplemento}
-              className="btn-elite" style={{ width: '2.4rem', height: '2.4rem', padding: 0, flexShrink: 0 }}>
-              <Plus size={16} />
-            </motion.button>
-          </div>
+        {/* Add new supplement — compact inline row */}
+        <div style={{ marginTop: '0.3rem', display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
+          <input value={newNombre} onChange={e => setNewNombre(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
+            className="premium-input" placeholder="Ej: Omega 3"
+            style={{ flex: 2, height: '2.1rem', fontSize: '0.72rem', borderStyle: 'dashed' }} />
+          <input value={newDosis} onChange={e => setNewDosis(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
+            className="premium-input" placeholder="Dosis"
+            style={{ flex: 1, height: '2.1rem', fontSize: '0.72rem', borderStyle: 'dashed' }} />
+          <motion.button whileTap={{ scale: 0.9 }} onClick={agregarSuplemento}
+            style={{ width: '2.1rem', height: '2.1rem', padding: 0, flexShrink: 0, borderRadius: '8px', background: 'var(--surface-3)', border: '1px dashed var(--border-subtle)', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Plus size={13} />
+          </motion.button>
         </div>
       </div>
     </motion.div>

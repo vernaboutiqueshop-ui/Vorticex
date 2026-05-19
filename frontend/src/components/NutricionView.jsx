@@ -436,15 +436,15 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
             } catch {}
           }}
           onUnitChange={async (newUnit) => {
-            // Convert existing glasses to new unit
-            const oldMl = ML_PER_UNIT[prefs.agua_unit || 'vaso'];
-            const newMl = ML_PER_UNIT[newUnit];
-            const totalMl = waterGlasses * oldMl;
-            const converted = Math.round(totalMl / newMl);
-            const newGoal = Math.max(2, Math.round((prefs.agua_goal || 8) * oldMl / newMl));
+            // Default goals per unit so they make physical sense
+            const UNIT_DEFAULTS = { vaso: 8, botella: 4, litro: 2 };
+            const newGoal = UNIT_DEFAULTS[newUnit] || 8;
             const newPrefs = { ...prefs, agua_unit: newUnit, agua_goal: newGoal };
             setPrefs(newPrefs);
-            await setWater(converted);
+            // Reset count to 0 — conversión matemática confunde más de lo que ayuda
+            setWaterGlasses(0);
+            await setWater(0);
+            onShowToast?.(`Unidad: ${newUnit === 'vaso' ? 'Vasos' : newUnit === 'botella' ? 'Botellas' : 'Litros'} · Meta: ${newGoal} · Conteo reiniciado`, 'info');
             try {
               await authFetch(`${API}/api/nutricion/preferencias`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
