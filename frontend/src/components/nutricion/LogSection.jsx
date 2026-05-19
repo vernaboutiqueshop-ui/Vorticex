@@ -141,23 +141,32 @@ function SmartResultCard({ item, onLog, idx }) {
 }
 
 
-// Macros aproximados por 100g de suplementos comunes
+// Normaliza texto: quita acentos y pasa a minúsculas
+const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+// Macros por 100g de suplementos comunes (alias normalizados sin acentos)
 const SUPL_MACROS = {
-  creatina:     { cal: 0,   prot: 0,  carb: 0,  fat: 0,  g: 5  },
-  proteina:     { cal: 400, prot: 80, carb: 8,  fat: 6,  g: 30 },
-  whey:         { cal: 400, prot: 80, carb: 8,  fat: 6,  g: 30 },
-  'pre-entreno':{ cal: 50,  prot: 0,  carb: 10, fat: 0,  g: 10 },
-  colageno:     { cal: 350, prot: 90, carb: 0,  fat: 0,  g: 10 },
-  omega:        { cal: 900, prot: 0,  carb: 0,  fat:100, g: 1  },
-  magnesio:     { cal: 0,   prot: 0,  carb: 0,  fat: 0,  g: 1  },
-  vitamina:     { cal: 0,   prot: 0,  carb: 0,  fat: 0,  g: 1  },
+  creatina:    { cal: 0,   prot: 0,  carb: 0,  fat: 0,   g: 5  },
+  proteina:    { cal: 400, prot: 80, carb: 8,  fat: 6,   g: 30 },
+  whey:        { cal: 400, prot: 80, carb: 8,  fat: 6,   g: 30 },
+  caseina:     { cal: 380, prot: 78, carb: 10, fat: 4,   g: 30 },
+  'pre-entreno':{ cal: 50, prot: 0,  carb: 10, fat: 0,   g: 10 },
+  preentreno:  { cal: 50,  prot: 0,  carb: 10, fat: 0,   g: 10 },
+  colageno:    { cal: 350, prot: 90, carb: 0,  fat: 0,   g: 10 },
+  omega:       { cal: 900, prot: 0,  carb: 0,  fat: 100, g: 1  },
+  magnesio:    { cal: 0,   prot: 0,  carb: 0,  fat: 0,   g: 1  },
+  vitamina:    { cal: 0,   prot: 0,  carb: 0,  fat: 0,   g: 1  },
+  bcaa:        { cal: 40,  prot: 10, carb: 0,  fat: 0,   g: 5  },
+  glutamina:   { cal: 0,   prot: 0,  carb: 0,  fat: 0,   g: 5  },
 };
 
 const getSuplMacros = (nombre, dosis, unidad) => {
-  const key = Object.keys(SUPL_MACROS).find(k => nombre.toLowerCase().includes(k));
+  const nombreNorm = norm(nombre);
+  // Find matching supplement — uses accent-normalized comparison
+  const key = Object.keys(SUPL_MACROS).find(k => nombreNorm.includes(norm(k)));
   const base = key ? SUPL_MACROS[key] : { cal: 0, prot: 0, carb: 0, fat: 0, g: 1 };
-  // Parse dose: "5g" → 5, "1scoop" → base.g, "2" → 2 × base.g
-  const isGrams = unidad === 'g';
+  // isGrams: unidad 'g' usa dosis directo, cualquier otra (scoop, u, ml) multiplica por g_per_unit
+  const isGrams = (unidad || '').toLowerCase() === 'g';
   const gramos = isGrams ? dosis : dosis * base.g;
   const factor = gramos / 100;
   return {
@@ -171,6 +180,7 @@ const getSuplMacros = (nombre, dosis, unidad) => {
 function SuplementosPanel({ suplementosData, setSuplementosData, perfil, onShowToast, onLogSupplement }) {
   const [newNombre, setNewNombre] = useState('');
   const [newDosis, setNewDosis] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
 
   const save = (updated) => {
     setSuplementosData(updated);
@@ -300,21 +310,49 @@ function SuplementosPanel({ suplementosData, setSuplementosData, perfil, onShowT
           </motion.div>
         ))}
 
-        {/* Add new supplement — compact inline row */}
-        <div style={{ marginTop: '0.3rem', display: 'flex', gap: '0.3rem', alignItems: 'center' }}>
-          <input value={newNombre} onChange={e => setNewNombre(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
-            className="premium-input" placeholder="Ej: Omega 3"
-            style={{ flex: 2, height: '2.1rem', fontSize: '0.72rem', borderStyle: 'dashed' }} />
-          <input value={newDosis} onChange={e => setNewDosis(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
-            className="premium-input" placeholder="Dosis"
-            style={{ flex: 1, height: '2.1rem', fontSize: '0.72rem', borderStyle: 'dashed' }} />
-          <motion.button whileTap={{ scale: 0.9 }} onClick={agregarSuplemento}
-            style={{ width: '2.1rem', height: '2.1rem', padding: 0, flexShrink: 0, borderRadius: '8px', background: 'var(--surface-3)', border: '1px dashed var(--border-subtle)', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Plus size={13} />
-          </motion.button>
-        </div>
+        {/* Add supplement — expandable on tap */}
+        <AnimatePresence mode="wait">
+          {!showAdd ? (
+            <motion.button key="add-btn"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setShowAdd(true)}
+              style={{ marginTop: '0.3rem', width: '100%', height: '2.2rem', borderRadius: '10px', border: '1px dashed var(--border-subtle)', background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.62rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}>
+              <Plus size={12} /> Agregar suplemento
+            </motion.button>
+          ) : (
+            <motion.div key="add-form"
+              initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+              style={{ marginTop: '0.3rem', background: 'var(--surface-3)', border: '1px solid var(--border-subtle)', borderRadius: '12px', padding: '0.55rem 0.65rem' }}>
+              <div style={{ fontSize: '0.5rem', fontWeight: 900, color: 'var(--text-muted)', marginBottom: '0.4rem', letterSpacing: '0.4px' }}>NUEVO SUPLEMENTO</div>
+              <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.35rem' }}>
+                <input value={newNombre} onChange={e => setNewNombre(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
+                  className="premium-input"
+                  placeholder="Nombre (ej: Omega 3)"
+                  autoFocus
+                  style={{ flex: 2, height: '2rem', fontSize: '0.75rem' }} />
+                <input value={newDosis} onChange={e => setNewDosis(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && agregarSuplemento()}
+                  className="premium-input"
+                  placeholder="Dosis (ej: 5g)"
+                  style={{ flex: 1, height: '2rem', fontSize: '0.75rem' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '0.3rem' }}>
+                <motion.button whileTap={{ scale: 0.95 }}
+                  onClick={() => { agregarSuplemento(); setShowAdd(false); }}
+                  className="btn-elite"
+                  style={{ flex: 1, height: '1.9rem', fontSize: '0.65rem' }}>
+                  <Plus size={12} /> Agregar
+                </motion.button>
+                <button onClick={() => { setShowAdd(false); setNewNombre(''); setNewDosis(''); }}
+                  style={{ padding: '0 0.6rem', height: '1.9rem', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'transparent', cursor: 'pointer', fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
