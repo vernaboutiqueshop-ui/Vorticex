@@ -87,14 +87,33 @@ Todos los macros se normalizan a **100g** antes de guardarse.
     redoc_url="/redoc",
 )
 
-# --- CORS CONFIGURATION (MUST BE AT THE TOP) ---
+# --- CORS CONFIGURATION ---
+_ALLOWED_ORIGINS = [
+    "https://vorticex.vercel.app",
+    "https://vorticex-vernaboutiqueshop-uis-projects.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:4173",
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-App-Token"],
 )
+
+# --- REQUEST SIZE LIMIT (10MB max body) ---
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
+class MaxBodySizeMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > 10 * 1024 * 1024:  # 10MB
+            return JSONResponse({"detail": "Payload demasiado grande"}, status_code=413)
+        return await call_next(request)
+
+app.add_middleware(MaxBodySizeMiddleware)
 
 # --- COMPRESSION (GZIP) ---
 app.add_middleware(GZipMiddleware, minimum_size=1000, compresslevel=6)
@@ -271,12 +290,12 @@ def view_exercises_html():
         return html_content
     except Exception as e:
         import traceback
-        print(f"[ERROR] {traceback.format_exc()}")
-        return f"<html><body><h1>Error al cargar</h1><pre>{str(e)}</pre></body></html>"
+        print(f"[ERROR] {traceback.format_exc()}")  # log server-side only
+        return "<html><body><h1>Error interno del servidor</h1></body></html>"
 
 
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
-    print(f"[VORTICE] Iniciando en puerto {port} con AUTO-RELOAD activado...")
-    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
+    print(f"[VORTICE] Iniciando en puerto {port}...")
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
