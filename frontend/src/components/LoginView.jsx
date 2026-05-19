@@ -1,9 +1,28 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Zap, ChevronRight, ChevronLeft, Camera, Check, X, Eye, EyeOff } from 'lucide-react';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import API from '../config';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+// Renders the native Google Identity Services button into a div
+function GoogleSignInButton({ onSuccess, onError }) {
+  const divRef = useRef(null);
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID || !window.google?.accounts?.id || !divRef.current) return;
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: (response) => {
+        if (response.credential) onSuccess({ credential: response.credential });
+        else onError?.();
+      },
+    });
+    window.google.accounts.id.renderButton(divRef.current, {
+      theme: 'filled_black', shape: 'pill', size: 'large', text: 'continue_with', locale: 'es',
+    });
+  }, []);
+  if (!GOOGLE_CLIENT_ID) return null;
+  return <div ref={divRef} style={{ display: 'flex', justifyContent: 'center' }} />;
+}
 
 // ── Validaciones client-side ──────────────────────────────
 const COMMON_PASSWORDS = new Set(['123456','password','contraseña','111111','qwerty','123123','abcdef','000000','password1','12345678']);
@@ -370,10 +389,7 @@ export default function LoginView({ onLogin }) {
                   <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: 700 }}>o continuá con</span>
                   <div style={{ flex: 1, height: 1, background: 'var(--surface-3)' }} />
                 </div>
-                <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-                  <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError('Error con Google')}
-                    theme="filled_black" shape="pill" size="large" locale="es" />
-                </GoogleOAuthProvider>
+                <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={() => setError('Error con Google')} />
               </div>
             )}
 
@@ -451,17 +467,7 @@ export default function LoginView({ onLogin }) {
                 {/* Google Sign-In */}
                 {GOOGLE_CLIENT_ID && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-                      <GoogleLogin
-                        onSuccess={handleGoogleSuccess}
-                        onError={() => setError('Error al iniciar con Google')}
-                        theme="filled_black"
-                        shape="pill"
-                        size="large"
-                        text="continue_with"
-                        locale="es"
-                      />
-                    </GoogleOAuthProvider>
+                    <GoogleSignInButton onSuccess={handleGoogleSuccess} onError={() => setError('Error al iniciar con Google')} />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <div style={{ flex: 1, height: 1, background: 'var(--surface-3)' }} />
                       <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700 }}>o con email</span>
