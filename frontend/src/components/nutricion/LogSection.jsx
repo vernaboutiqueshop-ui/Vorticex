@@ -141,7 +141,34 @@ function SmartResultCard({ item, onLog, idx }) {
 }
 
 
-function SuplementosPanel({ suplementosData, setSuplementosData, perfil, onShowToast }) {
+// Macros aproximados por 100g de suplementos comunes
+const SUPL_MACROS = {
+  creatina:     { cal: 0,   prot: 0,  carb: 0,  fat: 0,  g: 5  },
+  proteina:     { cal: 400, prot: 80, carb: 8,  fat: 6,  g: 30 },
+  whey:         { cal: 400, prot: 80, carb: 8,  fat: 6,  g: 30 },
+  'pre-entreno':{ cal: 50,  prot: 0,  carb: 10, fat: 0,  g: 10 },
+  colageno:     { cal: 350, prot: 90, carb: 0,  fat: 0,  g: 10 },
+  omega:        { cal: 900, prot: 0,  carb: 0,  fat:100, g: 1  },
+  magnesio:     { cal: 0,   prot: 0,  carb: 0,  fat: 0,  g: 1  },
+  vitamina:     { cal: 0,   prot: 0,  carb: 0,  fat: 0,  g: 1  },
+};
+
+const getSuplMacros = (nombre, dosis, unidad) => {
+  const key = Object.keys(SUPL_MACROS).find(k => nombre.toLowerCase().includes(k));
+  const base = key ? SUPL_MACROS[key] : { cal: 0, prot: 0, carb: 0, fat: 0, g: 1 };
+  // Parse dose: "5g" → 5, "1scoop" → base.g, "2" → 2 × base.g
+  const isGrams = unidad === 'g';
+  const gramos = isGrams ? dosis : dosis * base.g;
+  const factor = gramos / 100;
+  return {
+    gramos: Math.round(gramos),
+    cal_100: base.cal, prot_100: base.prot, carb_100: base.carb, fat_100: base.fat,
+    kcal: Math.round(base.cal * factor),
+    prot: Math.round(base.prot * factor * 10) / 10,
+  };
+};
+
+function SuplementosPanel({ suplementosData, setSuplementosData, perfil, onShowToast, onLogSupplement }) {
   const [newNombre, setNewNombre] = useState('');
   const [newDosis, setNewDosis] = useState('');
 
@@ -150,12 +177,20 @@ function SuplementosPanel({ suplementosData, setSuplementosData, perfil, onShowT
     saveSuplementosHoy(perfil, updated);
   };
 
-  const toggleSuplemento = (id) => {
+  const toggleSuplemento = async (id) => {
     const newItems = suplementosData.items.map(s => s.id === id ? { ...s, tomada: !s.tomada } : s);
     const updated = { ...suplementosData, items: newItems };
     save(updated);
     const sup = newItems.find(s => s.id === id);
-    if (sup.tomada) onShowToast?.(`💊 ${sup.nombre} registrada`, 'success');
+    if (sup.tomada) {
+      // Log to nutrition backend
+      const macros = getSuplMacros(sup.nombre, sup.dosis, sup.unidad);
+      await onLogSupplement?.(`${sup.nombre} ${sup.dosis}${sup.unidad}`, macros);
+      const msg = macros.prot > 0
+        ? `💊 ${sup.nombre} · ${macros.prot}g proteína registrada`
+        : `💊 ${sup.nombre} registrada`;
+      onShowToast?.(msg, 'success');
+    }
   };
 
   const updateDosis = (id, delta) => {
@@ -1003,6 +1038,24 @@ export default function LogSection({ perfil, comidasHoy, onRefresh, onShowToast 
               setSuplementosData={setSuplementosData}
               perfil={perfil}
               onShowToast={onShowToast}
+              onLogSupplement={async (nombre, macros) => {
+                try {
+                  await authFetch(`${API}/api/nutricion/log-from-cache`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      perfil,
+                      nombre,
+                      cal_100: macros.cal_100,
+                      prot_100: macros.prot_100,
+                      carb_100: macros.carb_100,
+                      fat_100: macros.fat_100,
+                      gramos: macros.gramos,
+                      source: 'manual',
+                    }),
+                  });
+                  onRefresh();
+                } catch {}
+              }}
             />
           )}
         </AnimatePresence>
