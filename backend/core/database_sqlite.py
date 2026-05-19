@@ -2207,6 +2207,24 @@ def resetear_agua(perfil: str):
             AND date = ?
         """, (perfil, _today()))
         conn.commit()
+
+
+def fijar_agua(perfil: str, glasses: int):
+    """Set water to an exact value (used for editing or unit conversion)."""
+    with get_conn() as conn:
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(?)", (perfil,))
+        user = cur.fetchone()
+        if not user:
+            return 0
+        uid = user["id"]
+        cur.execute("""
+            INSERT INTO water_log (user_id, glasses, date)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id, date) DO UPDATE SET glasses = ?
+        """, (uid, glasses, _today(), glasses))
+        conn.commit()
+        return glasses
         return 0
 
 

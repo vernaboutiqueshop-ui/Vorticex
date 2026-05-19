@@ -9,7 +9,7 @@ from core.database import (
     obtener_ayuno, actualizar_ayuno, obtener_comidas_hoy,
     eliminar_evento_perfil,
     obtener_metas_nutricion, guardar_metas_nutricion,
-    obtener_agua_hoy, agregar_agua, resetear_agua,
+    obtener_agua_hoy, agregar_agua, resetear_agua, fijar_agua,
     obtener_historial_nutricion,
     get_preferencias_usuario, guardar_preferencias_usuario,
     obtener_comidas_fecha,
@@ -456,6 +456,15 @@ def add_agua(req: WaterRequest, user: str = Depends(get_current_user)):
 def reset_agua(req: WaterRequest, user: str = Depends(get_current_user)):
     resetear_agua(req.perfil)
     return {"status": "success", "glasses": 0}
+
+
+@router.post("/agua/set")
+def set_agua(req: WaterRequest, user: str = Depends(get_current_user)):
+    """Set water to an exact value. Used for direct editing or unit conversion."""
+    require_own_profile(req.perfil, user)
+    n = max(0, min(req.glasses, 200))  # clamp 0-200
+    total = fijar_agua(req.perfil, n)
+    return {"status": "success", "glasses": total}
 
 
 # --- Historial semanal ---

@@ -147,11 +147,24 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
     } catch {}
   };
 
+  const ML_PER_UNIT = { vaso: 250, botella: 500, litro: 1000 };
+
   const addWater = async () => {
     try {
       const res = await authFetch(`${API}/api/nutricion/agua`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ perfil, glasses: 1 }),
+      });
+      const d = await res.json();
+      if (typeof d.glasses === 'number') setWaterGlasses(d.glasses);
+    } catch {}
+  };
+
+  const setWater = async (n) => {
+    try {
+      const res = await authFetch(`${API}/api/nutricion/agua/set`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ perfil, glasses: Math.max(0, Math.round(n)) }),
       });
       const d = await res.json();
       if (typeof d.glasses === 'number') setWaterGlasses(d.glasses);
@@ -423,8 +436,15 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
             } catch {}
           }}
           onUnitChange={async (newUnit) => {
-            const newPrefs = { ...prefs, agua_unit: newUnit };
+            // Convert existing glasses to new unit
+            const oldMl = ML_PER_UNIT[prefs.agua_unit || 'vaso'];
+            const newMl = ML_PER_UNIT[newUnit];
+            const totalMl = waterGlasses * oldMl;
+            const converted = Math.round(totalMl / newMl);
+            const newGoal = Math.max(2, Math.round((prefs.agua_goal || 8) * oldMl / newMl));
+            const newPrefs = { ...prefs, agua_unit: newUnit, agua_goal: newGoal };
             setPrefs(newPrefs);
+            await setWater(converted);
             try {
               await authFetch(`${API}/api/nutricion/preferencias`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -432,6 +452,7 @@ export default function NutricionView({ perfil, onNavigateTo, onShowToast }) {
               });
             } catch {}
           }}
+          onSetWater={setWater}
         />
       )}
 
