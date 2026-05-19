@@ -5,33 +5,81 @@ import API from '../config';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
-// Client-side name validation matching backend rules
-const validateNombre = (v) => {
-  v = v.trim();
+// ── Validaciones client-side ──────────────────────────────
+const COMMON_PASSWORDS = new Set(['123456','password','contraseña','111111','qwerty','123123','abcdef','000000','password1','12345678']);
+
+const validateNombre = (raw) => {
+  const v = (raw || '').trim();
   if (v.length < 3) return 'Mínimo 3 caracteres';
   if (v.length > 20) return 'Máximo 20 caracteres';
-  if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9_ ]+$/.test(v)) return 'Solo letras, números y guiones bajos';
-  if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]/.test(v)) return 'Debe empezar con una letra';
+  if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]/.test(v)) return 'Debe empezar con una letra (no símbolos ni números)';
+  if (!/^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9_ ]+$/.test(v)) return 'Solo letras, números, espacios y _ (sin puntos, guiones, etc.)';
   const letters = v.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ]/g, '');
-  if (letters.length < 2) return 'Debe tener al menos 2 letras';
-  if (/[bcdfghjklmnpqrstvwxyz]{5,}/i.test(v)) return 'Nombre no válido — usá un nombre real o apodo';
-  const vowels = letters.replace(/[^aeiouáéíóúAEIOUÁÉÍÓÚ]/g, '');
-  if (letters.length >= 4 && vowels.length === 0) return 'Nombre no válido — usá un nombre real o apodo';
-  return '';
+  if (letters.length < 2) return 'Necesita al menos 2 letras';
+  if (/[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]{5,}/.test(v)) return 'Nombre no parece válido — usá tu nombre o un apodo';
+  return null; // null = válido
 };
 
 const validatePassword = (v) => {
-  if (v.length < 6) return 'Mínimo 6 caracteres';
-  if (['123456','password','contraseña','111111','qwerty','123123'].includes(v.toLowerCase())) return 'Contraseña muy común';
-  return '';
+  if ((v || '').length < 6) return 'Mínimo 6 caracteres';
+  if (COMMON_PASSWORDS.has((v || '').toLowerCase())) return 'Contraseña demasiado común — elegí otra';
+  return null;
 };
 
-const FieldStatus = ({ value, validate, show }) => {
-  if (!show || !value) return null;
-  const err = validate(value);
-  return err
-    ? <span style={{ fontSize: '0.6rem', color: '#ef4444', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.25rem' }}><X size={10} /> {err}</span>
-    : <span style={{ fontSize: '0.6rem', color: 'var(--color-prot)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.25rem' }}><Check size={10} /> OK</span>;
+const validateEdad = (v) => {
+  const n = parseInt(v);
+  if (!v || isNaN(n)) return 'Requerido';
+  if (n < 10 || n > 100) return 'Entre 10 y 100 años';
+  return null;
+};
+
+const validatePeso = (v) => {
+  const n = parseFloat(v);
+  if (!v || isNaN(n)) return 'Requerido';
+  if (n < 30 || n > 300) return 'Entre 30 y 300 kg';
+  return null;
+};
+
+const validateAltura = (v) => {
+  if (!v || v === '') return null; // opcional
+  const n = parseFloat(v);
+  if (isNaN(n)) return 'Número inválido';
+  if (n < 50 || n > 250) return 'Entre 50 y 250 cm';
+  return null;
+};
+
+// Parsea el array detail[] de Pydantic 422 en un string legible
+const parsearErrorBackend = (data) => {
+  if (!data) return 'Error desconocido';
+  if (typeof data.detail === 'string') return data.detail;
+  if (Array.isArray(data.detail)) {
+    return data.detail
+      .map(d => d.msg?.replace('Value error, ', '') || d.message || JSON.stringify(d))
+      .join(' · ');
+  }
+  if (data.error) return data.error;
+  if (data.message) return data.message;
+  return 'Error al crear el perfil';
+};
+
+const FieldError = ({ error, show }) => {
+  if (!show || !error) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.3rem' }}>
+      <X size={11} color="#ef4444" />
+      <span style={{ fontSize: '0.62rem', color: '#f87171', fontWeight: 700 }}>{error}</span>
+    </div>
+  );
+};
+
+const FieldOK = ({ valid, show }) => {
+  if (!show || !valid) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.3rem' }}>
+      <Check size={11} color="#22c55e" />
+      <span style={{ fontSize: '0.62rem', color: '#4ade80', fontWeight: 700 }}>OK</span>
+    </div>
+  );
 };
 
 const METAS = [
@@ -94,6 +142,7 @@ export default function LoginView({ onLogin }) {
     meta: '', deportes: [], profilePic: null,
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [touched, setTouched] = useState({}); // tracks which fields user has interacted with
   const fileRef = useRef(null);
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -168,7 +217,7 @@ export default function LoginView({ onLogin }) {
         localStorage.setItem('vortice_user', wizardData.nombre);
         onLogin(wizardData.nombre, data.access_token);
       } else {
-        setError(data.detail || data.error || 'Error al crear el perfil');
+        setError(parsearErrorBackend(data));
       }
     } catch (err) {
       console.error('Register error:', err);
@@ -198,11 +247,19 @@ export default function LoginView({ onLogin }) {
 
   const stepValid = [
     () => !validateNombre(wizardData.nombre) && !validatePassword(wizardData.password),
-    () => parseInt(wizardData.edad) >= 10 && parseInt(wizardData.edad) <= 100 && parseFloat(wizardData.peso) >= 30 && parseFloat(wizardData.peso) <= 300,
+    () => !validateEdad(wizardData.edad) && !validatePeso(wizardData.peso) && !validateAltura(wizardData.altura),
     () => wizardData.meta !== '',
     () => wizardData.deportes.length > 0,
     () => true,
   ];
+
+  // When user tries to go next: mark all current step fields as touched so errors show
+  const handleNext = () => {
+    if (step === 0) setTouched(t => ({ ...t, nombre: true, password: true }));
+    if (step === 1) setTouched(t => ({ ...t, edad: true, peso: true, altura: true }));
+    if (!canContinue) return; // block
+    setStep(s => s + 1);
+  };
 
   const canContinue = stepValid[step]?.() ?? false;
   const isLastStep = step === 4;
@@ -415,41 +472,36 @@ export default function LoginView({ onLogin }) {
 
                 <div>
                   <label style={labelStyle}>TU NOMBRE O APODO</label>
-                  <input style={{
-                    ...inputStyle,
-                    borderColor: wizardData.nombre && validateNombre(wizardData.nombre) ? 'rgba(239,68,68,0.5)' : wizardData.nombre && !validateNombre(wizardData.nombre) ? 'rgba(34,197,94,0.4)' : undefined
-                  }} type="text" placeholder="Ej: Gonzalo, MatiasX, gonza_fit"
-                    value={wizardData.nombre} onChange={e => setWizardData(p => ({ ...p, nombre: e.target.value }))}
-                    maxLength={20} />
-                  <FieldStatus value={wizardData.nombre} validate={validateNombre} show={wizardData.nombre.length >= 2} />
-                  <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                    Solo letras, números y guiones bajos. Sin caracteres especiales.
-                  </div>
+                  <input
+                    style={{ ...inputStyle, borderColor: touched.nombre ? (validateNombre(wizardData.nombre) ? 'rgba(239,68,68,0.55)' : 'rgba(34,197,94,0.45)') : undefined }}
+                    type="text" placeholder="Ej: Gonzalo, MatiasX, gonza_fit"
+                    value={wizardData.nombre}
+                    onChange={e => { setWizardData(p => ({ ...p, nombre: e.target.value })); setTouched(t => ({ ...t, nombre: true })); }}
+                    maxLength={20} autoComplete="username" />
+                  <FieldError error={validateNombre(wizardData.nombre)} show={touched.nombre} />
+                  <FieldOK valid={!validateNombre(wizardData.nombre)} show={touched.nombre && wizardData.nombre.length >= 3} />
+                  {!touched.nombre && <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Solo letras, números, espacios y _ (sin puntos ni guiones)</div>}
                 </div>
 
                 <div>
                   <label style={labelStyle}>CONTRASEÑA</label>
                   <div style={{ position: 'relative' }}>
-                    <input style={{
-                      ...inputStyle,
-                      paddingRight: '2.5rem',
-                      borderColor: wizardData.password && validatePassword(wizardData.password) ? 'rgba(239,68,68,0.5)' : wizardData.password && !validatePassword(wizardData.password) ? 'rgba(34,197,94,0.4)' : undefined
-                    }} type={showPassword ? 'text' : 'password'} placeholder="Mínimo 6 caracteres"
-                      value={wizardData.password} onChange={e => setWizardData(p => ({ ...p, password: e.target.value }))} />
+                    <input
+                      style={{ ...inputStyle, paddingRight: '2.5rem', borderColor: touched.password ? (validatePassword(wizardData.password) ? 'rgba(239,68,68,0.55)' : 'rgba(34,197,94,0.45)') : undefined }}
+                      type={showPassword ? 'text' : 'password'} placeholder="Mínimo 6 caracteres"
+                      value={wizardData.password}
+                      onChange={e => { setWizardData(p => ({ ...p, password: e.target.value })); setTouched(t => ({ ...t, password: true })); }}
+                      autoComplete="new-password" />
                     <button type="button" onClick={() => setShowPassword(s => !s)}
                       style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
-                  <FieldStatus value={wizardData.password} validate={validatePassword} show={wizardData.password.length >= 1} />
-                  {/* Password strength bar */}
+                  <FieldError error={validatePassword(wizardData.password)} show={touched.password} />
+                  <FieldOK valid={!validatePassword(wizardData.password)} show={touched.password && wizardData.password.length >= 6} />
                   {wizardData.password && (
-                    <div style={{ marginTop: '0.35rem', height: 3, background: 'var(--surface-3)', borderRadius: 99, overflow: 'hidden' }}>
-                      <div style={{
-                        height: '100%', borderRadius: 99, transition: 'all 0.3s',
-                        width: `${Math.min((wizardData.password.length / 12) * 100, 100)}%`,
-                        background: wizardData.password.length < 6 ? '#ef4444' : wizardData.password.length < 10 ? '#f59e0b' : '#22c55e'
-                      }} />
+                    <div style={{ marginTop: '0.3rem', height: 3, background: 'var(--surface-3)', borderRadius: 99, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', borderRadius: 99, transition: 'all 0.3s', width: `${Math.min((wizardData.password.length / 12) * 100, 100)}%`, background: wizardData.password.length < 6 ? '#ef4444' : wizardData.password.length < 10 ? '#f59e0b' : '#22c55e' }} />
                     </div>
                   )}
                 </div>
@@ -466,19 +518,25 @@ export default function LoginView({ onLogin }) {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
                   <div>
                     <label style={labelStyle}>EDAD</label>
-                    <input style={inputStyle} type="number" placeholder="28"
-                      value={wizardData.edad} onChange={e => setWizardData(p => ({ ...p, edad: e.target.value }))} />
+                    <input style={{ ...inputStyle, borderColor: touched.edad ? (validateEdad(wizardData.edad) ? 'rgba(239,68,68,0.55)' : 'rgba(34,197,94,0.45)') : undefined }}
+                      type="number" placeholder="28" min={10} max={100}
+                      value={wizardData.edad} onChange={e => { setWizardData(p => ({ ...p, edad: e.target.value })); setTouched(t => ({ ...t, edad: true })); }} />
+                    <FieldError error={validateEdad(wizardData.edad)} show={touched.edad} />
                   </div>
                   <div>
                     <label style={labelStyle}>PESO (KG)</label>
-                    <input style={inputStyle} type="number" placeholder="75"
-                      value={wizardData.peso} onChange={e => setWizardData(p => ({ ...p, peso: e.target.value }))} />
+                    <input style={{ ...inputStyle, borderColor: touched.peso ? (validatePeso(wizardData.peso) ? 'rgba(239,68,68,0.55)' : 'rgba(34,197,94,0.45)') : undefined }}
+                      type="number" placeholder="75" min={30} max={300}
+                      value={wizardData.peso} onChange={e => { setWizardData(p => ({ ...p, peso: e.target.value })); setTouched(t => ({ ...t, peso: true })); }} />
+                    <FieldError error={validatePeso(wizardData.peso)} show={touched.peso} />
                   </div>
                 </div>
                 <div>
-                  <label style={labelStyle}>ALTURA (CM) <span style={{ color: 'var(--surface-3)' }}>— opcional</span></label>
-                  <input style={inputStyle} type="number" placeholder="175"
-                    value={wizardData.altura} onChange={e => setWizardData(p => ({ ...p, altura: e.target.value }))} />
+                  <label style={labelStyle}>ALTURA (CM) <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>— opcional</span></label>
+                  <input style={{ ...inputStyle, borderColor: touched.altura && validateAltura(wizardData.altura) ? 'rgba(239,68,68,0.55)' : undefined }}
+                    type="number" placeholder="175" min={50} max={250}
+                    value={wizardData.altura} onChange={e => { setWizardData(p => ({ ...p, altura: e.target.value })); setTouched(t => ({ ...t, altura: true })); }} />
+                  <FieldError error={validateAltura(wizardData.altura)} show={touched.altura} />
                 </div>
               </>
             )}
@@ -604,8 +662,8 @@ export default function LoginView({ onLogin }) {
 
               {!isLastStep ? (
                 <button
-                  onClick={() => setStep(s => s + 1)}
-                  disabled={!canContinue}
+                  onClick={handleNext}
+                  disabled={false}
                   style={{
                     flex: 1, border: 'none', borderRadius: '14px', padding: '0.75rem',
                     fontWeight: 900, cursor: canContinue ? 'pointer' : 'not-allowed',
