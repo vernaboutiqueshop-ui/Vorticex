@@ -15,6 +15,7 @@ from core.database_sqlite import (
     obtener_metas_nutricion, guardar_metas_nutricion,
     obtener_agua_hoy, agregar_agua, resetear_agua,
     obtener_historial_nutricion,
+    fijar_agua,
     buscar_alimentos_cache, guardar_alimento_cache, obtener_alimento_por_id,
     get_preferencias_usuario, guardar_preferencias_usuario,
     obtener_comidas_fecha,

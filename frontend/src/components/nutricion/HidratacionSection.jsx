@@ -48,8 +48,10 @@ const BottleIcon = ({ filled }) => (
   </svg>
 );
 
-export default function HidratacionSection({ waterGlasses, waterGoal, onAddWater, onGoalChange, waterUnit = 'vaso', onUnitChange }) {
+export default function HidratacionSection({ waterGlasses, waterGoal, onAddWater, onGoalChange, waterUnit = 'vaso', onUnitChange, onSetWater }) {
   const [showUnitPicker, setShowUnitPicker] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editVal, setEditVal] = useState('');
 
   const unit = UNITS[waterUnit] || UNITS.vaso;
   const safeGoal = Math.max(2, waterGoal || 8);
@@ -106,9 +108,13 @@ export default function HidratacionSection({ waterGlasses, waterGoal, onAddWater
           <span style={{ fontSize: '0.52rem', color: 'var(--text-muted)', fontWeight: 700 }}>Meta:</span>
           <motion.button whileTap={{ scale: 0.9 }} onClick={() => onGoalChange?.(Math.max(2, safeGoal - 1))}
             style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--surface-3)', border: '1px solid var(--border-subtle)', cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 900, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>-</motion.button>
-          <span style={{ fontSize: '0.7rem', fontWeight: 900, color: done ? 'var(--color-success)' : 'var(--color-primary)', minWidth: '32px', textAlign: 'center' }}>
-            {waterGlasses}/{safeGoal}
-          </span>
+          <motion.button whileTap={{ scale: 0.9 }} onClick={() => { setEditVal(String(waterGlasses)); setEditing(true); }}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, minWidth: '32px', textAlign: 'center' }}
+            title="Tap para editar cantidad">
+            <span style={{ fontSize: '0.7rem', fontWeight: 900, color: done ? 'var(--color-success)' : 'var(--color-primary)', textDecoration: 'underline dotted', textUnderlineOffset: '2px' }}>
+              {waterGlasses}/{safeGoal}
+            </span>
+          </motion.button>
           <motion.button whileTap={{ scale: 0.9 }} onClick={() => onGoalChange?.(Math.min(30, safeGoal + 1))}
             style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--surface-3)', border: '1px solid var(--border-subtle)', cursor: 'pointer', color: 'var(--text-muted)', fontWeight: 900, fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</motion.button>
         </div>
@@ -176,12 +182,38 @@ export default function HidratacionSection({ waterGlasses, waterGoal, onAddWater
             )}
           </div>
 
-          {/* Count display */}
+          {/* Count display — tap to edit */}
           <div style={{ textAlign: 'center', flexShrink: 0 }}>
-            <div style={{ fontSize: '1.8rem', fontWeight: 900, color: done ? 'var(--color-success)' : 'var(--color-primary)', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>
-              {waterGlasses}
-            </div>
-            <div style={{ fontSize: '0.45rem', color: 'var(--text-muted)', fontWeight: 800 }}>de {safeGoal} {unit.plural.toLowerCase()}</div>
+            {editing ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+                <input
+                  type="number" min={0} max={200}
+                  value={editVal}
+                  onChange={e => setEditVal(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') { onSetWater?.(parseInt(editVal) || 0); setEditing(false); }
+                    if (e.key === 'Escape') setEditing(false);
+                  }}
+                  autoFocus
+                  style={{ width: '54px', textAlign: 'center', background: 'var(--surface-3)', border: '1.5px solid var(--color-primary)', borderRadius: '8px', color: 'var(--color-primary)', fontSize: '1.4rem', fontWeight: 900, padding: '0.1rem', outline: 'none' }}
+                />
+                <div style={{ display: 'flex', gap: '0.3rem' }}>
+                  <button onClick={() => { onSetWater?.(parseInt(editVal) || 0); setEditing(false); }}
+                    style={{ background: 'var(--color-primary)', border: 'none', borderRadius: '6px', padding: '0.2rem 0.5rem', cursor: 'pointer', fontSize: '0.6rem', fontWeight: 900, color: '#000' }}>OK</button>
+                  <button onClick={() => setEditing(false)}
+                    style={{ background: 'var(--surface-3)', border: 'none', borderRadius: '6px', padding: '0.2rem 0.4rem', cursor: 'pointer', fontSize: '0.6rem', color: 'var(--text-muted)' }}>✕</button>
+                </div>
+              </div>
+            ) : (
+              <motion.button whileTap={{ scale: 0.9 }} onClick={() => { setEditVal(String(waterGlasses)); setEditing(true); }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'center', padding: '0.1rem 0.3rem', borderRadius: '8px' }}
+                title="Tap para editar">
+                <div style={{ fontSize: '1.8rem', fontWeight: 900, color: done ? 'var(--color-success)' : 'var(--color-primary)', lineHeight: 1, fontVariantNumeric: 'tabular-nums', textDecoration: 'underline dotted', textUnderlineOffset: '3px' }}>
+                  {waterGlasses}
+                </div>
+                <div style={{ fontSize: '0.42rem', color: 'var(--text-muted)', fontWeight: 800 }}>de {safeGoal} {unit.plural.toLowerCase()} ✏️</div>
+              </motion.button>
+            )}
           </div>
 
           {/* Add button */}
